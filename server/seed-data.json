@@ -1,0 +1,508 @@
+{
+ "clubs": [
+  {
+   "name": "Basketball Club",
+   "category": "sports",
+   "room": "Sports Hall",
+   "icon": "basket",
+   "description": "The university basketball team and community. Regular training sessions, team selection and matches in student leagues."
+  },
+  {
+   "name": "Volleyball Club",
+   "category": "sports",
+   "room": "Sports Hall",
+   "icon": "volley",
+   "description": "Volleyball for men and women of every level. We train together and run internal championships."
+  },
+  {
+   "name": "Running Club",
+   "category": "sports",
+   "room": "Triathlon Park / Stadium",
+   "icon": "run",
+   "description": "A community of runners. Morning runs, marathon preparation and city races together."
+  },
+  {
+   "name": "Cycling Club",
+   "category": "sports",
+   "room": "Velodrome / City Bike Rental",
+   "icon": "bike",
+   "description": "For everyone who loves two wheels. Weekend rides around the city and longer routes outside the city."
+  },
+  {
+   "name": "Calisthenics Club",
+   "category": "sports",
+   "room": "Outdoor Workout Area",
+   "icon": "bar",
+   "description": "Bodyweight training on bars and rings. We learn basic and advanced street-workout elements step by step."
+  },
+  {
+   "name": "Arm-Wrestling Club",
+   "category": "sports",
+   "room": "Room 1.108 Fitness Gym",
+   "icon": "dumbbell",
+   "description": "Arm-wrestling club focused on grip strength, endurance and competition technique."
+  },
+  {
+   "name": "Table Tennis",
+   "category": "sports",
+   "room": "Ping Pong Zone, 2nd Floor",
+   "icon": "paddle",
+   "description": "Free games between classes and regular table tennis tournaments for students and staff."
+  },
+  {
+   "name": "Cheerleading",
+   "category": "sports",
+   "room": "Choreography Room",
+   "icon": "megaphone",
+   "description": "The official support squad of the university sports teams. Dance, acrobatics and performances at university events."
+  },
+  {
+   "name": "Student Orchestra",
+   "category": "creative",
+   "room": "Assembly Hall / Room 3.102",
+   "icon": "note",
+   "description": "An orchestra of Kazakh national and classical instruments that performs at major university and city events."
+  },
+  {
+   "name": "Student Choir",
+   "category": "creative",
+   "room": "Assembly Hall",
+   "icon": "mic",
+   "description": "Academic and pop vocal ensemble. Voice training, harmony singing and stage performances."
+  },
+  {
+   "name": "Music Club",
+   "category": "creative",
+   "room": "Media Room / Recording Studio",
+   "icon": "guitar",
+   "description": "Bands, solo artists and acoustic nights, with access to the university recording studio."
+  },
+  {
+   "name": "Dance Club",
+   "category": "creative",
+   "room": "Dance Class Studio",
+   "icon": "dance",
+   "description": "The dance family of the campus: hip-hop, high heels, K-pop, contemporary and national dance."
+  },
+  {
+   "name": "Anime Club",
+   "category": "creative",
+   "room": "2nd Floor Coworking Space",
+   "icon": "star",
+   "description": "A community for anime, manga and geek culture fans. Screenings, themed quizzes and cosplay events."
+  },
+  {
+   "name": "KCA (Korean Culture Association)",
+   "category": "creative",
+   "room": "Room 2.304",
+   "icon": "taeguk",
+   "description": "Korean language, traditions and culture through classes, holidays and themed events."
+  },
+  {
+   "name": "JCA (Japan Culture Association)",
+   "category": "creative",
+   "room": "Room 2.305",
+   "icon": "torii",
+   "description": "Japanese culture on campus: speaking practice, calligraphy, tea meetings and festivals."
+  },
+  {
+   "name": "ART Club",
+   "category": "creative",
+   "room": "Art Studio, 4th Floor",
+   "icon": "palette",
+   "description": "A studio for visual art: painting, sketching, digital art, murals and exhibitions on campus."
+  },
+  {
+   "name": "TYF.Media",
+   "category": "creative",
+   "room": "Open Space Media Lab",
+   "icon": "news",
+   "description": "An independent student media team creating articles, photo shoots, podcasts and short videos."
+  },
+  {
+   "name": "Campus Live",
+   "category": "creative",
+   "room": "Campus Live Studio",
+   "icon": "video",
+   "description": "The official video channel of the university. Reports, interviews and coverage of all main events."
+  },
+  {
+   "name": "GDSC (Google Developer Student Club)",
+   "category": "tech",
+   "room": "GDSC Lab / Room 3.201",
+   "icon": "code",
+   "description": "The main IT community on campus. Workshops, hackathons and team projects supported by Google programs."
+  },
+  {
+   "name": "AWS 3C",
+   "category": "tech",
+   "room": "Cloud Computing Lab",
+   "icon": "cloud",
+   "description": "Hands-on cloud computing with Amazon Web Services and preparation for AWS certifications."
+  },
+  {
+   "name": "Electronics Club",
+   "category": "tech",
+   "room": "Robotics Lab / Room 1.205",
+   "icon": "chip",
+   "description": "Practical electronics: soldering, Arduino and STM32 microcontrollers, drones and smart devices."
+  },
+  {
+   "name": "SEDS Student Chapter",
+   "category": "tech",
+   "room": "Aerospace Engineering Lab",
+   "icon": "rocket",
+   "description": "Space engineering projects: model rockets, small satellites and CubeSat programming."
+  },
+  {
+   "name": "SIAM Student Chapter",
+   "category": "tech",
+   "room": "Mathematics Department",
+   "icon": "sigma",
+   "description": "Applied mathematics, algorithms, data analysis and student research papers."
+  },
+  {
+   "name": "Chess Club",
+   "category": "tech",
+   "room": "Chess Zone, Coworking Space",
+   "icon": "knight",
+   "description": "Chess games, analysis of classic matches, blitz tournaments and inter-university championships."
+  },
+  {
+   "name": "Game-Dev",
+   "category": "tech",
+   "room": "Gaming Lab / Room 3.402",
+   "icon": "pad",
+   "description": "The full game development cycle: game design, 3D modelling, programming in Unity and Unreal."
+  },
+  {
+   "name": "Coffee-Philo",
+   "category": "intellectual",
+   "room": "Student Cafe Lounge",
+   "icon": "coffee",
+   "description": "Relaxed discussions about philosophy, psychology, society and books over a cup of coffee."
+  },
+  {
+   "name": "Intellectum Games",
+   "category": "intellectual",
+   "room": "Lecture Hall 2.102",
+   "icon": "bulb",
+   "description": "Quizzes, brain rings and logic puzzles that train general knowledge and quick thinking."
+  },
+  {
+   "name": "Board Games",
+   "category": "intellectual",
+   "room": "Board Games Corner, Coworking",
+   "icon": "dice",
+   "description": "A large collection of board games and evenings of strategy, deduction and party games."
+  },
+  {
+   "name": "TEDx Campus Team",
+   "category": "intellectual",
+   "room": "Conference Hall",
+   "icon": "xmark",
+   "description": "The licensed TEDx team that finds speakers with ideas worth spreading and organises conferences."
+  },
+  {
+   "name": "Cooking Club",
+   "category": "intellectual",
+   "room": "Student Dining Hall Studio",
+   "icon": "chef",
+   "description": "Cooking master classes, recipe exchanges, culinary battles and tasting events."
+  },
+  {
+   "name": "Esports Club",
+   "category": "intellectual",
+   "room": "Cyber Lab / Room 3.105",
+   "icon": "headset",
+   "description": "The official esports community. Tournaments and streams in CS2, Dota 2, Valorant and EA FC."
+  },
+  {
+   "name": "Mafia Club",
+   "category": "intellectual",
+   "room": "Small Coworking Space, 3rd Floor",
+   "icon": "hat",
+   "description": "Tournament-style Mafia games that develop deduction, public speaking and reading people."
+  },
+  {
+   "name": "Volunteers Club",
+   "category": "social",
+   "room": "Student Council Office / 1.102",
+   "icon": "heart",
+   "description": "The student volunteer corps. Support for major forums, eco campaigns and charity projects."
+  },
+  {
+   "name": "Sanaly Urpaq",
+   "category": "social",
+   "room": "Room 2.115",
+   "icon": "scales",
+   "description": "An anti-corruption club that builds legal culture and academic integrity among students."
+  },
+  {
+   "name": "Jurek Charity",
+   "category": "social",
+   "room": "Room 1.104",
+   "icon": "gift",
+   "description": "A student charity that raises funds for people in need and visits orphanages and shelters."
+  },
+  {
+   "name": "MUN (Model United Nations)",
+   "category": "social",
+   "room": "Senate Hall",
+   "icon": "globe",
+   "description": "Simulations of UN sessions where students represent countries and debate global issues in English."
+  },
+  {
+   "name": "LOGOS",
+   "category": "social",
+   "room": "Debate Club Arena 2.208",
+   "icon": "speech",
+   "description": "A classic debate club using parliamentary formats to develop argumentation and critical thinking."
+  },
+  {
+   "name": "Ombudsman",
+   "category": "social",
+   "room": "Ombudsman Office, 1st Floor",
+   "icon": "shield",
+   "description": "Protects student rights and helps resolve academic and everyday disputes with the administration."
+  },
+  {
+   "name": "Buddy",
+   "category": "social",
+   "room": "Social Affairs Department",
+   "icon": "people",
+   "description": "A mentoring program that helps first-year and international students settle in at the university."
+  },
+  {
+   "name": "Psyclub",
+   "category": "social",
+   "room": "Psychologist Room / 1.303",
+   "icon": "brain",
+   "description": "Peer support, talks on mental health, stress and burnout, and group sessions with a psychologist."
+  },
+  {
+   "name": "Devine",
+   "category": "social",
+   "room": "Art Space Lounge",
+   "icon": "hanger",
+   "description": "A fashion and style community that organises fashion shows, style talks and photo shoots."
+  },
+  {
+   "name": "HUSTLE LAB",
+   "category": "social",
+   "room": "Business Incubator / Room 3.305",
+   "icon": "case",
+   "description": "The student startup lab: turning ideas into business projects, pitch training and investor meetings."
+  }
+ ],
+ "events": [
+  {
+   "key": "s1",
+   "title": "Table Tennis Open",
+   "club": "Table Tennis",
+   "location": "Ping Pong Zone, 2nd Floor",
+   "dayOffset": 0,
+   "hour": 16,
+   "minute": 0,
+   "type": "sports",
+   "capacity": 32,
+   "taken": 27,
+   "coins": 20,
+   "description": "A friendly knockout tournament for students and staff. Paddles are provided.",
+   "status": "approved",
+   "waitlist": 0
+  },
+  {
+   "key": "s2",
+   "title": "Mafia Night",
+   "club": "Mafia Club",
+   "location": "Small Coworking Space, 3rd Floor",
+   "dayOffset": 0,
+   "hour": 19,
+   "minute": 0,
+   "type": "intellectual",
+   "capacity": 24,
+   "taken": 24,
+   "coins": 15,
+   "description": "Tournament rules, a professional host and a ranking table for the season.",
+   "status": "approved",
+   "waitlist": 3
+  },
+  {
+   "key": "s3",
+   "title": "Cloud Basics Workshop",
+   "club": "AWS 3C",
+   "location": "Cloud Computing Lab",
+   "dayOffset": 1,
+   "hour": 14,
+   "minute": 0,
+   "type": "tech",
+   "capacity": 40,
+   "taken": 22,
+   "coins": 30,
+   "description": "Deploy your first app on AWS in 90 minutes. Bring a laptop.",
+   "status": "approved",
+   "waitlist": 0
+  },
+  {
+   "key": "s4",
+   "title": "Volunteer Orientation",
+   "club": "Volunteers Club",
+   "location": "Student Council Office / 1.102",
+   "dayOffset": 1,
+   "hour": 13,
+   "minute": 0,
+   "type": "social",
+   "capacity": 50,
+   "taken": 18,
+   "coins": 15,
+   "description": "Meet the team, learn about upcoming forums and choose the projects you want to help with.",
+   "status": "approved",
+   "waitlist": 0
+  },
+  {
+   "key": "s5",
+   "title": "Campus Hackathon 2026",
+   "club": "GDSC (Google Developer Student Club)",
+   "location": "Sports Hall / Coworking Spaces",
+   "dayOffset": 2,
+   "hour": 10,
+   "minute": 0,
+   "type": "tech",
+   "capacity": 120,
+   "taken": 96,
+   "coins": 50,
+   "description": "48 hours of coding, mentoring from senior engineers, pizza and prizes from leading IT companies.",
+   "status": "approved",
+   "waitlist": 0
+  },
+  {
+   "key": "s6",
+   "title": "K-Pop Dance Workshop",
+   "club": "Dance Club",
+   "location": "Dance Class Studio",
+   "dayOffset": 3,
+   "hour": 17,
+   "minute": 30,
+   "type": "creative",
+   "capacity": 30,
+   "taken": 12,
+   "coins": 20,
+   "description": "Learn a full routine in one evening. No experience needed.",
+   "status": "approved",
+   "waitlist": 0
+  },
+  {
+   "key": "s7",
+   "title": "Acoustic Night",
+   "club": "Music Club",
+   "location": "Assembly Hall",
+   "dayOffset": 4,
+   "hour": 18,
+   "minute": 30,
+   "type": "creative",
+   "capacity": 80,
+   "taken": 41,
+   "coins": 20,
+   "description": "A cosy evening with guitars, favourite student songs and hot tea.",
+   "status": "approved",
+   "waitlist": 0
+  },
+  {
+   "key": "s8",
+   "title": "Intellectum Quiz Cup",
+   "club": "Intellectum Games",
+   "location": "Lecture Hall 2.102",
+   "dayOffset": 5,
+   "hour": 15,
+   "minute": 0,
+   "type": "intellectual",
+   "capacity": 60,
+   "taken": 60,
+   "coins": 20,
+   "description": "Teams of four, six rounds, prizes for the top three teams.",
+   "status": "approved",
+   "waitlist": 5
+  },
+  {
+   "key": "s9",
+   "title": "CS2 5v5 Campus Cup",
+   "club": "Esports Club",
+   "location": "Cyber Lab / Room 3.105",
+   "dayOffset": 6,
+   "hour": 15,
+   "minute": 0,
+   "type": "intellectual",
+   "capacity": 40,
+   "taken": 30,
+   "coins": 30,
+   "description": "An internal esports tournament. Build a team with your classmates and take the campus cup.",
+   "status": "approved",
+   "waitlist": 0
+  },
+  {
+   "key": "s10",
+   "title": "Career Night with Alumni",
+   "club": "HUSTLE LAB",
+   "location": "Business Incubator / Room 3.305",
+   "dayOffset": 9,
+   "hour": 18,
+   "minute": 0,
+   "type": "social",
+   "capacity": 70,
+   "taken": 20,
+   "coins": 20,
+   "description": "Graduates share how they found their first jobs and started companies.",
+   "status": "approved",
+   "waitlist": 0
+  },
+  {
+   "key": "p1",
+   "title": "Japanese Tea Ceremony",
+   "club": "JCA (Japan Culture Association)",
+   "location": "Room 2.305",
+   "dayOffset": 3,
+   "hour": 16,
+   "minute": 0,
+   "type": "creative",
+   "capacity": 20,
+   "taken": 0,
+   "coins": 15,
+   "description": "A guided tea ceremony with a short talk on Japanese etiquette.",
+   "status": "pending",
+   "waitlist": 0
+  },
+  {
+   "key": "p2",
+   "title": "Night Run around Expo",
+   "club": "Running Club",
+   "location": "Triathlon Park / Stadium",
+   "dayOffset": 4,
+   "hour": 20,
+   "minute": 0,
+   "type": "sports",
+   "capacity": 60,
+   "taken": 0,
+   "coins": 20,
+   "description": "An easy 5 km group run with lights and music. Meet at the main entrance.",
+   "status": "pending",
+   "waitlist": 0
+  },
+  {
+   "key": "p3",
+   "title": "Pitch Practice Day",
+   "club": "HUSTLE LAB",
+   "location": "Business Incubator / Room 3.305",
+   "dayOffset": 5,
+   "hour": 12,
+   "minute": 0,
+   "type": "social",
+   "capacity": 30,
+   "taken": 0,
+   "coins": 20,
+   "description": "Present your startup idea in 3 minutes and get feedback from mentors.",
+   "status": "pending",
+   "waitlist": 0
+  }
+ ]
+}
