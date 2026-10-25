@@ -174,13 +174,16 @@
 
   // ---------- W06 Profile (FR-16, FR-19, FR-21) ----------
   VIEWS.profile = async () => {
-    const [me, coins, notes, clubs] = await Promise.all([api('GET', '/api/me'), api('GET', '/api/me/coins'), api('GET', '/api/me/notifications'), api('GET', '/api/clubs')]);
+    const [me, coins, notes, clubs, regs] = await Promise.all([api('GET', '/api/me'), api('GET', '/api/me/coins'), api('GET', '/api/me/notifications'), api('GET', '/api/clubs'), S.me.role === 'student' ? api('GET', '/api/me/registrations') : []]);
     const mine = clubs.filter((c) => c.myStatus === 'accepted' || c.myStatus === 'pending');
+    const attended = regs.filter((e) => e.my && e.my.status === 'checked_in');
     app.innerHTML = `<h1>${esc(me.name)}</h1><p class="sub">${esc(me.email)}${me.studentId ? ' · ID ' + esc(me.studentId) : ''}${me.group ? ' · ' + esc(me.group) : ''}${me.club ? ' · ' + esc(me.club.name) : ''}</p>
       <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>+${h.amount}</b></li>`).join('')}</ul></section>
       <section class="card"><h2>${esc(t('notifications'))}</h2>${notes.length ? `<ul class="list">${notes.map((n) => `<li><span class="pill">${esc(n.channel)}</span> ${esc(n.text)}<br><span class="meta">${esc(dateLong(n.createdAt))}, ${esc(time(n.createdAt))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('no_notifications'))}</p>`}</section>
+      ${S.me.role === 'student' ? `<section class="card"><h2>${esc(t('attended'))}</h2><ul class="list">${attended.map((e) => `<li><b>${esc(e.title)}</b><br><span class="meta">${esc(dateLong(e.startsAt))}</span>${e.my.rating ? `<p class="note ok" style="margin:6px 0 0">${esc(t('rated', { n: e.my.rating }))}</p>` : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</li>`).join('') || '<li class="meta">—</li>'}</ul></section>` : ''}
       <section class="card"><h2>${esc(t('my_clubs'))}</h2><ul class="list">${mine.map((c) => `<li class="spread"><span>${esc(c.name)}</span><span class="meta">${esc(t(c.myStatus === 'accepted' ? 'st_accepted' : 'st_pending'))}</span></li>`).join('') || '<li class="meta">—</li>'}</ul>
       <label for="pl">${esc(t('language'))}</label><select id="pl"><option value="en">English</option><option value="kk">Қазақша</option><option value="ru">Русский</option></select></section></div>`;
+    app.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', async () => { try { await api('POST', `/api/events/${b.dataset.rate}/feedback`, { rating: Number(b.dataset.star) }); toast(t('rated', { n: b.dataset.star })); render(); } catch (err) { fail(err); } }));
     $('#pl').value = S.lang; $('#pl').addEventListener('change', (e) => { $('#lang').value = e.target.value; $('#lang').dispatchEvent(new Event('change')); });
   };
 
