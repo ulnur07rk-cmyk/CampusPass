@@ -215,7 +215,7 @@
     if (!S.ci || !list.find((e) => e.id === S.ci)) S.ci = (list.find((e) => new Date(e.endsAt) > new Date()) || list[0] || {}).id;
     app.innerHTML = `<h1>${esc(t('checkin_title'))}</h1><p class="sub">${esc(t('checkin_sub'))}</p><div class="grid"><section class="card">
       <label for="ce">${esc(t('choose_event'))}</label><select id="ce">${list.map((e) => `<option value="${e.id}" ${e.id === S.ci ? 'selected' : ''}>${esc(e.title)} · ${esc(dateLong(e.startsAt))} ${esc(time(e.startsAt))}</option>`).join('')}</select>
-      <label for="cc">${esc(t('ticket_code'))}</label><input id="cc" placeholder="CP-…" autocomplete="off"><div class="row"><button class="btn" id="cgo">${esc(t('check'))}</button><button class="btn ghost" id="scan">${esc(t('scan'))}</button></div>
+      <label for="cc">${esc(t('ticket_code'))}</label><input id="cc" placeholder="CP-…" autocomplete="off"><div class="row"><button class="btn" id="cgo">${esc(t('check'))}</button><button class="btn ghost" id="scan">${esc(t('scan'))}</button><label class="btn ghost" style="margin:0;color:var(--accent)">${esc(t('scan_photo'))}<input id="photo" type="file" accept="image/*" capture="environment" hidden></label></div>
       <video id="cam" playsinline muted style="width:100%;border-radius:10px;margin-top:10px;display:none"></video><div id="cres"></div></section>
       <section class="card"><h2>${esc(t('participants'))}</h2><input id="pq" type="search" placeholder="${esc(t('search_people'))}" aria-label="${esc(t('search_people'))}"><ul class="list" id="pl"></ul></section></div>`;
     let people = [];
@@ -229,15 +229,41 @@
     $('#cgo').addEventListener('click', () => doCheck({ ticketCode: $('#cc').value }));
     $('#cc').addEventListener('keydown', (e) => { if (e.key === 'Enter') doCheck({ ticketCode: $('#cc').value }); });
     $('#pq').addEventListener('input', drawPeople);
-    $('#scan').addEventListener('click', async () => { // Uses the browser's BarcodeDetector where available (Chrome on Android, macOS, ChromeOS)
-      if (!('BarcodeDetector' in window) || !navigator.mediaDevices) { $('#cres').innerHTML = `<p class="note warn">${esc(t('scan_unsupported'))}</p>`; return; }
+    // QR scanning: the browser's BarcodeDetector if available, otherwise the jsQR library (Apache-2.0).
+    const msg = (k, cls = 'warn') => { $('#cres').innerHTML = `<p class="note ${cls}" role="alert">${esc(t(k))}</p>`; };
+    const loadJsQR = () => window.jsQR ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; sc.onload = ok; sc.onerror = () => no(Object.assign(new Error('lib'), { name: 'LibError' })); document.head.appendChild(sc); });
+    async function decoder() {
+      if ('BarcodeDetector' in window) { try { const det = new BarcodeDetector({ formats: ['qr_code'] }); return async (src) => { const c = await det.detect(src).catch(() => []); return c.length ? c[0].rawValue : null; }; } catch { /* fall back to jsQR */ } }
+      await loadJsQR();
+      const cv = document.createElement('canvas'), ctx = cv.getContext('2d', { willReadFrequently: true });
+      return async (src) => { const w = src.videoWidth || src.width, h = src.videoHeight || src.height; if (!w) return null; cv.width = w; cv.height = h; ctx.drawImage(src, 0, 0, w, h); const img = ctx.getImageData(0, 0, w, h); const r = window.jsQR(img.data, w, h, { inversionAttempts: 'attemptBoth' }); return r ? r.data : null; };
+    }
+    const explain = (e) => msg(e && e.name === 'NotAllowedError' ? 'scan_denied' : e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError') ? 'scan_nocam' : e && e.name === 'LibError' ? 'scan_lib' : e && e.name === 'NotReadableError' ? 'scan_busy' : 'scan_unsupported');
+    $('#scan').addEventListener('click', async () => {
+      if (!window.isSecureContext) return msg('scan_https');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return msg('scan_unsupported');
+      let stream;
       try {
-        const v = $('#cam'), stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }), det = new BarcodeDetector({ formats: ['qr_code'] });
-        v.srcObject = stream; v.style.display = 'block'; await v.play();
+        const detect = await decoder();
+        const v = $('#cam'); stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        v.srcObject = stream; v.style.display = 'block'; await v.play(); msg('scan_hint', 'info');
         const stop = () => { stream.getTracks().forEach((x) => x.stop()); v.style.display = 'none'; };
-        const tick = async () => { if (!document.body.contains(v)) return stop(); const codes = await det.detect(v).catch(() => []); if (codes.length) { stop(); $('#cc').value = codes[0].rawValue; doCheck({ ticketCode: codes[0].rawValue }); } else requestAnimationFrame(tick); };
+        const started = Date.now();
+        const tick = async () => {
+          if (!document.body.contains(v)) return stop();
+          if (Date.now() - started > 60000) { stop(); return msg('scan_timeout'); }
+          const code = await detect(v);
+          if (code) { stop(); $('#cc').value = code; doCheck({ ticketCode: code }); } else setTimeout(tick, 200);
+        };
         tick();
-      } catch { $('#cres').innerHTML = `<p class="note warn">${esc(t('scan_unsupported'))}</p>`; }
+      } catch (e) { if (stream) stream.getTracks().forEach((x) => x.stop()); explain(e); }
+    });
+    // Alternative without live video: take or choose a photo of the QR code
+    $('#photo').addEventListener('change', async (ev) => {
+      const f = ev.target.files && ev.target.files[0]; if (!f) return;
+      try { const detect = await decoder(); const bmp = await createImageBitmap(f); const code = await detect(bmp); ev.target.value = '';
+        if (code) { $('#cc').value = code; doCheck({ ticketCode: code }); } else msg('scan_notfound'); }
+      catch (e) { explain(e); }
     });
     loadPeople();
   };

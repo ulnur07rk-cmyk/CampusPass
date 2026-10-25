@@ -93,6 +93,7 @@ tests/    acceptance.test.js
 
 ## Credits and licences
 - QR code generation: `vendor/qrcode.js` is a browser bundle of the QR encoder from [qrcode-terminal](https://github.com/gtanner/qrcode-terminal) (Apache-2.0), which is based on *QRCode for JavaScript* by Kazuhiko Arase (MIT).
+- QR scanning in browsers without the built-in BarcodeDetector: [jsQR](https://github.com/cozmo/jsQR) 1.4.0 (Apache-2.0), loaded from the jsDelivr CDN only when the organizer presses *Scan with camera* (needs internet and HTTPS or localhost).
 - Club names and descriptions are based on public information; events, people and numbers are invented.
 
 ## AI use
