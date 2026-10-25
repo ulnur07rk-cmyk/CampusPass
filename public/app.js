@@ -16,6 +16,11 @@
 
   // ---------- API ----------
   async function api(method, url, body) {
+    if (window.CP_DEMO_API) { // Netlify demo mode: the API runs inside the browser (see scripts/demo-api.template.js)
+      const r = window.CP_DEMO_API(method, url, body);
+      if (r.status >= 400) { const e = new Error(r.data.error.message); e.code = r.data.error.code; e.status = r.status; throw e; }
+      return r.data;
+    }
     const r = await fetch(url, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin' });
     const data = r.status === 204 ? {} : await r.json().catch(() => ({}));
     if (!r.ok) { const e = new Error((data.error && data.error.message) || 'Error'); e.code = data.error && data.error.code; e.status = r.status; throw e; }
@@ -122,7 +127,7 @@
     const z = (s) => s.replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const g = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}&dates=${z(e.startsAt)}/${z(e.endsAt)}&location=${encodeURIComponent(e.location)}`;
     const o = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(e.title)}&startdt=${encodeURIComponent(e.startsAt)}&enddt=${encodeURIComponent(e.endsAt)}&location=${encodeURIComponent(e.location)}`;
-    return `<label>${esc(t('calendar'))}</label><div class="row" style="margin-top:0"><a class="btn ghost small" target="_blank" rel="noopener" href="${g}">Google</a><a class="btn ghost small" target="_blank" rel="noopener" href="${o}">Outlook</a><a class="btn ghost small" href="/api/events/${e.id}/ics">${esc(t('ics'))}</a></div>`;
+    return `<label>${esc(t('calendar'))}</label><div class="row" style="margin-top:0"><a class="btn ghost small" target="_blank" rel="noopener" href="${g}">Google</a><a class="btn ghost small" target="_blank" rel="noopener" href="${o}">Outlook</a><a class="btn ghost small" ${window.CP_DEMO_API ? `download="event-${e.id}.ics" href="data:text/calendar;charset=utf-8,${encodeURIComponent(window.CP_DEMO_API('GET', `/api/events/${e.id}/ics`).data)}"` : `href="/api/events/${e.id}/ics"`}>${esc(t('ics'))}</a></div>`;
   }
   function openEvent(e) {
     const m = e.my, rem = m && m.reminder;

@@ -59,6 +59,12 @@ npm start                   # opens http://localhost:3000
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
 - `npm test` — run the 12 automated acceptance tests (AT-01 … AT-12).
 
+## Netlify demo version (optional)
+Netlify serves only static files, so it cannot run the Node.js server and the SQLite database. For Netlify, `scripts/build-static.js` builds a **demo mode** into `dist/`: the same screens, with the API emulated inside the browser (`scripts/demo-api.template.js`) and the data stored in the browser's local storage.
+- Netlify settings come from `netlify.toml` (build command `node scripts/build-static.js`, publish directory `dist`).
+- In demo mode all roles can be shown on one device (sign out and sign in with another test account), but data are **not shared between devices**. A yellow banner shows this and offers *Reset demo data*.
+- The graded prototype is the localhost version with the real server and database.
+
 ## Test accounts (fictional)
 | Role | E-mail | Password |
 |---|---|---|
@@ -77,6 +83,7 @@ npm start                   # opens http://localhost:3000
 ## Project structure
 ```
 server/   index.js (start), app.js (API and rules), db.js (schema and seed), auth.js, seed-data.json
+scripts/  build-static.js and demo-api.template.js (Netlify demo build)
 public/   index.html, app.js (screens), i18n.js (EN/KZ/RU), styles.css, vendor/qrcode.js
 tests/    acceptance.test.js
 ```

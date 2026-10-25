@@ -180,4 +180,4 @@ function seed(db, now = new Date()) {
   });
 }
 
-module.exports = { open, seed, tx, iso };
+module.exports = { open, seed, tx, iso, FIRST, LAST };

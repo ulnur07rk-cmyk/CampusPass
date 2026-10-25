@@ -1,0 +1,14 @@
+# Netlify settings (demo mode). Educational project. Not a real product or service. All data are fictional.
+[build]
+  command = "node scripts/build-static.js"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"
+    X-Frame-Options = "DENY"
