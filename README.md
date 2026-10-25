@@ -57,7 +57,7 @@ cp .env.example .env        # Windows: copy .env.example .env
 npm start                   # opens http://localhost:3000
 ```
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
-- `npm test` — run the 12 automated acceptance tests (AT-01 … AT-12).
+- `npm test` — run the 13 automated acceptance tests (AT-01 … AT-13).
 
 ## Netlify version (optional)
 Netlify cannot run a permanent Node.js server, so the Netlify version uses:
@@ -76,6 +76,9 @@ The graded prototype is the localhost version (`npm start`) with the SQLite data
 | Organizer (GDSC) | organizer@test.local | Organizer123! |
 | Organizer (Chess Club) | organizer2@test.local | Organizer123! |
 | Moderator (Student Affairs) | admin@test.local | Admin123! |
+| Usability testers (clean accounts) | tester1@test.local … tester5@test.local | Student123! |
+
+Before each round of usability testing, the moderator can press **Roles → Reset test data** to restore the starting data (everyone is signed out). Self-registration is intentionally not offered: the prototype must not collect data from real people.
 
 ## Security and data
 - Passwords are stored as scrypt hashes; sessions use random tokens in an HttpOnly, SameSite cookie; access rights are checked on the server for every API call.

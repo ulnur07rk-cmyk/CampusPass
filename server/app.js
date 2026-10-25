@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { tx, iso } = require('./db');
+const { tx, iso, reset } = require('./db');
 const auth = require('./auth');
 
 const PUBLIC = path.join(__dirname, '..', 'public');
@@ -297,6 +297,13 @@ function createApp(db, opts = {}) {
     const r = q('UPDATE users SET role = ?, club_id = ? WHERE id = ?').run(body.role, clubId, id); if (!r.changes) fail(404, 'user_not_found', 'User not found.');
     q('DELETE FROM sessions WHERE user_id = ?').run(id); // new rights apply at next sign-in
     return { id, role: body.role, clubId };
+  });
+
+  // Reset all data to the fictional test data (moderator only; used between usability-test sessions)
+  route('POST', '/api/admin/reset', ({ user, res }) => {
+    need(user, 'admin'); reset(db);
+    res.setHeader('Set-Cookie', 'cp_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
+    return { ok: true };
   });
 
   // Simulated reminder delivery (FR-08): called every minute by index.js and directly by tests

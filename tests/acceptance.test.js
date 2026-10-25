@@ -134,6 +134,12 @@ test('AT-11 (FR-10, FR-13) student sends a club request; moderator accepts it', 
   assert.equal((await call('GET', '/api/clubs', null, st)).body.find((c) => c.id === club).myStatus, 'accepted');
 });
 
+test('AT-13 (testing support) tester accounts start clean; only the moderator can reset the data', async () => {
+  const tst = await login('tester1@test.local', 'Student123!');
+  assert.equal((await call('GET', '/api/me/registrations', null, tst)).body.length, 0);
+  assert.equal((await call('POST', '/api/admin/reset', {}, tst)).status, 403);
+});
+
 test('AT-12 (FR-17, FR-18) only attendees can rate once; statistics show the average', async () => {
   const st = await login('student@test.local', 'Student123!');
   const fair = eventId('Welcome Fair of Clubs');

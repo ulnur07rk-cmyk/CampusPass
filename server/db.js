@@ -121,6 +121,11 @@ const iso = (d) => new Date(d).toISOString();
 const SEED_DATA = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8'));
 const FIRST = SEED_DATA.first, LAST = SEED_DATA.last;
 
+function reset(db) {
+  tx(db, () => { for (const tb of ['notifications', 'coin_transactions', 'feedback', 'memberships', 'registrations', 'events', 'sessions', 'users', 'clubs']) db.exec(`DELETE FROM ${tb}`); });
+  return seed(db);
+}
+
 function seed(db, now = new Date()) {
   if (db.prepare('SELECT COUNT(*) AS n FROM users').get().n > 0) return false;
   const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8'));
@@ -138,6 +143,8 @@ function seed(db, now = new Date()) {
     const org = addUser.run('organizer@test.local', O, 'Madina Omarova', '220010', 'IT-2201', 'organizer', gdsc, t).lastInsertRowid;
     addUser.run('organizer2@test.local', O, 'Timur Bekov', '220011', 'SE-2202', 'organizer', clubId('Chess Club'), t);
     addUser.run('admin@test.local', A, 'Saule Ermekova (Student Affairs)', null, null, 'admin', null, t);
+    // Clean accounts for usability testers (no registrations): tester1@test.local … tester5@test.local
+    for (let i = 1; i <= 5; i++) addUser.run(`tester${i}@test.local`, S, `Test Student ${i}`, String(239000 + i), 'TEST-01', 'student', null, t);
     // 120 extra fictional students who fill seats
     const crowd = [];
     for (let i = 0; i < 120; i++) {
@@ -180,4 +187,4 @@ function seed(db, now = new Date()) {
   });
 }
 
-module.exports = { open, seed, tx, iso, FIRST, LAST };
+module.exports = { open, seed, reset, tx, iso, FIRST, LAST };

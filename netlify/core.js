@@ -20,6 +20,7 @@ function createCore(SEED, state) {
     const org = U('organizer@test.local', 'Organizer123!', 'Madina Omarova', '220010', 'IT-2201', 'organizer', gdsc);
     U('organizer2@test.local', 'Organizer123!', 'Timur Bekov', '220011', 'SE-2202', 'organizer', club('Chess Club'));
     U('admin@test.local', 'Admin123!', 'Saule Ermekova (Student Affairs)', null, null, 'admin', null);
+    for (let i = 1; i <= 5; i++) U(`tester${i}@test.local`, 'Student123!', `Test Student ${i}`, String(239000 + i), 'TEST-01', 'student', null);
     const F = SEED.first, L = SEED.last, crowd = [];
     for (let i = 0; i < 120; i++) crowd.push(U(`s${String(i + 1).padStart(3, '0')}@test.local`, 'Student123!', F[i % F.length] + ' ' + L[(i * 7 + 3) % L.length], String(240100 + i), 'ST-24' + String(i % 9 + 1).padStart(2, '0'), 'student', null));
     const at = (o, h, m) => { const d = new Date(now); d.setDate(d.getDate() + o); d.setHours(h, m, 0, 0); return d; };
@@ -79,6 +80,7 @@ function createCore(SEED, state) {
   // ---------- routes ----------
   const R = [];
   const on = (m, p, h) => R.push({ m, re: new RegExp('^' + p.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), h });
+  on('POST', '/api/admin/reset', (b, u) => { need(u, 'admin'); D = seed(); NEW_TOKEN = ''; return { ok: true }; });
   on('POST', '/api/auth/login', (b) => { const u = D.users.find((x) => x.email === String(b.email || '').trim().toLowerCase()); if (!u || u.pw !== b.password) fail(401, 'invalid_credentials', 'Wrong e-mail or password.'); const tk = Array.from(globalThis.crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join(''); D.sessions[tk] = { uid: u.id, exp: Date.now() + 12 * 3600000 }; NEW_TOKEN = tk; return { user: { id: u.id, name: u.name, email: u.email, role: u.role } }; });
   on('POST', '/api/auth/logout', () => { if (TOKEN) delete D.sessions[TOKEN]; NEW_TOKEN = ''; return { ok: true }; });
   on('GET', '/api/me', (b, u) => { need(u); const c = u.club_id ? D.clubs.find((x) => x.id === u.club_id) : null; return { id: u.id, name: u.name, email: u.email, studentId: u.student_id, group: u.group_name, role: u.role, lang: u.lang, club: c ? { id: c.id, name: c.name } : null, coins: balance(u.id) }; });

@@ -95,7 +95,7 @@
       <form id="f" novalidate><label for="em">${esc(t('email'))}</label><input id="em" type="email" autocomplete="username" required>
       <label for="pw">${esc(t('password'))}</label><input id="pw" type="password" autocomplete="current-password" required>
       <div id="err"></div><button class="btn" style="width:100%;margin-top:14px">${esc(t('sign_in'))}</button></form>
-      <p class="sub" style="margin:16px 0 0">${esc(t('demo_accounts'))}:</p><div class="demo">${demo.map((d) => `<button class="btn ghost small" data-e="${d[0]}" data-p="${d[1]}">${esc(t(d[2]))}</button>`).join('')}</div></section></div>`;
+      <p class="sub" style="margin:16px 0 0">${esc(t('demo_accounts'))}:</p><p class="meta" style="margin:4px 0 6px">${esc(t('tester_hint'))}</p><div class="demo">${demo.map((d) => `<button class="btn ghost small" data-e="${d[0]}" data-p="${d[1]}">${esc(t(d[2]))}</button>`).join('')}</div></section></div>`;
     app.querySelectorAll('.demo button').forEach((b) => b.addEventListener('click', () => { $('#em').value = b.dataset.e; $('#pw').value = b.dataset.p; }));
     $('#f').addEventListener('submit', async (ev) => {
       ev.preventDefault();
@@ -366,8 +366,9 @@
   VIEWS.roles = async () => {
     const [users, clubs] = await Promise.all([api('GET', '/api/admin/users'), api('GET', '/api/clubs')]);
     const opts = clubs.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
-    app.innerHTML = `<h1>${esc(t('users_title'))}</h1><section class="card tablewrap"><table><thead><tr><th>${esc(t('th_name'))}</th><th>${esc(t('th_role'))}</th><th>${esc(t('th_club'))}</th><th></th></tr></thead><tbody>
+    app.innerHTML = `<h1>${esc(t('users_title'))}</h1><section class="card" style="margin-bottom:14px"><div class="spread"><span><b>${esc(t('reset_title'))}</b><br><span class="meta">${esc(t('reset_sub'))}</span></span><button class="btn danger small" id="reset">${esc(t('reset_btn'))}</button></div></section><section class="card tablewrap"><table><thead><tr><th>${esc(t('th_name'))}</th><th>${esc(t('th_role'))}</th><th>${esc(t('th_club'))}</th><th></th></tr></thead><tbody>
       ${users.map((u) => `<tr data-u="${u.id}"><td>${esc(u.name)}<br><span class="meta">${esc(u.email)}</span></td><td><select class="r">${['student', 'organizer', 'admin'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${esc(t('role_' + r))}</option>`).join('')}</select></td><td><select class="c">${opts}</select></td><td><button class="btn small" ${u.id === S.me.id ? 'disabled' : ''}>${esc(t('save'))}</button></td></tr>`).join('')}</tbody></table></section>`;
+    $('#reset').addEventListener('click', async (ev) => { const btn = ev.currentTarget; if (!(await confirmBox(t('reset_confirm'), t('reset_btn')))) return; await act(btn, async () => { try { await api('POST', '/api/admin/reset', {}); S.me = null; toast(t('reset_done')); go('signin'); } catch (err) { fail(err); } }); });
     app.querySelectorAll('tr[data-u]').forEach((row) => {
       const u = users.find((x) => String(x.id) === row.dataset.u), c = clubs.find((x) => x.name === u.club); if (c) row.querySelector('.c').value = c.id;
       row.querySelector('button').addEventListener('click', (ev) => act(ev.currentTarget, async () => { try { await api('PUT', `/api/admin/users/${u.id}/role`, { role: row.querySelector('.r').value, clubId: Number(row.querySelector('.c').value) }); toast(t('saved')); } catch (err) { fail(err); } }));
