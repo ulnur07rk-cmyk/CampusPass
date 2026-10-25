@@ -56,7 +56,7 @@ function createCore(SEED, state) {
   const waitQ = (eid) => D.regs.filter((r) => r.event_id === eid && r.status === 'waitlisted').sort((a, b) => (a.updated_at < b.updated_at ? -1 : a.updated_at > b.updated_at ? 1 : a.id - b.id));
   const canManage = (u, e) => u.role === 'admin' || (u.role === 'organizer' && u.club_id === e.club_id);
   const balance = (uid) => D.coins.filter((c) => c.user_id === uid).reduce((a, c) => a + c.amount, 0);
-  const str = (v, n, a, b) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < a || s.length > b) fail(400, 'invalid_' + n, `${n} must be ${a}–${b} characters.`); return s; };
+  const str = (v, n, a, b) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < a || s.length > b) fail(400, 'invalid_' + n, `${n[0].toUpperCase() + n.slice(1)} must be ${a}–${b} characters.`); return s; };
   function view(e, u) {
     const c = D.clubs.find((x) => x.id === e.club_id), tk = taken(e.id), q = waitQ(e.id);
     const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status };
@@ -143,7 +143,8 @@ function createCore(SEED, state) {
     const t = now(); if (t < new Date(new Date(e.starts_at).getTime() - 3600000) || t > new Date(e.ends_at)) fail(409, 'checkin_closed', 'Check-in is open from 1 hour before the start until the end of the event.');
     let r, method;
     if (b.ticketCode) { r = D.regs.find((x) => x.ticket === String(b.ticketCode).trim().toUpperCase()); method = 'qr'; if (!r) fail(404, 'ticket_not_found', 'Ticket not found.'); if (r.event_id !== e.id) fail(409, 'wrong_event', 'This ticket is for another event.'); }
-    else { r = D.regs.find((x) => x.id === Number(b.registrationId) && x.event_id === e.id); method = 'manual'; if (!r) fail(404, 'registration_not_found', 'Registration not found.'); }
+    else if (b.registrationId) { r = D.regs.find((x) => x.id === Number(b.registrationId) && x.event_id === e.id); method = 'manual'; if (!r) fail(404, 'registration_not_found', 'Registration not found.'); }
+    else fail(400, 'code_required', 'Enter the ticket code or choose a student from the list.');
     if (r.status === 'checked_in') fail(409, 'already_checked_in', 'This student is already checked in.');
     if (r.status !== 'confirmed') fail(409, 'not_confirmed', 'This registration is not confirmed.');
     Object.assign(r, { status: 'checked_in', method, updated_at: iso(t) }); D.coins.push({ user_id: r.user_id, amount: e.coins, reason: 'Check-in', event_id: e.id, created_at: iso(t) });

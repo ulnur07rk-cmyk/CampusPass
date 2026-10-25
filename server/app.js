@@ -32,7 +32,7 @@ function createApp(db, opts = {}) {
   }
   const need = (u, ...roles) => { if (!u) fail(401, 'auth_required', 'Please sign in.'); if (roles.length && !roles.includes(u.role)) fail(403, 'forbidden', 'You do not have access to this action.'); };
   const int = (v) => { const n = Number(v); if (!Number.isInteger(n) || n < 1) fail(400, 'bad_id', 'Invalid id.'); return n; };
-  const str = (v, name, min, max) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < min || s.length > max) fail(400, 'invalid_' + name, `${name} must be ${min}–${max} characters.`); return s; };
+  const str = (v, name, min, max) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < min || s.length > max) fail(400, 'invalid_' + name, `${name[0].toUpperCase() + name.slice(1)} must be ${min}–${max} characters.`); return s; };
   const eventRow = (id) => { const e = q('SELECT * FROM events WHERE id = ?').get(id); if (!e) fail(404, 'event_not_found', 'Event not found.'); return e; };
   const taken = (eid) => q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status IN ('confirmed','checked_in')").get(eid).n;
   const canManage = (u, e) => u.role === 'admin' || (u.role === 'organizer' && u.club_id === e.club_id);
@@ -238,7 +238,8 @@ function createApp(db, opts = {}) {
       if (t < new Date(new Date(e.starts_at).getTime() - 3600000) || t > new Date(e.ends_at)) fail(409, 'checkin_closed', 'Check-in is open from 1 hour before the start until the end of the event.');
       let r, method;
       if (body.ticketCode) { r = q('SELECT * FROM registrations WHERE ticket_code = ?').get(String(body.ticketCode).trim().toUpperCase()); method = 'qr'; if (!r) fail(404, 'ticket_not_found', 'Ticket not found.'); if (r.event_id !== e.id) fail(409, 'wrong_event', 'This ticket is for another event.'); }
-      else { r = q('SELECT * FROM registrations WHERE id = ? AND event_id = ?').get(int(body.registrationId), e.id); method = 'manual'; if (!r) fail(404, 'registration_not_found', 'Registration not found.'); }
+      else if (body.registrationId) { r = q('SELECT * FROM registrations WHERE id = ? AND event_id = ?').get(int(body.registrationId), e.id); method = 'manual'; if (!r) fail(404, 'registration_not_found', 'Registration not found.'); }
+      else fail(400, 'code_required', 'Enter the ticket code or choose a student from the list.');
       if (r.status === 'checked_in') fail(409, 'already_checked_in', 'This student is already checked in.');
       if (r.status !== 'confirmed') fail(409, 'not_confirmed', 'This registration is not confirmed.');
       q("UPDATE registrations SET status = 'checked_in', checkin_method = ?, checked_in_at = ?, updated_at = ? WHERE id = ?").run(method, iso(t), iso(t), r.id);

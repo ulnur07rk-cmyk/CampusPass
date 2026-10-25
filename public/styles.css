@@ -29,3 +29,25 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
 .foot{color:var(--ink2);font-size:12px;padding:30px 18px 90px}.list{list-style:none;padding:0;margin:0}.list li{padding:9px 0;border-bottom:1px solid var(--line)}
 .bottom{display:none}
 @media (max-width:760px){.nav{display:none}.bottom{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);z-index:30}.bottom a{flex:1;text-align:center;padding:10px 2px 12px;font-size:11px;font-weight:600;color:var(--ink2);text-decoration:none}.bottom a.on{color:var(--accent)}.days{gap:4px}.day b{font-size:16px}h1{font-size:22px}}
+/* ---- UX fixes after QA review ---- */
+body.loading::before{content:"";position:fixed;top:0;left:0;height:3px;width:100%;z-index:100;background:linear-gradient(90deg,transparent,var(--accent),transparent);background-size:50% 100%;animation:cp-load 1s linear infinite}
+@keyframes cp-load{from{background-position:-50% 0}to{background-position:150% 0}}
+.btn.busy{position:relative;color:transparent!important;pointer-events:none}.btn.busy::after{content:"";position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border:2px solid currentColor;border-color:var(--accent) transparent var(--accent) transparent;border-radius:50%;animation:cp-spin .7s linear infinite}.btn:not(.ghost):not(.danger).busy::after{border-color:#fff transparent #fff transparent}
+@keyframes cp-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){body.loading::before,.btn.busy::after{animation:none}}
+.field-err{color:var(--bad);font-size:13px;margin:4px 0 0}[aria-invalid=true]{border-color:var(--bad);box-shadow:0 0 0 2px var(--badbg)}
+.signin-wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center;max-width:980px;margin:36px auto}.signin-wrap .signin{margin:0;max-width:none}.signin-wrap h2{font-size:22px}
+.hero h1{font-size:34px;line-height:1.15;margin:0 0 18px}.hero ul{list-style:none;padding:0;margin:0;display:grid;gap:14px}.hero li{display:flex;gap:12px;align-items:center;font-size:17px}.hero li svg{flex:none;color:var(--accent);background:var(--soft);border-radius:12px;padding:8px;width:40px;height:40px}
+#signout{display:inline-flex;align-items:center;gap:6px}#signout svg{display:none}
+.nav a span{display:inline}.bottom a svg{display:block;margin:0 auto 2px}
+@media (max-width:760px){
+  .signin-wrap{grid-template-columns:1fr;margin:18px auto;gap:16px}.hero h1{font-size:24px}.hero li{font-size:15px}
+  .brand small{display:none}#signout .lbl{display:none}#signout svg{display:block}#signout{padding:6px 8px}
+  .bottom a{font-size:11px;padding:7px 2px 9px}
+  table.stack thead{display:none}table.stack,table.stack tbody,table.stack tr,table.stack td{display:block;width:100%}
+  table.stack tr{border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin-bottom:10px}
+  table.stack td{border:0;padding:5px 0;display:flex;justify-content:space-between;gap:10px;text-align:right}
+  table.stack td::before{content:attr(data-label);color:var(--ink2);font-size:12px;font-weight:700;text-transform:uppercase;text-align:left}
+  table.stack td:not([data-label]){justify-content:flex-end}table.stack td:not([data-label])::before{content:none}
+}
+#signout[hidden]{display:none!important}
