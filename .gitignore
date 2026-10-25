@@ -3,4 +3,3 @@ node_modules/
 data/*.db
 data/*.db-*
 .DS_Store
-dist/

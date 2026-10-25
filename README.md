@@ -48,7 +48,7 @@ What one user does is saved in the database and is immediately visible to the ot
 This fits the constraints in SRS section 2.5: the prototype runs only on localhost and keeps all (fictional) personal data on the local machine; it needs no payment card, cloud account or API key; it supports three interface languages; and any team member can install it in one minute. External services from the SRS (university SSO, Telegram Bot API, push services) are **simulated**: sign-in uses test accounts and reminders are written to the notification inbox.
 
 ## Install and run on localhost
-Requirements: **Node.js 22.13 or newer** (`node -v`). No `npm install` is needed.
+Requirements: **Node.js 22.13 or newer** (`node -v`). No `npm install` is needed for localhost (the only dependency, `@netlify/blobs`, is used by the Netlify version).
 
 ```bash
 git clone https://github.com/ulnur07rk-cmyk/CampusPass.git
@@ -59,11 +59,14 @@ npm start                   # opens http://localhost:3000
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
 - `npm test` — run the 12 automated acceptance tests (AT-01 … AT-12).
 
-## Netlify demo version (optional)
-Netlify serves only static files, so it cannot run the Node.js server and the SQLite database. For Netlify, `scripts/build-static.js` builds a **demo mode** into `dist/`: the same screens, with the API emulated inside the browser (`scripts/demo-api.template.js`) and the data stored in the browser's local storage.
-- Netlify settings come from `netlify.toml` (build command `node scripts/build-static.js`, publish directory `dist`).
-- In demo mode all roles can be shown on one device (sign out and sign in with another test account), but data are **not shared between devices**. A yellow banner shows this and offers *Reset demo data*.
-- The graded prototype is the localhost version with the real server and database.
+## Netlify version (optional)
+Netlify cannot run a permanent Node.js server, so the Netlify version uses:
+- **static files** from `public/` (the same screens);
+- a **Netlify Function** `netlify/functions/api.mjs` for all `/api/*` requests, with the same business rules (`netlify/core.js`);
+- **Netlify Blobs** (built into Netlify, free) as shared storage: what one user does is visible to all other users. Parallel changes are protected by optimistic locking (ETag check and retry).
+
+Settings are in `netlify.toml` (build command `npm install`, publish directory `public`, functions `netlify/functions`). The data are created with fictional test data on the first request. The open screen reloads its data every 15 seconds, so changes from other users appear automatically.
+The graded prototype is the localhost version (`npm start`) with the SQLite database; the Netlify version is only a convenient online copy.
 
 ## Test accounts (fictional)
 | Role | E-mail | Password |
@@ -83,7 +86,7 @@ Netlify serves only static files, so it cannot run the Node.js server and the SQ
 ## Project structure
 ```
 server/   index.js (start), app.js (API and rules), db.js (schema and seed), auth.js, seed-data.json
-scripts/  build-static.js and demo-api.template.js (Netlify demo build)
+netlify/  core.js (API rules for Netlify), functions/api.mjs (Netlify Function)
 public/   index.html, app.js (screens), i18n.js (EN/KZ/RU), styles.css, vendor/qrcode.js
 tests/    acceptance.test.js
 ```

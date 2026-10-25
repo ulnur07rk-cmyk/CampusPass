@@ -4,10 +4,15 @@
   "description": "Educational project for the course Business Analysis, Astana IT University. Not a real product or service. All data are fictional.",
   "private": true,
   "license": "MIT",
-  "engines": { "node": ">=22.13" },
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning server/index.js",
     "reset": "node --disable-warning=ExperimentalWarning server/index.js --reset",
     "test": "node --disable-warning=ExperimentalWarning --test tests/acceptance.test.js"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
   }
 }

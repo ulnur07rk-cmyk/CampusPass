@@ -1,10 +1,16 @@
-# Netlify settings (demo mode). Educational project. Not a real product or service. All data are fictional.
+# Netlify settings. Educational project. Not a real product or service. All data are fictional.
+# Static files come from public/; the API runs as a Netlify Function (netlify/functions/api.mjs) with data in Netlify Blobs.
 [build]
-  command = "node scripts/build-static.js"
-  publish = "dist"
+  command = "npm install"
+  publish = "public"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["server/seed-data.json"]
 
 [[headers]]
   for = "/*"

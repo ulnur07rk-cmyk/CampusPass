@@ -118,8 +118,8 @@ function tx(db, fn) {
 const iso = (d) => new Date(d).toISOString();
 
 // ---------- fictional seed data ----------
-const FIRST = ['Aruzhan', 'Dias', 'Madina', 'Timur', 'Aigerim', 'Alikhan', 'Dana', 'Yerlan', 'Kamila', 'Nursultan', 'Zhanel', 'Arman', 'Saule', 'Bekzat', 'Aliya', 'Daniyar', 'Togzhan', 'Miras', 'Akbota', 'Rustem'];
-const LAST = ['Bekova', 'Akhmetov', 'Omarova', 'Bekov', 'Nurlanova', 'Maratov', 'Serikova', 'Kassymov', 'Abenova', 'Zhunusov', 'Tulegenova', 'Sadykov', 'Ermekova', 'Baimukhanov', 'Saparova', 'Kenzhebekov'];
+const SEED_DATA = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8'));
+const FIRST = SEED_DATA.first, LAST = SEED_DATA.last;
 
 function seed(db, now = new Date()) {
   if (db.prepare('SELECT COUNT(*) AS n FROM users').get().n > 0) return false;
