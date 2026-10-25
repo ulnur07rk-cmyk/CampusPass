@@ -5,294 +5,798 @@
    "category": "sports",
    "room": "Sports Hall",
    "icon": "basket",
-   "description": "The university basketball team and community. Regular training sessions, team selection and matches in student leagues."
+   "description": "The university basketball team and community. Regular training sessions, team selection and matches in student leagues.",
+   "i18n": {
+    "kk": {
+     "name": "Баскетбол клубы",
+     "room": "Спорт залы",
+     "description": "Университеттің баскетбол командасы мен қауымдастығы. Тұрақты жаттығулар, командаға іріктеу және студенттік лигалардағы матчтар."
+    },
+    "ru": {
+     "name": "Баскетбольный клуб",
+     "room": "Спортивный зал",
+     "description": "Баскетбольная команда и сообщество университета. Регулярные тренировки, отбор в команду и матчи в студенческих лигах."
+    }
+   }
   },
   {
    "name": "Volleyball Club",
    "category": "sports",
    "room": "Sports Hall",
    "icon": "volley",
-   "description": "Volleyball for men and women of every level. We train together and run internal championships."
+   "description": "Volleyball for men and women of every level. We train together and run internal championships.",
+   "i18n": {
+    "kk": {
+     "name": "Волейбол клубы",
+     "room": "Спорт залы",
+     "description": "Кез келген деңгейдегі жігіттер мен қыздарға арналған волейбол. Бірге жаттығып, ішкі чемпионаттар өткіземіз."
+    },
+    "ru": {
+     "name": "Волейбольный клуб",
+     "room": "Спортивный зал",
+     "description": "Волейбол для парней и девушек любого уровня. Тренируемся вместе и проводим внутренние чемпионаты."
+    }
+   }
   },
   {
    "name": "Running Club",
    "category": "sports",
    "room": "Triathlon Park / Stadium",
    "icon": "run",
-   "description": "A community of runners. Morning runs, marathon preparation and city races together."
+   "description": "A community of runners. Morning runs, marathon preparation and city races together.",
+   "i18n": {
+    "kk": {
+     "name": "Жүгіру клубы",
+     "room": "Триатлон паркі / Стадион",
+     "description": "Жүгірушілер қауымдастығы. Таңғы жүгіру, марафонға дайындық және қалалық жарыстарға бірге қатысу."
+    },
+    "ru": {
+     "name": "Беговой клуб",
+     "room": "Триатлон-парк / Стадион",
+     "description": "Сообщество бегунов. Утренние пробежки, подготовка к марафону и участие в городских забегах."
+    }
+   }
   },
   {
    "name": "Cycling Club",
    "category": "sports",
    "room": "Velodrome / City Bike Rental",
    "icon": "bike",
-   "description": "For everyone who loves two wheels. Weekend rides around the city and longer routes outside the city."
+   "description": "For everyone who loves two wheels. Weekend rides around the city and longer routes outside the city.",
+   "i18n": {
+    "kk": {
+     "name": "Велоклуб",
+     "room": "Велотрек / Қалалық велопрокат",
+     "description": "Екі дөңгелекті жақсы көретіндердің бәріне. Демалыс күндері қала бойынша және қала сыртына ұзақ сапарлар."
+    },
+    "ru": {
+     "name": "Велоклуб",
+     "room": "Велотрек / Городской велопрокат",
+     "description": "Для всех, кто любит два колеса. Поездки по городу по выходным и длинные маршруты за городом."
+    }
+   }
   },
   {
    "name": "Calisthenics Club",
    "category": "sports",
    "room": "Outdoor Workout Area",
    "icon": "bar",
-   "description": "Bodyweight training on bars and rings. We learn basic and advanced street-workout elements step by step."
+   "description": "Bodyweight training on bars and rings. We learn basic and advanced street-workout elements step by step.",
+   "i18n": {
+    "kk": {
+     "name": "Калистеника клубы",
+     "room": "Ашық аудандағы спорт алаңы",
+     "description": "Турник пен сақиналарда өз салмағыңмен жаттығу. Стрит-воркаут элементтерін негізгіден күрделіге дейін біртіндеп үйренеміз."
+    },
+    "ru": {
+     "name": "Клуб калистеники",
+     "room": "Уличная спортплощадка",
+     "description": "Тренировки с собственным весом на турниках и кольцах. Шаг за шагом осваиваем базовые и сложные элементы воркаута."
+    }
+   }
   },
   {
    "name": "Arm-Wrestling Club",
    "category": "sports",
    "room": "Room 1.108 Fitness Gym",
    "icon": "dumbbell",
-   "description": "Arm-wrestling club focused on grip strength, endurance and competition technique."
+   "description": "Arm-wrestling club focused on grip strength, endurance and competition technique.",
+   "i18n": {
+    "kk": {
+     "name": "Армрестлинг клубы",
+     "room": "1.108 аудитория, фитнес-зал",
+     "description": "Қол күші, төзімділік және жарыс техникасына бағытталған армрестлинг клубы."
+    },
+    "ru": {
+     "name": "Клуб армрестлинга",
+     "room": "Ауд. 1.108, фитнес-зал",
+     "description": "Клуб армрестлинга: сила хвата, выносливость и соревновательная техника."
+    }
+   }
   },
   {
    "name": "Table Tennis",
    "category": "sports",
    "room": "Ping Pong Zone, 2nd Floor",
    "icon": "paddle",
-   "description": "Free games between classes and regular table tennis tournaments for students and staff."
+   "description": "Free games between classes and regular table tennis tournaments for students and staff.",
+   "i18n": {
+    "kk": {
+     "name": "Үстел теннисі",
+     "room": "Пинг-понг аймағы, 2-қабат",
+     "description": "Сабақ арасындағы еркін ойындар және студенттер мен қызметкерлерге арналған тұрақты турнирлер."
+    },
+    "ru": {
+     "name": "Настольный теннис",
+     "room": "Зона пинг-понга, 2-й этаж",
+     "description": "Свободные игры между парами и регулярные турниры по настольному теннису для студентов и сотрудников."
+    }
+   }
   },
   {
    "name": "Cheerleading",
    "category": "sports",
    "room": "Choreography Room",
    "icon": "megaphone",
-   "description": "The official support squad of the university sports teams. Dance, acrobatics and performances at university events."
+   "description": "The official support squad of the university sports teams. Dance, acrobatics and performances at university events.",
+   "i18n": {
+    "kk": {
+     "name": "Черлидинг",
+     "room": "Хореография залы",
+     "description": "Университеттің спорт командаларын қолдайтын ресми топ. Би, акробатика және университет іс-шараларындағы өнер көрсету."
+    },
+    "ru": {
+     "name": "Черлидинг",
+     "room": "Хореографический зал",
+     "description": "Официальная группа поддержки спортивных команд университета. Танцы, акробатика и выступления на мероприятиях."
+    }
+   }
   },
   {
    "name": "Student Orchestra",
    "category": "creative",
    "room": "Assembly Hall / Room 3.102",
    "icon": "note",
-   "description": "An orchestra of Kazakh national and classical instruments that performs at major university and city events."
+   "description": "An orchestra of Kazakh national and classical instruments that performs at major university and city events.",
+   "i18n": {
+    "kk": {
+     "name": "Студенттік оркестр",
+     "room": "Акт залы / 3.102 аудитория",
+     "description": "Университет пен қаланың ірі іс-шараларында өнер көрсететін қазақ ұлттық және классикалық аспаптар оркестрі."
+    },
+    "ru": {
+     "name": "Студенческий оркестр",
+     "room": "Актовый зал / ауд. 3.102",
+     "description": "Оркестр казахских народных и классических инструментов, выступающий на крупных мероприятиях университета и города."
+    }
+   }
   },
   {
    "name": "Student Choir",
    "category": "creative",
    "room": "Assembly Hall",
    "icon": "mic",
-   "description": "Academic and pop vocal ensemble. Voice training, harmony singing and stage performances."
+   "description": "Academic and pop vocal ensemble. Voice training, harmony singing and stage performances.",
+   "i18n": {
+    "kk": {
+     "name": "Студенттік хор",
+     "room": "Акт залы",
+     "description": "Академиялық және эстрадалық вокал ансамблі. Дауыс қою, көп дауысты ән айту және сахнада өнер көрсету."
+    },
+    "ru": {
+     "name": "Студенческий хор",
+     "room": "Актовый зал",
+     "description": "Академический и эстрадный вокальный ансамбль. Постановка голоса, многоголосие и выступления на сцене."
+    }
+   }
   },
   {
    "name": "Music Club",
    "category": "creative",
    "room": "Media Room / Recording Studio",
    "icon": "guitar",
-   "description": "Bands, solo artists and acoustic nights, with access to the university recording studio."
+   "description": "Bands, solo artists and acoustic nights, with access to the university recording studio.",
+   "i18n": {
+    "kk": {
+     "name": "Музыка клубы",
+     "room": "Медиа-бөлме / Дыбыс жазу студиясы",
+     "description": "Топтар, жеке орындаушылар мен акустикалық кештер. Университеттің дыбыс жазу студиясын пайдалану мүмкіндігі."
+    },
+    "ru": {
+     "name": "Музыкальный клуб",
+     "room": "Медиа-комната / Студия звукозаписи",
+     "description": "Группы, сольные исполнители и акустические вечера с доступом к университетской студии звукозаписи."
+    }
+   }
   },
   {
    "name": "Dance Club",
    "category": "creative",
    "room": "Dance Class Studio",
    "icon": "dance",
-   "description": "The dance family of the campus: hip-hop, high heels, K-pop, contemporary and national dance."
+   "description": "The dance family of the campus: hip-hop, high heels, K-pop, contemporary and national dance.",
+   "i18n": {
+    "kk": {
+     "name": "Би клубы",
+     "room": "Би студиясы",
+     "description": "Кампустың би отбасы: хип-хоп, хай хиллс, K-pop, контемпорари және ұлттық би."
+    },
+    "ru": {
+     "name": "Танцевальный клуб",
+     "room": "Танцевальная студия",
+     "description": "Танцевальная семья кампуса: хип-хоп, хай хилс, K-pop, контемпорари и национальный танец."
+    }
+   }
   },
   {
    "name": "Anime Club",
    "category": "creative",
    "room": "2nd Floor Coworking Space",
    "icon": "star",
-   "description": "A community for anime, manga and geek culture fans. Screenings, themed quizzes and cosplay events."
+   "description": "A community for anime, manga and geek culture fans. Screenings, themed quizzes and cosplay events.",
+   "i18n": {
+    "kk": {
+     "name": "Аниме клубы",
+     "room": "2-қабаттағы коворкинг",
+     "description": "Аниме, манга және гик-мәдениет әуесқойларының қауымдастығы. Көрсетілімдер, тақырыптық квиздер және косплей."
+    },
+    "ru": {
+     "name": "Аниме-клуб",
+     "room": "Коворкинг, 2-й этаж",
+     "description": "Сообщество любителей аниме, манги и гик-культуры. Просмотры, тематические квизы и косплей."
+    }
+   }
   },
   {
    "name": "KCA (Korean Culture Association)",
    "category": "creative",
    "room": "Room 2.304",
    "icon": "taeguk",
-   "description": "Korean language, traditions and culture through classes, holidays and themed events."
+   "description": "Korean language, traditions and culture through classes, holidays and themed events.",
+   "i18n": {
+    "kk": {
+     "name": "KCA (Корей мәдениеті қауымдастығы)",
+     "room": "2.304 аудитория",
+     "description": "Сабақтар, мерекелер және тақырыптық іс-шаралар арқылы корей тілі, дәстүрлері мен мәдениеті."
+    },
+    "ru": {
+     "name": "KCA (Ассоциация корейской культуры)",
+     "room": "Ауд. 2.304",
+     "description": "Корейский язык, традиции и культура через занятия, праздники и тематические мероприятия."
+    }
+   }
   },
   {
    "name": "JCA (Japan Culture Association)",
    "category": "creative",
    "room": "Room 2.305",
    "icon": "torii",
-   "description": "Japanese culture on campus: speaking practice, calligraphy, tea meetings and festivals."
+   "description": "Japanese culture on campus: speaking practice, calligraphy, tea meetings and festivals.",
+   "i18n": {
+    "kk": {
+     "name": "JCA (Жапон мәдениеті қауымдастығы)",
+     "room": "2.305 аудитория",
+     "description": "Кампустағы жапон мәдениеті: сөйлеу практикасы, каллиграфия, шай кездесулері және фестивальдер."
+    },
+    "ru": {
+     "name": "JCA (Ассоциация японской культуры)",
+     "room": "Ауд. 2.305",
+     "description": "Японская культура в кампусе: разговорная практика, каллиграфия, чайные встречи и фестивали."
+    }
+   }
   },
   {
    "name": "ART Club",
    "category": "creative",
    "room": "Art Studio, 4th Floor",
    "icon": "palette",
-   "description": "A studio for visual art: painting, sketching, digital art, murals and exhibitions on campus."
+   "description": "A studio for visual art: painting, sketching, digital art, murals and exhibitions on campus.",
+   "i18n": {
+    "kk": {
+     "name": "ART клубы",
+     "room": "Өнер студиясы, 4-қабат",
+     "description": "Бейнелеу өнері студиясы: кескіндеме, эскиз, цифрлық өнер, муралдар және кампустағы көрмелер."
+    },
+    "ru": {
+     "name": "ART-клуб",
+     "room": "Арт-студия, 4-й этаж",
+     "description": "Студия изобразительного искусства: живопись, скетчинг, цифровое искусство, муралы и выставки в кампусе."
+    }
+   }
   },
   {
    "name": "TYF.Media",
    "category": "creative",
    "room": "Open Space Media Lab",
    "icon": "news",
-   "description": "An independent student media team creating articles, photo shoots, podcasts and short videos."
+   "description": "An independent student media team creating articles, photo shoots, podcasts and short videos.",
+   "i18n": {
+    "kk": {
+     "name": "TYF.Media",
+     "room": "Open Space медиа-зертханасы",
+     "description": "Мақалалар, фототүсірілімдер, подкасттар мен қысқа бейнелер жасайтын тәуелсіз студенттік медиа-команда."
+    },
+    "ru": {
+     "name": "TYF.Media",
+     "room": "Медиалаборатория Open Space",
+     "description": "Независимая студенческая медиакоманда: статьи, фотосъёмки, подкасты и короткие видео."
+    }
+   }
   },
   {
    "name": "Campus Live",
    "category": "creative",
    "room": "Campus Live Studio",
    "icon": "video",
-   "description": "The official video channel of the university. Reports, interviews and coverage of all main events."
+   "description": "The official video channel of the university. Reports, interviews and coverage of all main events.",
+   "i18n": {
+    "kk": {
+     "name": "Campus Live",
+     "room": "Campus Live студиясы",
+     "description": "Университеттің ресми бейнеарнасы. Репортаждар, сұхбаттар және барлық негізгі іс-шараларды жариялау."
+    },
+    "ru": {
+     "name": "Campus Live",
+     "room": "Студия Campus Live",
+     "description": "Официальный видеоканал университета. Репортажи, интервью и освещение всех главных событий."
+    }
+   }
   },
   {
    "name": "GDSC (Google Developer Student Club)",
    "category": "tech",
    "room": "GDSC Lab / Room 3.201",
    "icon": "code",
-   "description": "The main IT community on campus. Workshops, hackathons and team projects supported by Google programs."
+   "description": "The main IT community on campus. Workshops, hackathons and team projects supported by Google programs.",
+   "i18n": {
+    "kk": {
+     "name": "GDSC (Google Developer Student Club)",
+     "room": "GDSC зертханасы / 3.201 аудитория",
+     "description": "Кампустағы басты IT-қауымдастық. Google бағдарламаларының қолдауымен воркшоптар, хакатондар және командалық жобалар."
+    },
+    "ru": {
+     "name": "GDSC (Google Developer Student Club)",
+     "room": "Лаборатория GDSC / ауд. 3.201",
+     "description": "Главное IT-сообщество кампуса. Воркшопы, хакатоны и командные проекты при поддержке программ Google."
+    }
+   }
   },
   {
    "name": "AWS 3C",
    "category": "tech",
    "room": "Cloud Computing Lab",
    "icon": "cloud",
-   "description": "Hands-on cloud computing with Amazon Web Services and preparation for AWS certifications."
+   "description": "Hands-on cloud computing with Amazon Web Services and preparation for AWS certifications.",
+   "i18n": {
+    "kk": {
+     "name": "AWS 3C",
+     "room": "Бұлтты есептеулер зертханасы",
+     "description": "Amazon Web Services бұлтты есептеулерін практикада үйрену және AWS сертификаттарына дайындық."
+    },
+    "ru": {
+     "name": "AWS 3C",
+     "room": "Лаборатория облачных вычислений",
+     "description": "Практика облачных вычислений на Amazon Web Services и подготовка к сертификации AWS."
+    }
+   }
   },
   {
    "name": "Electronics Club",
    "category": "tech",
    "room": "Robotics Lab / Room 1.205",
    "icon": "chip",
-   "description": "Practical electronics: soldering, Arduino and STM32 microcontrollers, drones and smart devices."
+   "description": "Practical electronics: soldering, Arduino and STM32 microcontrollers, drones and smart devices.",
+   "i18n": {
+    "kk": {
+     "name": "Электроника клубы",
+     "room": "Робототехника зертханасы / 1.205 аудитория",
+     "description": "Практикалық электроника: дәнекерлеу, Arduino және STM32 микроконтроллерлері, дрондар мен смарт-құрылғылар."
+    },
+    "ru": {
+     "name": "Клуб электроники",
+     "room": "Лаборатория робототехники / ауд. 1.205",
+     "description": "Практическая электроника: пайка, микроконтроллеры Arduino и STM32, дроны и умные устройства."
+    }
+   }
   },
   {
    "name": "SEDS Student Chapter",
    "category": "tech",
    "room": "Aerospace Engineering Lab",
    "icon": "rocket",
-   "description": "Space engineering projects: model rockets, small satellites and CubeSat programming."
+   "description": "Space engineering projects: model rockets, small satellites and CubeSat programming.",
+   "i18n": {
+    "kk": {
+     "name": "SEDS студенттік бөлімшесі",
+     "room": "Аэроғарыштық инженерия зертханасы",
+     "description": "Ғарыштық инженерия жобалары: зымыран модельдері, шағын серіктер және CubeSat бағдарламалау."
+    },
+    "ru": {
+     "name": "Студенческое отделение SEDS",
+     "room": "Лаборатория аэрокосмической инженерии",
+     "description": "Проекты космической инженерии: модели ракет, малые спутники и программирование CubeSat."
+    }
+   }
   },
   {
    "name": "SIAM Student Chapter",
    "category": "tech",
    "room": "Mathematics Department",
    "icon": "sigma",
-   "description": "Applied mathematics, algorithms, data analysis and student research papers."
+   "description": "Applied mathematics, algorithms, data analysis and student research papers.",
+   "i18n": {
+    "kk": {
+     "name": "SIAM студенттік бөлімшесі",
+     "room": "Математика кафедрасы",
+     "description": "Қолданбалы математика, алгоритмдер, деректерді талдау және студенттік ғылыми мақалалар."
+    },
+    "ru": {
+     "name": "Студенческое отделение SIAM",
+     "room": "Кафедра математики",
+     "description": "Прикладная математика, алгоритмы, анализ данных и студенческие научные статьи."
+    }
+   }
   },
   {
    "name": "Chess Club",
    "category": "tech",
    "room": "Chess Zone, Coworking Space",
    "icon": "knight",
-   "description": "Chess games, analysis of classic matches, blitz tournaments and inter-university championships."
+   "description": "Chess games, analysis of classic matches, blitz tournaments and inter-university championships.",
+   "i18n": {
+    "kk": {
+     "name": "Шахмат клубы",
+     "room": "Шахмат аймағы, коворкинг",
+     "description": "Шахмат партиялары, классикалық ойындарды талдау, блиц-турнирлер және университетаралық чемпионаттар."
+    },
+    "ru": {
+     "name": "Шахматный клуб",
+     "room": "Шахматная зона, коворкинг",
+     "description": "Шахматные партии, разбор классических игр, блиц-турниры и межвузовские чемпионаты."
+    }
+   }
   },
   {
    "name": "Game-Dev",
    "category": "tech",
    "room": "Gaming Lab / Room 3.402",
    "icon": "pad",
-   "description": "The full game development cycle: game design, 3D modelling, programming in Unity and Unreal."
+   "description": "The full game development cycle: game design, 3D modelling, programming in Unity and Unreal.",
+   "i18n": {
+    "kk": {
+     "name": "Game-Dev",
+     "room": "Ойын зертханасы / 3.402 аудитория",
+     "description": "Ойын жасаудың толық циклі: геймдизайн, 3D-модельдеу, Unity және Unreal-да бағдарламалау."
+    },
+    "ru": {
+     "name": "Game-Dev",
+     "room": "Игровая лаборатория / ауд. 3.402",
+     "description": "Полный цикл разработки игр: геймдизайн, 3D-моделирование, программирование на Unity и Unreal."
+    }
+   }
   },
   {
    "name": "Coffee-Philo",
    "category": "intellectual",
    "room": "Student Cafe Lounge",
    "icon": "coffee",
-   "description": "Relaxed discussions about philosophy, psychology, society and books over a cup of coffee."
+   "description": "Relaxed discussions about philosophy, psychology, society and books over a cup of coffee.",
+   "i18n": {
+    "kk": {
+     "name": "Coffee-Philo",
+     "room": "Студенттік кафе",
+     "description": "Бір кесе кофе үстінде философия, психология, қоғам және кітаптар туралы еркін әңгімелер."
+    },
+    "ru": {
+     "name": "Coffee-Philo",
+     "room": "Студенческое кафе",
+     "description": "Непринуждённые беседы о философии, психологии, обществе и книгах за чашкой кофе."
+    }
+   }
   },
   {
    "name": "Intellectum Games",
    "category": "intellectual",
    "room": "Lecture Hall 2.102",
    "icon": "bulb",
-   "description": "Quizzes, brain rings and logic puzzles that train general knowledge and quick thinking."
+   "description": "Quizzes, brain rings and logic puzzles that train general knowledge and quick thinking.",
+   "i18n": {
+    "kk": {
+     "name": "Intellectum Games",
+     "room": "2.102 дәріс залы",
+     "description": "Жалпы білім мен ой жылдамдығын шыңдайтын квиздер, брейн-ринг және логикалық жұмбақтар."
+    },
+    "ru": {
+     "name": "Intellectum Games",
+     "room": "Лекционный зал 2.102",
+     "description": "Квизы, брейн-ринги и логические задачи, которые тренируют эрудицию и скорость мышления."
+    }
+   }
   },
   {
    "name": "Board Games",
    "category": "intellectual",
    "room": "Board Games Corner, Coworking",
    "icon": "dice",
-   "description": "A large collection of board games and evenings of strategy, deduction and party games."
+   "description": "A large collection of board games and evenings of strategy, deduction and party games.",
+   "i18n": {
+    "kk": {
+     "name": "Үстел ойындары",
+     "room": "Үстел ойындары бұрышы, коворкинг",
+     "description": "Үстел ойындарының үлкен жинағы: стратегия, дедукция және көңілді ойындар кештері."
+    },
+    "ru": {
+     "name": "Настольные игры",
+     "room": "Уголок настольных игр, коворкинг",
+     "description": "Большая коллекция настольных игр и вечера стратегий, дедукции и весёлых игр."
+    }
+   }
   },
   {
    "name": "TEDx Campus Team",
    "category": "intellectual",
    "room": "Conference Hall",
    "icon": "xmark",
-   "description": "The licensed TEDx team that finds speakers with ideas worth spreading and organises conferences."
+   "description": "The licensed TEDx team that finds speakers with ideas worth spreading and organises conferences.",
+   "i18n": {
+    "kk": {
+     "name": "TEDx Campus Team",
+     "room": "Конференц-зал",
+     "description": "Таратуға лайық идеялары бар спикерлерді тауып, конференциялар ұйымдастыратын лицензияланған TEDx командасы."
+    },
+    "ru": {
+     "name": "TEDx Campus Team",
+     "room": "Конференц-зал",
+     "description": "Лицензированная команда TEDx: находит спикеров с идеями, достойными распространения, и проводит конференции."
+    }
+   }
   },
   {
    "name": "Cooking Club",
    "category": "intellectual",
    "room": "Student Dining Hall Studio",
    "icon": "chef",
-   "description": "Cooking master classes, recipe exchanges, culinary battles and tasting events."
+   "description": "Cooking master classes, recipe exchanges, culinary battles and tasting events.",
+   "i18n": {
+    "kk": {
+     "name": "Аспаздық клубы",
+     "room": "Студенттік асхана студиясы",
+     "description": "Аспаздық шеберлік сабақтары, рецепт алмасу, аспаздық жарыстар және дәм тату."
+    },
+    "ru": {
+     "name": "Кулинарный клуб",
+     "room": "Студия студенческой столовой",
+     "description": "Кулинарные мастер-классы, обмен рецептами, кулинарные баттлы и дегустации."
+    }
+   }
   },
   {
    "name": "Esports Club",
    "category": "intellectual",
    "room": "Cyber Lab / Room 3.105",
    "icon": "headset",
-   "description": "The official esports community. Tournaments and streams in CS2, Dota 2, Valorant and EA FC."
+   "description": "The official esports community. Tournaments and streams in CS2, Dota 2, Valorant and EA FC.",
+   "i18n": {
+    "kk": {
+     "name": "Киберспорт клубы",
+     "room": "Кибер-зертхана / 3.105 аудитория",
+     "description": "Ресми киберспорт қауымдастығы. CS2, Dota 2, Valorant және EA FC бойынша турнирлер мен трансляциялар."
+    },
+    "ru": {
+     "name": "Киберспортивный клуб",
+     "room": "Кибер-лаборатория / ауд. 3.105",
+     "description": "Официальное киберспортивное сообщество. Турниры и трансляции по CS2, Dota 2, Valorant и EA FC."
+    }
+   }
   },
   {
    "name": "Mafia Club",
    "category": "intellectual",
    "room": "Small Coworking Space, 3rd Floor",
    "icon": "hat",
-   "description": "Tournament-style Mafia games that develop deduction, public speaking and reading people."
+   "description": "Tournament-style Mafia games that develop deduction, public speaking and reading people.",
+   "i18n": {
+    "kk": {
+     "name": "Мафия клубы",
+     "room": "Шағын коворкинг, 3-қабат",
+     "description": "Логиканы, сөйлеу шеберлігін және адамды түсіну қабілетін дамытатын турнирлік Мафия ойындары."
+    },
+    "ru": {
+     "name": "Клуб «Мафия»",
+     "room": "Малый коворкинг, 3-й этаж",
+     "description": "Турнирная «Мафия», которая развивает логику, ораторское мастерство и умение понимать людей."
+    }
+   }
   },
   {
    "name": "Volunteers Club",
    "category": "social",
    "room": "Student Council Office / 1.102",
    "icon": "heart",
-   "description": "The student volunteer corps. Support for major forums, eco campaigns and charity projects."
+   "description": "The student volunteer corps. Support for major forums, eco campaigns and charity projects.",
+   "i18n": {
+    "kk": {
+     "name": "Волонтерлер клубы",
+     "room": "Студенттік кеңес кабинеті / 1.102",
+     "description": "Студенттік волонтерлер корпусы. Ірі форумдарға, экоакцияларға және қайырымдылық жобаларына көмек."
+    },
+    "ru": {
+     "name": "Волонтёрский клуб",
+     "room": "Кабинет студсовета / 1.102",
+     "description": "Студенческий волонтёрский корпус. Помощь на крупных форумах, экоакции и благотворительные проекты."
+    }
+   }
   },
   {
    "name": "Sanaly Urpaq",
    "category": "social",
    "room": "Room 2.115",
    "icon": "scales",
-   "description": "An anti-corruption club that builds legal culture and academic integrity among students."
+   "description": "An anti-corruption club that builds legal culture and academic integrity among students.",
+   "i18n": {
+    "kk": {
+     "name": "Саналы Ұрпақ",
+     "room": "2.115 аудитория",
+     "description": "Студенттер арасында құқықтық мәдениет пен академиялық адалдықты қалыптастыратын сыбайлас жемқорлыққа қарсы клуб."
+    },
+    "ru": {
+     "name": "Саналы Ұрпақ",
+     "room": "Ауд. 2.115",
+     "description": "Антикоррупционный клуб, формирующий правовую культуру и академическую честность среди студентов."
+    }
+   }
   },
   {
    "name": "Jurek Charity",
    "category": "social",
    "room": "Room 1.104",
    "icon": "gift",
-   "description": "A student charity that raises funds for people in need and visits orphanages and shelters."
+   "description": "A student charity that raises funds for people in need and visits orphanages and shelters.",
+   "i18n": {
+    "kk": {
+     "name": "Jurek Charity",
+     "room": "1.104 аудитория",
+     "description": "Мұқтаждарға қаражат жинап, балалар үйлері мен баспаналарға баратын студенттік қайырымдылық ұйымы."
+    },
+    "ru": {
+     "name": "Jurek Charity",
+     "room": "Ауд. 1.104",
+     "description": "Студенческая благотворительная организация: сбор средств для нуждающихся, поездки в детские дома и приюты."
+    }
+   }
   },
   {
    "name": "MUN (Model United Nations)",
    "category": "social",
    "room": "Senate Hall",
    "icon": "globe",
-   "description": "Simulations of UN sessions where students represent countries and debate global issues in English."
+   "description": "Simulations of UN sessions where students represent countries and debate global issues in English.",
+   "i18n": {
+    "kk": {
+     "name": "MUN (БҰҰ моделі)",
+     "room": "Сенат залы",
+     "description": "Студенттер елдерді таныстырып, жаһандық мәселелерді ағылшын тілінде талқылайтын БҰҰ отырыстарының симуляциясы."
+    },
+    "ru": {
+     "name": "MUN (Модель ООН)",
+     "room": "Зал Сената",
+     "description": "Симуляция заседаний ООН: студенты представляют страны и обсуждают глобальные проблемы на английском."
+    }
+   }
   },
   {
    "name": "LOGOS",
    "category": "social",
    "room": "Debate Club Arena 2.208",
    "icon": "speech",
-   "description": "A classic debate club using parliamentary formats to develop argumentation and critical thinking."
+   "description": "A classic debate club using parliamentary formats to develop argumentation and critical thinking.",
+   "i18n": {
+    "kk": {
+     "name": "LOGOS",
+     "room": "Дебат алаңы, 2.208",
+     "description": "Аргументация мен сыни ойлауды дамытатын парламенттік форматтағы классикалық дебат клубы."
+    },
+    "ru": {
+     "name": "LOGOS",
+     "room": "Дебатная арена 2.208",
+     "description": "Классический дебатный клуб в парламентском формате: аргументация и критическое мышление."
+    }
+   }
   },
   {
    "name": "Ombudsman",
    "category": "social",
    "room": "Ombudsman Office, 1st Floor",
    "icon": "shield",
-   "description": "Protects student rights and helps resolve academic and everyday disputes with the administration."
+   "description": "Protects student rights and helps resolve academic and everyday disputes with the administration.",
+   "i18n": {
+    "kk": {
+     "name": "Омбудсмен",
+     "room": "Омбудсмен кабинеті, 1-қабат",
+     "description": "Студенттердің құқықтарын қорғайды және әкімшілікпен оқу және тұрмыстық даулерді шешуге көмектеседі."
+    },
+    "ru": {
+     "name": "Омбудсмен",
+     "room": "Кабинет омбудсмена, 1-й этаж",
+     "description": "Защищает права студентов и помогает решать учебные и бытовые споры с администрацией."
+    }
+   }
   },
   {
    "name": "Buddy",
    "category": "social",
    "room": "Social Affairs Department",
    "icon": "people",
-   "description": "A mentoring program that helps first-year and international students settle in at the university."
+   "description": "A mentoring program that helps first-year and international students settle in at the university.",
+   "i18n": {
+    "kk": {
+     "name": "Buddy",
+     "room": "Әлеуметтік істер бөлімі",
+     "description": "Бірінші курс және шетелдік студенттерге университетке бейімделуге көмектесетін тәлімгерлік бағдарлама."
+    },
+    "ru": {
+     "name": "Buddy",
+     "room": "Отдел по социальным вопросам",
+     "description": "Программа наставничества, которая помогает первокурсникам и иностранным студентам освоиться в университете."
+    }
+   }
   },
   {
    "name": "Psyclub",
    "category": "social",
    "room": "Psychologist Room / 1.303",
    "icon": "brain",
-   "description": "Peer support, talks on mental health, stress and burnout, and group sessions with a psychologist."
+   "description": "Peer support, talks on mental health, stress and burnout, and group sessions with a psychologist.",
+   "i18n": {
+    "kk": {
+     "name": "Psyclub",
+     "room": "Психолог кабинеті / 1.303",
+     "description": "Құрдастар қолдауы, психикалық денсаулық, стресс пен күйзеліс туралы әңгімелер және психологпен топтық сабақтар."
+    },
+    "ru": {
+     "name": "Psyclub",
+     "room": "Кабинет психолога / 1.303",
+     "description": "Поддержка сверстников, беседы о ментальном здоровье, стрессе и выгорании, групповые занятия с психологом."
+    }
+   }
   },
   {
    "name": "Devine",
    "category": "social",
    "room": "Art Space Lounge",
    "icon": "hanger",
-   "description": "A fashion and style community that organises fashion shows, style talks and photo shoots."
+   "description": "A fashion and style community that organises fashion shows, style talks and photo shoots.",
+   "i18n": {
+    "kk": {
+     "name": "Devine",
+     "room": "Art Space лаунжы",
+     "description": "Сән көрсетілімдерін, стиль туралы әңгімелер мен фототүсірілімдер ұйымдастыратын сән қауымдастығы."
+    },
+    "ru": {
+     "name": "Devine",
+     "room": "Лаунж Art Space",
+     "description": "Модное сообщество: показы, разговоры о стиле и фотосъёмки."
+    }
+   }
   },
   {
    "name": "HUSTLE LAB",
    "category": "social",
    "room": "Business Incubator / Room 3.305",
    "icon": "case",
-   "description": "The student startup lab: turning ideas into business projects, pitch training and investor meetings."
+   "description": "The student startup lab: turning ideas into business projects, pitch training and investor meetings.",
+   "i18n": {
+    "kk": {
+     "name": "HUSTLE LAB",
+     "room": "Бизнес-инкубатор / 3.305 аудитория",
+     "description": "Студенттік стартап-зертхана: идеяны бизнес-жобаға айналдыру, питч дайындығы және инвесторлармен кездесулер."
+    },
+    "ru": {
+     "name": "HUSTLE LAB",
+     "room": "Бизнес-инкубатор / ауд. 3.305",
+     "description": "Студенческая стартап-лаборатория: от идеи к бизнес-проекту, тренировка питчей и встречи с инвесторами."
+    }
+   }
   }
  ],
  "events": [
@@ -310,7 +814,19 @@
    "coins": 20,
    "description": "A friendly knockout tournament for students and staff. Paddles are provided.",
    "status": "approved",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Үстел теннисінен ашық турнир",
+     "location": "Пинг-понг аймағы, 2-қабат",
+     "description": "Студенттер мен қызметкерлерге арналған достық олимпиадалық турнир. Ракеткалар беріледі."
+    },
+    "ru": {
+     "title": "Открытый турнир по настольному теннису",
+     "location": "Зона пинг-понга, 2-й этаж",
+     "description": "Дружеский турнир на выбывание для студентов и сотрудников. Ракетки выдаются."
+    }
+   }
   },
   {
    "key": "s2",
@@ -326,7 +842,19 @@
    "coins": 15,
    "description": "Tournament rules, a professional host and a ranking table for the season.",
    "status": "approved",
-   "waitlist": 3
+   "waitlist": 3,
+   "i18n": {
+    "kk": {
+     "title": "Мафия кеші",
+     "location": "Шағын коворкинг, 3-қабат",
+     "description": "Турнир ережелері, кәсіби жүргізуші және маусымдық рейтинг кестесі."
+    },
+    "ru": {
+     "title": "Вечер «Мафии»",
+     "location": "Малый коворкинг, 3-й этаж",
+     "description": "Турнирные правила, профессиональный ведущий и рейтинговая таблица сезона."
+    }
+   }
   },
   {
    "key": "s3",
@@ -342,7 +870,19 @@
    "coins": 30,
    "description": "Deploy your first app on AWS in 90 minutes. Bring a laptop.",
    "status": "approved",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Бұлтты технологиялар негіздері: воркшоп",
+     "location": "Бұлтты есептеулер зертханасы",
+     "description": "Алғашқы қосымшаңызды AWS-те 90 минутта іске қосыңыз. Ноутбук ала келіңіз."
+    },
+    "ru": {
+     "title": "Воркшоп «Основы облачных технологий»",
+     "location": "Лаборатория облачных вычислений",
+     "description": "Запустите своё первое приложение на AWS за 90 минут. Возьмите ноутбук."
+    }
+   }
   },
   {
    "key": "s4",
@@ -358,7 +898,19 @@
    "coins": 15,
    "description": "Meet the team, learn about upcoming forums and choose the projects you want to help with.",
    "status": "approved",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Волонтерлерге арналған кіріспе",
+     "location": "Студенттік кеңес кабинеті / 1.102",
+     "description": "Командамен танысып, алдағы форумдар туралы біліп, көмектескіңіз келетін жобаларды таңдаңыз."
+    },
+    "ru": {
+     "title": "Вводная встреча для волонтёров",
+     "location": "Кабинет студсовета / 1.102",
+     "description": "Познакомьтесь с командой, узнайте о ближайших форумах и выберите проекты, в которых хотите помочь."
+    }
+   }
   },
   {
    "key": "s5",
@@ -374,7 +926,19 @@
    "coins": 50,
    "description": "48 hours of coding, mentoring from senior engineers, pizza and prizes from leading IT companies.",
    "status": "approved",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Campus Hackathon 2026",
+     "location": "Спорт залы / Коворкингтер",
+     "description": "48 сағат бағдарламалау, тәжірибелі инженерлердің тәлімгерлігі, пицца және жетекші IT-компаниялардан сыйлықтар."
+    },
+    "ru": {
+     "title": "Campus Hackathon 2026",
+     "location": "Спортзал / Коворкинги",
+     "description": "48 часов программирования, наставники-инженеры, пицца и призы от ведущих IT-компаний."
+    }
+   }
   },
   {
    "key": "s6",
@@ -390,7 +954,19 @@
    "coins": 20,
    "description": "Learn a full routine in one evening. No experience needed.",
    "status": "approved",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "K-Pop би воркшопы",
+     "location": "Би студиясы",
+     "description": "Бір кеште толық биді үйреніңіз. Тәжірибе қажет емес."
+    },
+    "ru": {
+     "title": "Воркшоп по K-Pop танцам",
+     "location": "Танцевальная студия",
+     "description": "Выучите полный танец за один вечер. Опыт не нужен."
+    }
+   }
   },
   {
    "key": "s7",
@@ -406,7 +982,19 @@
    "coins": 20,
    "description": "A cosy evening with guitars, favourite student songs and hot tea.",
    "status": "approved",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Акустикалық кеш",
+     "location": "Акт залы",
+     "description": "Гитара, сүйікті студенттік әндер және ыстық шай бар жылы кеш."
+    },
+    "ru": {
+     "title": "Акустический вечер",
+     "location": "Актовый зал",
+     "description": "Уютный вечер с гитарами, любимыми студенческими песнями и горячим чаем."
+    }
+   }
   },
   {
    "key": "s8",
@@ -422,7 +1010,19 @@
    "coins": 20,
    "description": "Teams of four, six rounds, prizes for the top three teams.",
    "status": "approved",
-   "waitlist": 5
+   "waitlist": 5,
+   "i18n": {
+    "kk": {
+     "title": "Intellectum квиз кубогы",
+     "location": "2.102 дәріс залы",
+     "description": "Төрт адамнан тұратын командалар, алты раунд, үздік үш командаға сыйлықтар."
+    },
+    "ru": {
+     "title": "Кубок квизов Intellectum",
+     "location": "Лекционный зал 2.102",
+     "description": "Команды по четыре человека, шесть раундов, призы трём лучшим командам."
+    }
+   }
   },
   {
    "key": "s9",
@@ -438,7 +1038,19 @@
    "coins": 30,
    "description": "An internal esports tournament. Build a team with your classmates and take the campus cup.",
    "status": "approved",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "CS2 5v5 кампус кубогы",
+     "location": "Кибер-зертхана / 3.105 аудитория",
+     "description": "Ішкі киберспорт турнирі. Курстастарыңызбен команда құрып, кампус кубогын алыңыз."
+    },
+    "ru": {
+     "title": "Кубок кампуса CS2 5v5",
+     "location": "Кибер-лаборатория / ауд. 3.105",
+     "description": "Внутренний киберспортивный турнир. Соберите команду с одногруппниками и возьмите кубок кампуса."
+    }
+   }
   },
   {
    "key": "s10",
@@ -454,7 +1066,19 @@
    "coins": 20,
    "description": "Graduates share how they found their first jobs and started companies.",
    "status": "approved",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Түлектермен мансап кеші",
+     "location": "Бизнес-инкубатор / 3.305 аудитория",
+     "description": "Түлектер алғашқы жұмысын қалай тапқанын және компанияларын қалай ашқанын айтып береді."
+    },
+    "ru": {
+     "title": "Вечер карьеры с выпускниками",
+     "location": "Бизнес-инкубатор / ауд. 3.305",
+     "description": "Выпускники расскажут, как нашли первую работу и открыли свои компании."
+    }
+   }
   },
   {
    "key": "p1",
@@ -470,7 +1094,19 @@
    "coins": 15,
    "description": "A guided tea ceremony with a short talk on Japanese etiquette.",
    "status": "pending",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Жапон шай рәсімі",
+     "location": "2.305 аудитория",
+     "description": "Жапон этикеті туралы қысқа әңгімесі бар шай рәсімі."
+    },
+    "ru": {
+     "title": "Японская чайная церемония",
+     "location": "Ауд. 2.305",
+     "description": "Чайная церемония с ведущим и короткий рассказ о японском этикете."
+    }
+   }
   },
   {
    "key": "p2",
@@ -486,7 +1122,19 @@
    "coins": 20,
    "description": "An easy 5 km group run with lights and music. Meet at the main entrance.",
    "status": "pending",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Expo маңындағы түнгі жүгіру",
+     "location": "Триатлон паркі / Стадион",
+     "description": "Шамдар мен музыкамен 5 км жеңіл топтық жүгіру. Басты кіреберісте кездесеміз."
+    },
+    "ru": {
+     "title": "Ночной забег вокруг Expo",
+     "location": "Триатлон-парк / Стадион",
+     "description": "Лёгкий групповой забег на 5 км с огнями и музыкой. Встречаемся у главного входа."
+    }
+   }
   },
   {
    "key": "p3",
@@ -502,7 +1150,19 @@
    "coins": 20,
    "description": "Present your startup idea in 3 minutes and get feedback from mentors.",
    "status": "pending",
-   "waitlist": 0
+   "waitlist": 0,
+   "i18n": {
+    "kk": {
+     "title": "Питч жаттығу күні",
+     "location": "Бизнес-инкубатор / 3.305 аудитория",
+     "description": "Стартап идеяңызды 3 минутта таныстырып, тәлімгерлерден кері байланыс алыңыз."
+    },
+    "ru": {
+     "title": "День тренировки питчей",
+     "location": "Бизнес-инкубатор / ауд. 3.305",
+     "description": "Представьте идею стартапа за 3 минуты и получите отзывы от наставников."
+    }
+   }
   }
  ],
  "first": [
@@ -544,5 +1204,159 @@
   "Baimukhanov",
   "Saparova",
   "Kenzhebekov"
+ ],
+ "extraEventI18n": {
+  "Open Lab Demo Day": {
+   "kk": {
+    "title": "Open Lab демо-күні",
+    "location": "Коворкинг, 1-қабат",
+    "description": "Студенттік жобалардың қысқа демонстрациялары. Тіркеу басталудан бір сағат бұрын ашылады."
+   },
+   "ru": {
+    "title": "День демо Open Lab",
+    "location": "Коворкинг, 1-й этаж",
+    "description": "Короткие демонстрации студенческих проектов. Отметка открывается за час до начала."
+   }
+  },
+  "Welcome Fair of Clubs": {
+   "kk": {
+    "title": "Клубтар жәрмеңкесі",
+    "location": "Басты атриум",
+    "description": "Барлық студенттік клубтармен бір жерде танысыңыз."
+   },
+   "ru": {
+    "title": "Ярмарка клубов",
+    "location": "Главный атриум",
+    "description": "Познакомьтесь со всеми студенческими клубами в одном месте."
+   }
+  }
+ },
+ "accounts": [
+  {
+   "email": "student1@test.local",
+   "password": "Student123!",
+   "name": "Aruzhan Bekova",
+   "studentId": "230001",
+   "group": "SE-2301",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student2@test.local",
+   "password": "Student123!",
+   "name": "Dias Akhmetov",
+   "studentId": "230002",
+   "group": "CS-2302",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student3@test.local",
+   "password": "Student123!",
+   "name": "Kamila Abenova",
+   "studentId": "230003",
+   "group": "IT-2303",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student4@test.local",
+   "password": "Student123!",
+   "name": "Arman Zhunusov",
+   "studentId": "230004",
+   "group": "SE-2302",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student5@test.local",
+   "password": "Student123!",
+   "name": "Zhanel Tulegenova",
+   "studentId": "230005",
+   "group": "CS-2301",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student6@test.local",
+   "password": "Student123!",
+   "name": "Miras Sadykov",
+   "studentId": "230006",
+   "group": "IT-2302",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student7@test.local",
+   "password": "Student123!",
+   "name": "Akbota Saparova",
+   "studentId": "230007",
+   "group": "SE-2304",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student8@test.local",
+   "password": "Student123!",
+   "name": "Daniyar Kenzhebekov",
+   "studentId": "230008",
+   "group": "CS-2303",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student9@test.local",
+   "password": "Student123!",
+   "name": "Togzhan Ermekova",
+   "studentId": "230009",
+   "group": "IT-2301",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "student10@test.local",
+   "password": "Student123!",
+   "name": "Rustem Baimukhanov",
+   "studentId": "230010",
+   "group": "SE-2303",
+   "role": "student",
+   "club": null
+  },
+  {
+   "email": "organizer1@test.local",
+   "password": "Organizer123!",
+   "name": "Madina Omarova",
+   "studentId": "220010",
+   "group": "IT-2201",
+   "role": "organizer",
+   "club": "GDSC (Google Developer Student Club)"
+  },
+  {
+   "email": "organizer2@test.local",
+   "password": "Organizer123!",
+   "name": "Timur Bekov",
+   "studentId": "220011",
+   "group": "SE-2202",
+   "role": "organizer",
+   "club": "Chess Club"
+  },
+  {
+   "email": "organizer3@test.local",
+   "password": "Organizer123!",
+   "name": "Aigerim Nurlanova",
+   "studentId": "220012",
+   "group": "CS-2201",
+   "role": "organizer",
+   "club": "Music Club"
+  },
+  {
+   "email": "moderator@test.local",
+   "password": "Moderator123!",
+   "name": "Saule Ermekova (Student Affairs)",
+   "studentId": null,
+   "group": null,
+   "role": "admin",
+   "club": null
+  }
  ]
 }

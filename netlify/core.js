@@ -15,12 +15,9 @@ function createCore(SEED, state) {
     const club = (n) => D.clubs.find((c) => c.name === n).id;
     const gdsc = club('GDSC (Google Developer Student Club)');
     const U = (email, pw, name, sid, group, role, clubId) => { const u = { id: id(), email, pw, name, student_id: sid, group_name: group, role, club_id: clubId, lang: 'en' }; D.users.push(u); return u.id; };
-    const me = U('student@test.local', 'Student123!', 'Aruzhan Bekova', '230001', 'SE-2301', 'student', null);
-    U('student2@test.local', 'Student123!', 'Dias Akhmetov', '230002', 'CS-2302', 'student', null);
-    const org = U('organizer@test.local', 'Organizer123!', 'Madina Omarova', '220010', 'IT-2201', 'organizer', gdsc);
-    U('organizer2@test.local', 'Organizer123!', 'Timur Bekov', '220011', 'SE-2202', 'organizer', club('Chess Club'));
-    U('admin@test.local', 'Admin123!', 'Saule Ermekova (Student Affairs)', null, null, 'admin', null);
-    for (let i = 1; i <= 5; i++) U(`tester${i}@test.local`, 'Student123!', `Test Student ${i}`, String(239000 + i), 'TEST-01', 'student', null);
+    const ids = {};
+    for (const a of SEED.accounts) ids[a.email] = U(a.email, a.password, a.name, a.studentId, a.group, a.role, a.club ? club(a.club) : null);
+    const me = ids['student1@test.local'], org = ids['organizer1@test.local'];
     const F = SEED.first, L = SEED.last, crowd = [];
     for (let i = 0; i < 120; i++) crowd.push(U(`s${String(i + 1).padStart(3, '0')}@test.local`, 'Student123!', F[i % F.length] + ' ' + L[(i * 7 + 3) % L.length], String(240100 + i), 'ST-24' + String(i % 9 + 1).padStart(2, '0'), 'student', null));
     const at = (o, h, m) => { const d = new Date(now); d.setDate(d.getDate() + o); d.setHours(h, m, 0, 0); return d; };
@@ -30,7 +27,7 @@ function createCore(SEED, state) {
     let ci = 0;
     for (const e of all) {
       const start = e.demoSoon ? new Date(now.getTime() + 30 * 60000) : e.past ? at(-3, 12, 0) : at(e.dayOffset, e.hour, e.minute);
-      const ev = { id: id(), title: e.title, description: e.description, club_id: club(e.club), location: e.location, type: e.type, starts_at: iso(start), ends_at: iso(start.getTime() + 7200000), capacity: e.capacity, coins: e.coins, status: e.status, created_by: e.club === 'GDSC (Google Developer Student Club)' ? org : null, comment: null };
+      const ev = { id: id(), title: e.title, i18n: e.i18n || (SEED.extraEventI18n || {})[e.title] || null, description: e.description, club_id: club(e.club), location: e.location, type: e.type, starts_at: iso(start), ends_at: iso(start.getTime() + 7200000), capacity: e.capacity, coins: e.coins, status: e.status, created_by: e.club === 'GDSC (Google Developer Student Club)' ? org : null, comment: null };
       D.events.push(ev);
       if (e.status !== 'approved') continue;
       for (let k = 0; k < e.taken; k++) D.regs.push(reg(id(), ev.id, crowd[(ci++) % 120], e.past ? 'checked_in' : 'confirmed', rnd(), t));
@@ -60,7 +57,7 @@ function createCore(SEED, state) {
   const str = (v, n, a, b) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < a || s.length > b) fail(400, 'invalid_' + n, `${n[0].toUpperCase() + n.slice(1)} must be ${a}–${b} characters.`); return s; };
   function view(e, u) {
     const c = D.clubs.find((x) => x.id === e.club_id), tk = taken(e.id), q = waitQ(e.id);
-    const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status };
+    const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status, i18n: e.i18n || null, clubI18n: c.i18n || null };
     if (u) { const r = D.regs.find((x) => x.event_id === e.id && x.user_id === u.id); if (r && r.status !== 'cancelled') {
       o.my = { id: r.id, status: r.status, ticketCode: r.status === 'waitlisted' ? null : r.ticket, reminder: { channel: r.channel, day: r.day, hour: r.hour } };
       if (r.status === 'waitlisted') o.my.position = q.indexOf(r) + 1;
@@ -80,6 +77,7 @@ function createCore(SEED, state) {
   // ---------- routes ----------
   const R = [];
   const on = (m, p, h) => R.push({ m, re: new RegExp('^' + p.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), h });
+  on('GET', '/api/test-accounts', () => SEED.accounts.map((a) => ({ email: a.email, password: a.password, name: a.name, role: a.role, club: a.club })));
   on('POST', '/api/admin/reset', (b, u) => { need(u, 'admin'); D = seed(); NEW_TOKEN = ''; return { ok: true }; });
   on('POST', '/api/auth/login', (b) => { const u = D.users.find((x) => x.email === String(b.email || '').trim().toLowerCase()); if (!u || u.pw !== b.password) fail(401, 'invalid_credentials', 'Wrong e-mail or password.'); const tk = Array.from(globalThis.crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join(''); D.sessions[tk] = { uid: u.id, exp: Date.now() + 12 * 3600000 }; NEW_TOKEN = tk; return { user: { id: u.id, name: u.name, email: u.email, role: u.role } }; });
   on('POST', '/api/auth/logout', () => { if (TOKEN) delete D.sessions[TOKEN]; NEW_TOKEN = ''; return { ok: true }; });
@@ -159,11 +157,11 @@ function createCore(SEED, state) {
     const c = String(b.comment || '').trim().slice(0, 500); if (b.decision === 'reject' && c.length < 5) fail(400, 'comment_required', 'Write a short reason for the rejection.');
     e.status = b.decision === 'approve' ? 'approved' : 'rejected'; e.comment = c || null; if (e.created_by) notify(e.created_by, 'app', `Your event "${e.title}" was ${e.status}.${c ? ' Comment: ' + c : ''}`); return { id: e.id, status: e.status };
   });
-  on('GET', '/api/admin/club-requests', (b, u) => { need(u, 'admin'); return D.members.filter((m) => m.status === 'pending').map((m) => { const s = D.users.find((x) => x.id === m.user_id); return { userId: m.user_id, clubId: m.club_id, message: m.message, createdAt: m.created_at, name: s.name, studentId: s.student_id, club: D.clubs.find((c) => c.id === m.club_id).name }; }); });
+  on('GET', '/api/admin/club-requests', (b, u) => { need(u, 'admin'); return D.members.filter((m) => m.status === 'pending').map((m) => { const s = D.users.find((x) => x.id === m.user_id); return { userId: m.user_id, clubId: m.club_id, message: m.message, createdAt: m.created_at, name: s.name, studentId: s.student_id, club: D.clubs.find((c) => c.id === m.club_id).name, clubI18n: D.clubs.find((c) => c.id === m.club_id).i18n || null }; }); });
   on('POST', '/api/admin/club-requests/decision', (b, u) => { need(u, 'admin'); const m = D.members.find((x) => x.user_id === Number(b.userId) && x.club_id === Number(b.clubId) && x.status === 'pending'); if (!m) fail(404, 'request_not_found', 'Request not found.'); m.status = b.decision === 'accept' ? 'accepted' : 'declined'; notify(m.user_id, 'app', `Your request to join ${D.clubs.find((c) => c.id === m.club_id).name} was ${m.status}.`); return { status: m.status }; });
   on('GET', '/api/admin/stats', (b, u) => {
     need(u, 'admin');
-    const events = D.events.filter((e) => e.status === 'approved').sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => { const v = view(e, null), f = D.feedback.filter((x) => x.event_id === e.id); return { id: e.id, title: e.title, startsAt: e.starts_at, capacity: e.capacity, registered: v.taken, fillRate: Math.round((v.taken / e.capacity) * 100), waitlist: v.waitlist, checkedIn: D.regs.filter((r) => r.event_id === e.id && r.status === 'checked_in').length, avgRating: f.length ? Math.round((f.reduce((a, x) => a + x.rating, 0) / f.length) * 10) / 10 : null }; });
+    const events = D.events.filter((e) => e.status === 'approved').sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => { const v = view(e, null), f = D.feedback.filter((x) => x.event_id === e.id); return { id: e.id, title: e.title, i18n: e.i18n || null, startsAt: e.starts_at, capacity: e.capacity, registered: v.taken, fillRate: Math.round((v.taken / e.capacity) * 100), waitlist: v.waitlist, checkedIn: D.regs.filter((r) => r.event_id === e.id && r.status === 'checked_in').length, avgRating: f.length ? Math.round((f.reduce((a, x) => a + x.rating, 0) / f.length) * 10) / 10 : null }; });
     return { totals: { clubs: D.clubs.length, approvedEvents: events.length, registrations: events.reduce((a, e) => a + e.registered, 0), pending: D.events.filter((e) => e.status === 'pending').length + D.members.filter((m) => m.status === 'pending').length }, events };
   });
   on('GET', '/api/admin/users', (b, u) => { need(u, 'admin'); return D.users.filter((x) => !/^s\d{3}@/.test(x.email)).map((x) => ({ id: x.id, name: x.name, email: x.email, role: x.role, club: x.club_id ? D.clubs.find((c) => c.id === x.club_id).name : null })); });

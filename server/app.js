@@ -7,6 +7,8 @@ const { tx, iso, reset } = require('./db');
 const auth = require('./auth');
 
 const PUBLIC = path.join(__dirname, '..', 'public');
+const ACCOUNTS = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8')).accounts;
+const parse = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
 const TYPES = ['sports', 'creative', 'tech', 'intellectual', 'social'];
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json' };
 
@@ -39,11 +41,12 @@ function createApp(db, opts = {}) {
   const balance = (uid) => q('SELECT COALESCE(SUM(amount),0) AS b FROM coin_transactions WHERE user_id = ?').get(uid).b;
 
   function eventView(e, u) {
-    const c = q('SELECT name, category FROM clubs WHERE id = ?').get(e.club_id);
+    const c = q('SELECT name, category, i18n FROM clubs WHERE id = ?').get(e.club_id);
     const tk = taken(e.id);
     const wait = q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'waitlisted'").get(e.id).n;
     const out = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type,
-      startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: wait, coins: e.coins, status: e.status };
+      startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: wait, coins: e.coins, status: e.status,
+      i18n: parse(e.i18n), clubI18n: parse(c.i18n) };
     if (u) {
       const r = q('SELECT * FROM registrations WHERE event_id = ? AND user_id = ?').get(e.id, u.id);
       if (r && r.status !== 'cancelled') {
@@ -61,6 +64,8 @@ function createApp(db, opts = {}) {
   const route = (method, pattern, handler) => routes.push({ method, re: new RegExp('^' + pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), handler });
 
   // FR-01 Sign in with a test account; session cookie
+  // Fictional test accounts for the sign-in list (prototype only)
+  route('GET', '/api/test-accounts', () => ACCOUNTS.map((a) => ({ email: a.email, password: a.password, name: a.name, role: a.role, club: a.club })));
   route('POST', '/api/auth/login', ({ body, req, res }) => {
     const ip = req.socket.remoteAddress || 'local';
     if (auth.tooManyAttempts(ip)) fail(429, 'too_many_attempts', 'Too many failed attempts. Try again in 5 minutes.');
@@ -192,7 +197,7 @@ function createApp(db, opts = {}) {
 
   // FR-10 Club catalogue and join requests
   route('GET', '/api/clubs', ({ user }) => q('SELECT c.*, (SELECT COUNT(*) FROM memberships m WHERE m.club_id = c.id AND m.status = \'accepted\') AS members FROM clubs c ORDER BY c.name').all()
-    .map((c) => { if (user) { const m = q('SELECT status FROM memberships WHERE user_id = ? AND club_id = ?').get(user.id, c.id); c.myStatus = m ? m.status : null; } return c; }));
+    .map((c) => { c.i18n = parse(c.i18n); if (user) { const m = q('SELECT status FROM memberships WHERE user_id = ? AND club_id = ?').get(user.id, c.id); c.myStatus = m ? m.status : null; } return c; }));
   route('POST', '/api/clubs/:id/join', ({ user, params, body }) => {
     need(user, 'student');
     const cid = int(params.id); if (!q('SELECT 1 FROM clubs WHERE id = ?').get(cid)) fail(404, 'club_not_found', 'Club not found.');
@@ -263,7 +268,7 @@ function createApp(db, opts = {}) {
     return { id: e.id, status };
   });
   // FR-13 Club join requests
-  route('GET', '/api/admin/club-requests', ({ user }) => { need(user, 'admin'); return q("SELECT m.user_id AS userId, m.club_id AS clubId, m.message, m.created_at AS createdAt, u.name, u.student_id AS studentId, c.name AS club FROM memberships m JOIN users u ON u.id = m.user_id JOIN clubs c ON c.id = m.club_id WHERE m.status = 'pending' ORDER BY m.created_at").all(); });
+  route('GET', '/api/admin/club-requests', ({ user }) => { need(user, 'admin'); return q("SELECT m.user_id AS userId, m.club_id AS clubId, m.message, m.created_at AS createdAt, u.name, u.student_id AS studentId, c.name AS club, c.i18n AS clubI18n FROM memberships m JOIN users u ON u.id = m.user_id JOIN clubs c ON c.id = m.club_id WHERE m.status = 'pending' ORDER BY m.created_at").all().map((r) => ({ ...r, clubI18n: parse(r.clubI18n) })); });
   route('POST', '/api/admin/club-requests/decision', ({ user, body }) => {
     need(user, 'admin'); const uid = int(body.userId), cid = int(body.clubId);
     if (!['accept', 'decline'].includes(body.decision)) fail(400, 'invalid_decision', 'Decision must be accept or decline.');
@@ -281,14 +286,14 @@ function createApp(db, opts = {}) {
       const v = eventView(e, null);
       const checked = q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'checked_in'").get(e.id).n;
       const fb = q('SELECT AVG(rating) AS a, COUNT(*) AS n FROM feedback WHERE event_id = ?').get(e.id);
-      return { id: e.id, title: e.title, startsAt: e.starts_at, capacity: e.capacity, registered: v.taken, fillRate: Math.round((v.taken / e.capacity) * 100), waitlist: v.waitlist, checkedIn: checked, avgRating: fb.n ? Math.round(fb.a * 10) / 10 : null, ratings: fb.n };
+      return { id: e.id, title: e.title, i18n: v.i18n, startsAt: e.starts_at, capacity: e.capacity, registered: v.taken, fillRate: Math.round((v.taken / e.capacity) * 100), waitlist: v.waitlist, checkedIn: checked, avgRating: fb.n ? Math.round(fb.a * 10) / 10 : null, ratings: fb.n };
     });
     const clubs = q('SELECT category, COUNT(*) AS n FROM clubs GROUP BY category').all();
     const pending = q("SELECT COUNT(*) AS n FROM events WHERE status = 'pending'").get().n + q("SELECT COUNT(*) AS n FROM memberships WHERE status = 'pending'").get().n;
     return { totals: { clubs: clubs.reduce((a, c) => a + c.n, 0), approvedEvents: events.length, registrations: events.reduce((a, e) => a + e.registered, 0), pending }, clubsByCategory: clubs, events };
   });
   // FR-20 Role management
-  route('GET', '/api/admin/users', ({ user }) => { need(user, 'admin'); return q("SELECT u.id, u.name, u.email, u.role, c.name AS club FROM users u LEFT JOIN clubs c ON c.id = u.club_id WHERE u.email NOT LIKE 's___@test.local' ORDER BY u.role, u.name").all(); });
+  route('GET', '/api/admin/users', ({ user }) => { need(user, 'admin'); return q("SELECT u.id, u.name, u.email, u.role, c.name AS club FROM users u LEFT JOIN clubs c ON c.id = u.club_id WHERE u.email NOT GLOB 's[0-9][0-9][0-9]@test.local' ORDER BY u.role, u.name").all(); });
   route('PUT', '/api/admin/users/:id/role', ({ user, params, body }) => {
     need(user, 'admin'); const id = int(params.id);
     if (id === user.id) fail(409, 'own_role', 'You cannot change your own role.');

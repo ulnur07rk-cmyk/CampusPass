@@ -11,6 +11,7 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS clubs (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
+  i18n TEXT,
   category TEXT NOT NULL CHECK (category IN ('sports','creative','tech','intellectual','social')),
   room TEXT NOT NULL,
   icon TEXT,
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
+  i18n TEXT,
   club_id INTEGER NOT NULL REFERENCES clubs(id),
   location TEXT NOT NULL,
   type TEXT NOT NULL CHECK (type IN ('sports','creative','tech','intellectual','social')),
@@ -131,20 +133,20 @@ function seed(db, now = new Date()) {
   const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8'));
   const t = iso(now);
   return tx(db, () => {
-    const addClub = db.prepare('INSERT INTO clubs (name, category, room, icon, description) VALUES (?,?,?,?,?)');
-    for (const c of data.clubs) addClub.run(c.name, c.category, c.room, c.icon, c.description);
+    const addClub = db.prepare('INSERT INTO clubs (name, category, room, icon, description, i18n) VALUES (?,?,?,?,?,?)');
+    for (const c of data.clubs) addClub.run(c.name, c.category, c.room, c.icon, c.description, JSON.stringify(c.i18n || null));
     const clubId = (name) => db.prepare('SELECT id FROM clubs WHERE name = ?').get(name).id;
 
     const addUser = db.prepare('INSERT INTO users (email, password_hash, name, student_id, group_name, role, club_id, created_at) VALUES (?,?,?,?,?,?,?,?)');
-    const S = hashPassword('Student123!'), O = hashPassword('Organizer123!'), A = hashPassword('Admin123!');
+    // Test accounts (fictional): 10 students, 3 organizers, 1 moderator — listed in seed-data.json
+    const hashes = {}, ids = {};
+    for (const a of data.accounts) {
+      hashes[a.password] = hashes[a.password] || hashPassword(a.password);
+      ids[a.email] = addUser.run(a.email, hashes[a.password], a.name, a.studentId, a.group, a.role, a.club ? clubId(a.club) : null, t).lastInsertRowid;
+    }
+    const S = hashes['Student123!'];
     const gdsc = clubId('GDSC (Google Developer Student Club)');
-    const me = addUser.run('student@test.local', S, 'Aruzhan Bekova', '230001', 'SE-2301', 'student', null, t).lastInsertRowid;
-    addUser.run('student2@test.local', S, 'Dias Akhmetov', '230002', 'CS-2302', 'student', null, t);
-    const org = addUser.run('organizer@test.local', O, 'Madina Omarova', '220010', 'IT-2201', 'organizer', gdsc, t).lastInsertRowid;
-    addUser.run('organizer2@test.local', O, 'Timur Bekov', '220011', 'SE-2202', 'organizer', clubId('Chess Club'), t);
-    addUser.run('admin@test.local', A, 'Saule Ermekova (Student Affairs)', null, null, 'admin', null, t);
-    // Clean accounts for usability testers (no registrations): tester1@test.local … tester5@test.local
-    for (let i = 1; i <= 5; i++) addUser.run(`tester${i}@test.local`, S, `Test Student ${i}`, String(239000 + i), 'TEST-01', 'student', null, t);
+    const me = ids['student1@test.local'], org = ids['organizer1@test.local'];
     // 120 extra fictional students who fill seats
     const crowd = [];
     for (let i = 0; i < 120; i++) {
@@ -154,8 +156,8 @@ function seed(db, now = new Date()) {
 
     // Events relative to "now" (local time of the machine that seeds the database)
     const at = (dayOffset, h, m) => { const d = new Date(now); d.setDate(d.getDate() + dayOffset); d.setHours(h, m, 0, 0); return d; };
-    const addEvent = db.prepare(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
+    const addEvent = db.prepare(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, i18n)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     const addReg = db.prepare(`INSERT INTO registrations (event_id, user_id, status, ticket_code, created_at, updated_at) VALUES (?,?,?,?,?,?)`);
     let ticketNo = 1;
     const code = () => 'CP-' + String(ticketNo++).padStart(6, '0');
@@ -170,7 +172,7 @@ function seed(db, now = new Date()) {
       let start = e.demoSoon ? new Date(now.getTime() + 30 * 60000) : e.past ? at(-3, 12, 0) : at(e.dayOffset, e.hour, e.minute);
       const end = new Date(start.getTime() + 2 * 3600000);
       const owner = e.club === 'GDSC (Google Developer Student Club)' ? org : null;
-      const ev = addEvent.run(e.title, e.description, clubId(e.club), e.location, e.type, iso(start), iso(end), e.capacity, e.coins, e.status, owner, t).lastInsertRowid;
+      const ev = addEvent.run(e.title, e.description, clubId(e.club), e.location, e.type, iso(start), iso(end), e.capacity, e.coins, e.status, owner, t, JSON.stringify(e.i18n || (data.extraEventI18n || {})[e.title] || null)).lastInsertRowid;
       if (e.status !== 'approved') continue;
       for (let k = 0; k < e.taken; k++) { addReg.run(ev, crowd[(ci++) % crowd.length], e.past ? 'checked_in' : 'confirmed', code(), t, t); }
       for (let k = 0; k < e.waitlist; k++) { addReg.run(ev, crowd[(ci++) % crowd.length], 'waitlisted', null, t, t); }

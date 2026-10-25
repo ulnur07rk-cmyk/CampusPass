@@ -27,5 +27,5 @@ setInterval(() => app.sendDueReminders(), 60000).unref();
 
 http.createServer(app).listen(PORT, () => {
   console.log(`CampusPass is running: http://localhost:${PORT}`);
-  console.log('Test accounts: student@test.local / Student123!   organizer@test.local / Organizer123!   admin@test.local / Admin123!');
+  console.log('Test accounts: student1…student10@test.local / Student123!   organizer1…organizer3@test.local / Organizer123!   moderator@test.local / Moderator123!');
 });

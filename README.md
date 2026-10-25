@@ -69,15 +69,17 @@ Settings are in `netlify.toml` (build command `npm install`, publish directory `
 The graded prototype is the localhost version (`npm start`) with the SQLite database; the Netlify version is only a convenient online copy.
 
 ## Test accounts (fictional)
+All accounts are fictional. On the sign-in screen, choose an account in the list **“Sign in as”**: the e-mail and password are filled in automatically.
+
 | Role | E-mail | Password |
 |---|---|---|
-| Student | student@test.local | Student123! |
-| Student 2 | student2@test.local | Student123! |
-| Organizer (GDSC) | organizer@test.local | Organizer123! |
-| Organizer (Chess Club) | organizer2@test.local | Organizer123! |
-| Moderator (Student Affairs) | admin@test.local | Admin123! |
-| Usability testers (clean accounts) | tester1@test.local … tester5@test.local | Student123! |
+| Students (10) | student1@test.local … student10@test.local | Student123! |
+| Organizer, GDSC | organizer1@test.local | Organizer123! |
+| Organizer, Chess Club | organizer2@test.local | Organizer123! |
+| Organizer, Music Club | organizer3@test.local | Organizer123! |
+| Moderator (Student Affairs) | moderator@test.local | Moderator123! |
 
+`student1` (Aruzhan Bekova) already has some history (an attended event, coins, a club); `student2` … `student10` start clean, so each usability tester can get an own account.
 Before each round of usability testing, the moderator can press **Roles → Reset test data** to restore the starting data (everyone is signed out). Self-registration is intentionally not offered: the prototype must not collect data from real people.
 
 ## Security and data
