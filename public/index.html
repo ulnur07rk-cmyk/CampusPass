@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>CampusPass — campus events and clubs (educational prototype)</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#/events"><img src="/favicon.svg" alt="" width="34" height="34"><span><b>CampusPass</b><small id="tagline"></small></span></a>
+    <nav class="nav" id="nav" aria-label="Main"></nav>
+    <div class="tools">
+      <select id="lang" aria-label="Language"><option value="en">EN</option><option value="kk">ҚАЗ</option><option value="ru">РУС</option></select>
+      <button class="btn ghost small" id="signout" hidden></button>
+    </div>
+  </div>
+</header>
+<main id="app" class="wrap" tabindex="-1"></main>
+<nav class="bottom" id="bottom" aria-label="Main"></nav>
+<footer class="wrap foot" id="foot"></footer>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="/vendor/qrcode.js"></script>
+<script src="/i18n.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

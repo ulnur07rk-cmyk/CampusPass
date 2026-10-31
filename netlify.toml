@@ -1,0 +1,21 @@
+# Netlify settings. Educational project. Not a real product or service. All data are fictional.
+# Static files come from public/; the API runs as a Netlify Function (netlify/functions/api.mjs) with data in Netlify Blobs.
+[build]
+  command = "npm install"
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["server/seed-data.json"]
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"
+    X-Frame-Options = "DENY"
+    X-Robots-Tag = "noindex, nofollow"
