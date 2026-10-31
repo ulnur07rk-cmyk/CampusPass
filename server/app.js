@@ -7,7 +7,17 @@ const { tx, iso, reset } = require('./db');
 const auth = require('./auth');
 
 const PUBLIC = path.join(__dirname, '..', 'public');
-const ACCOUNTS = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8')).accounts;
+const SEED = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8'));
+const ACCOUNTS = SEED.accounts, ROOMS = SEED.rooms, VENUES = SEED.venues, CAMPUS = SEED.campus;
+const { availability } = require('./rooms');
+// Place of an event: a room on the campus floor plans or a venue in the city (F3, F22)
+function placeOf(e) {
+  const r = e.room_code && ROOMS.find((x) => x.code === e.room_code);
+  if (r) return { kind: 'room', code: r.code, name: r.name, floor: r.floor, x: r.x, y: r.y, capacity: r.capacity, i18n: r.i18n, lat: CAMPUS.lat, lng: CAMPUS.lng };
+  const v = e.venue && VENUES.find((x) => x.id === e.venue);
+  if (v) return { kind: 'venue', id: v.id, name: v.name, lat: v.lat, lng: v.lng, i18n: v.i18n };
+  return null;
+}
 const parse = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
 const TYPES = ['sports', 'creative', 'tech', 'intellectual', 'social'];
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json' };
@@ -46,7 +56,7 @@ function createApp(db, opts = {}) {
     const wait = q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'waitlisted'").get(e.id).n;
     const out = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type,
       startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: wait, coins: e.coins, status: e.status,
-      i18n: parse(e.i18n), clubI18n: parse(c.i18n) };
+      i18n: parse(e.i18n), clubI18n: parse(c.i18n), place: placeOf(e) };
     if (u) {
       const r = q('SELECT * FROM registrations WHERE event_id = ? AND user_id = ?').get(e.id, u.id);
       if (r && r.status !== 'cancelled') {
@@ -175,6 +185,21 @@ function createApp(db, opts = {}) {
     need(user);
     return q("SELECT e.* FROM registrations r JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.status <> 'cancelled' ORDER BY e.starts_at").all(user.id).map((e) => eventView(e, user));
   });
+  // Attendance history of the signed-in student (F10): attended, missed, cancelled, waitlist expired
+  route('GET', '/api/me/history', ({ user }) => {
+    need(user); const t = iso(now());
+    const rows = q("SELECT e.*, r.status AS reg_status FROM registrations r JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND (e.starts_at <= ? OR r.status = 'cancelled') ORDER BY e.starts_at DESC").all(user.id, t);
+    const items = rows.map((r) => {
+      const ended = r.ends_at <= t; let result;
+      if (r.reg_status === 'checked_in') result = 'attended'; else if (r.reg_status === 'cancelled') result = 'cancelled';
+      else if (r.reg_status === 'waitlisted') result = 'expired'; else result = ended ? 'missed' : 'ongoing';
+      const v = eventView(r, user);
+      return { ...v, result, coinsEarned: result === 'attended' ? r.coins : 0 };
+    }).filter((x) => x.result !== 'ongoing');
+    const counted = items.filter((x) => x.result === 'attended' || x.result === 'missed');
+    return { items, attended: counted.filter((x) => x.result === 'attended').length, missed: counted.filter((x) => x.result === 'missed').length };
+  });
+
   // FR-16 Coin balance and history
   route('GET', '/api/me/coins', ({ user }) => {
     need(user);
@@ -210,17 +235,31 @@ function createApp(db, opts = {}) {
   });
 
   // FR-11 Organizer submits an event for moderation (own club only)
+  // F21, F22 Campus, rooms and city venues for the map; free rooms for organizers and the moderator
+  route('GET', '/api/places', ({ user }) => { need(user); return { campus: CAMPUS, rooms: ROOMS, venues: VENUES }; });
+  route('GET', '/api/rooms/availability', ({ user, query }) => {
+    need(user, 'organizer', 'admin');
+    const start = new Date(query.start); if (isNaN(start)) fail(400, 'invalid_start', 'Enter a valid date and time.');
+    const minutes = Math.min(720, Math.max(15, Number(query.minutes) || 120)), end = new Date(start.getTime() + minutes * 60000);
+    const evs = q("SELECT id, title, room_code, status, starts_at, ends_at FROM events WHERE room_code IS NOT NULL").all();
+    return ROOMS.map((r) => ({ ...r, ...availability(r, ROOMS, start, end, evs) }));
+  });
   route('POST', '/api/events', ({ user, body }) => {
     need(user, 'organizer', 'admin');
-    const title = str(body.title, 'title', 3, 120), description = str(body.description, 'description', 10, 1000), location = str(body.location, 'location', 2, 120);
+    const title = str(body.title, 'title', 3, 120), description = str(body.description, 'description', 10, 1000);
+    const room = body.roomCode ? ROOMS.find((x) => x.code === body.roomCode) : null, venue = body.venueId ? VENUES.find((x) => x.id === body.venueId) : null;
+    if (!room && !venue) fail(400, 'place_required', 'Choose a free room on campus or a place in the city.');
+    const location = room ? room.name : venue.name;
     if (!TYPES.includes(body.type)) fail(400, 'invalid_type', 'Choose an event type.');
     const start = new Date(body.startsAt); if (isNaN(start)) fail(400, 'invalid_start', 'Enter a valid date and time.');
     if (start <= now()) fail(400, 'start_in_past', 'The event must start in the future.');
     const minutes = Number(body.durationMinutes) || 120; if (minutes < 15 || minutes > 720) fail(400, 'invalid_duration', 'Duration must be 15–720 minutes.');
     const capacity = Number(body.capacity); if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) fail(400, 'invalid_capacity', 'Seats must be 1–500.');
+    if (room && capacity > room.capacity) fail(400, 'room_too_small', `This room has ${room.capacity} seats.`);
+    if (room) { const a = availability(room, ROOMS, start, new Date(start.getTime() + minutes * 60000), q("SELECT id, title, room_code, status, starts_at, ends_at FROM events WHERE room_code IS NOT NULL").all()); if (!a.free) fail(409, 'room_busy', 'The room is not free at this time.'); }
     const clubId = user.role === 'admin' ? int(body.clubId) : user.club_id;
-    const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?)`)
-      .run(title, description, clubId, location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, 20, user.id, iso(now())).lastInsertRowid;
+    const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, room_code, venue) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?, ?, ?)`)
+      .run(title, description, clubId, location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, 20, user.id, iso(now()), room ? room.code : null, venue ? venue.id : null).lastInsertRowid;
     for (const a of q("SELECT id FROM users WHERE role = 'admin'").all()) notify(a.id, 'app', `New event waiting for review: ${title}.`);
     return { id, status: 'pending' };
   });
@@ -263,6 +302,9 @@ function createApp(db, opts = {}) {
     const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
     if (body.decision === 'reject' && comment.length < 5) fail(400, 'comment_required', 'Write a short reason for the rejection.');
     const status = body.decision === 'approve' ? 'approved' : 'rejected';
+    if (status === 'approved' && e.room_code) { // the booking is confirmed only if no other approved event took the room
+      const r = ROOMS.find((x) => x.code === e.room_code), others = q("SELECT id, title, room_code, status, starts_at, ends_at FROM events WHERE room_code = ? AND status = 'approved'").all(e.room_code);
+      if (r && !availability(r, ROOMS, e.starts_at, e.ends_at, others, e.id).free) fail(409, 'room_busy', 'The room is not free at this time.'); }
     q('UPDATE events SET status = ?, moderation_comment = ? WHERE id = ?').run(status, comment || null, e.id);
     if (e.created_by) notify(e.created_by, 'app', `Your event "${e.title}" was ${status}.${comment ? ' Comment: ' + comment : ''}`);
     return { id: e.id, status };
@@ -346,7 +388,7 @@ function createApp(db, opts = {}) {
   async function handler(req, res) {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'same-origin');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https://routing.openstreetmap.de; img-src 'self' data: https://server.arcgisonline.com; media-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; frame-ancestors 'none'");
     const url = new URL(req.url, 'http://localhost');
     if (!url.pathname.startsWith('/api/')) return serveStatic(url.pathname, res);
     try {

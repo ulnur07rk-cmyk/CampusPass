@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS events (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   i18n TEXT,
+  room_code TEXT,
+  venue TEXT,
   club_id INTEGER NOT NULL REFERENCES clubs(id),
   location TEXT NOT NULL,
   type TEXT NOT NULL CHECK (type IN ('sports','creative','tech','intellectual','social')),
@@ -156,34 +158,41 @@ function seed(db, now = new Date()) {
 
     // Events relative to "now" (local time of the machine that seeds the database)
     const at = (dayOffset, h, m) => { const d = new Date(now); d.setDate(d.getDate() + dayOffset); d.setHours(h, m, 0, 0); return d; };
-    const addEvent = db.prepare(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, i18n)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+    const addEvent = db.prepare(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, i18n, room_code, venue)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     const addReg = db.prepare(`INSERT INTO registrations (event_id, user_id, status, ticket_code, created_at, updated_at) VALUES (?,?,?,?,?,?)`);
     let ticketNo = 1;
     const code = () => 'CP-' + String(ticketNo++).padStart(6, '0');
 
     const all = [...data.events,
       // a demo event that starts 30 minutes after seeding, so check-in can be shown live
-      { title: 'Open Lab Demo Day', club: 'GDSC (Google Developer Student Club)', location: 'Coworking Space, 1st Floor', type: 'tech', capacity: 30, taken: 8, coins: 25, description: 'Short demos of student projects. Check-in opens one hour before the start.', status: 'approved', waitlist: 0, demoSoon: true },
+      { title: 'Open Lab Demo Day', room: 'C1.3.370L', club: 'GDSC (Google Developer Student Club)', location: 'Coworking Space, 1st Floor', type: 'tech', capacity: 30, taken: 8, coins: 25, description: 'Short demos of student projects. Check-in opens one hour before the start.', status: 'approved', waitlist: 0, demoSoon: true },
       // a past event the main student attended (to show coins and rating)
-      { title: 'Welcome Fair of Clubs', club: 'Volunteers Club', location: 'Main Atrium', type: 'social', capacity: 200, taken: 60, coins: 20, description: 'Meet all student clubs in one place.', status: 'approved', waitlist: 0, past: true }];
+      { title: 'Welcome Fair of Clubs', room: 'C1.2.AT', club: 'Volunteers Club', location: 'Main Atrium', type: 'social', capacity: 200, taken: 60, coins: 20, description: 'Meet all student clubs in one place.', status: 'approved', waitlist: 0, past: -3, me: 'checked_in' },
+      // past events for the attendance history of student1: one missed (no-show) and one cancelled
+      { title: 'Board Games Evening', room: 'C1.2.CW', club: 'Board Games', location: 'Board games corner, coworking', type: 'intellectual', capacity: 24, taken: 20, coins: 15, description: 'An evening of strategy and party board games.', status: 'approved', waitlist: 0, past: -6, me: 'confirmed' },
+      { title: 'Campus Photo Walk', room: 'C1.2.AT', club: 'ART Club', location: 'Main entrance', type: 'creative', capacity: 25, taken: 18, coins: 15, description: 'A walk around the campus to photograph its architecture.', status: 'approved', waitlist: 0, past: -10, me: 'cancelled' }];
     let ci = 0;
     for (const e of all) {
-      let start = e.demoSoon ? new Date(now.getTime() + 30 * 60000) : e.past ? at(-3, 12, 0) : at(e.dayOffset, e.hour, e.minute);
+      let start = e.demoSoon ? new Date(now.getTime() + 30 * 60000) : e.past ? at(e.past, 12, 0) : at(e.dayOffset, e.hour, e.minute);
       const end = new Date(start.getTime() + 2 * 3600000);
       const owner = e.club === 'GDSC (Google Developer Student Club)' ? org : null;
-      const ev = addEvent.run(e.title, e.description, clubId(e.club), e.location, e.type, iso(start), iso(end), e.capacity, e.coins, e.status, owner, t, JSON.stringify(e.i18n || (data.extraEventI18n || {})[e.title] || null)).lastInsertRowid;
+      const ev = addEvent.run(e.title, e.description, clubId(e.club), e.location, e.type, iso(start), iso(end), e.capacity, e.coins, e.status, owner, t, JSON.stringify(e.i18n || (data.extraEventI18n || {})[e.title] || null), e.room || null, e.venue || null).lastInsertRowid;
       if (e.status !== 'approved') continue;
       for (let k = 0; k < e.taken; k++) { addReg.run(ev, crowd[(ci++) % crowd.length], e.past ? 'checked_in' : 'confirmed', code(), t, t); }
       for (let k = 0; k < e.waitlist; k++) { addReg.run(ev, crowd[(ci++) % crowd.length], 'waitlisted', null, t, t); }
       if (e.past) {
+        const st = e.me, checked = st === 'checked_in';
         db.prepare(`INSERT INTO registrations (event_id, user_id, status, ticket_code, checkin_method, checked_in_at, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)`)
-          .run(ev, me, 'checked_in', code(), 'qr', iso(start), t, t);
-        db.prepare('INSERT INTO coin_transactions (user_id, amount, reason, event_id, created_at) VALUES (?,?,?,?,?)').run(me, e.coins, 'Check-in', ev, iso(start));
+          .run(ev, me, st, code(), checked ? 'qr' : null, checked ? iso(start) : null, t, t);
+        if (checked) db.prepare('INSERT INTO coin_transactions (user_id, amount, reason, event_id, created_at) VALUES (?,?,?,?,?)').run(me, e.coins, 'Check-in', ev, iso(start));
       }
     }
     db.prepare('INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?,?,?,?)').run(me, 100, 'Welcome bonus', t);
     db.prepare("INSERT INTO memberships (user_id, club_id, status, created_at, decided_at) VALUES (?,?, 'accepted', ?, ?)").run(me, gdsc, t, t);
+    // Fictional club members so that membership counts look realistic (6–40 per club)
+    const addMember = db.prepare("INSERT OR IGNORE INTO memberships (user_id, club_id, status, created_at, decided_at) VALUES (?,?, 'accepted', ?, ?)");
+    data.clubs.forEach((c, k) => { const cid = clubId(c.name), n = 6 + ((k * 13) % 35); for (let j = 0; j < n; j++) addMember.run(crowd[(k * 17 + j) % crowd.length], cid, t, t); });
     db.prepare("INSERT INTO memberships (user_id, club_id, status, message, created_at) VALUES (?,?, 'pending', ?, ?)").run(crowd[0], clubId('Music Club'), 'I play guitar and would like to join the acoustic nights.', t);
     return true;
   });

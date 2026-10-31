@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning server/index.js",
     "reset": "node --disable-warning=ExperimentalWarning server/index.js --reset",
-    "test": "node --disable-warning=ExperimentalWarning --test tests/acceptance.test.js"
+    "test": "node --disable-warning=ExperimentalWarning --test tests/acceptance.test.js",
+    "demo": "node scripts/build-demo.js"
   },
   "dependencies": {
     "@netlify/blobs": "^8.1.0"

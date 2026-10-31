@@ -1,7 +1,11 @@
 // CampusPass — shared API core for the Netlify version (Netlify Functions + Netlify Blobs).
 // Same business rules as server/app.js. Educational project. Not a real product or service. All data are fictional.
 'use strict';
+const { availability } = require('../server/rooms.js');
 function createCore(SEED, state) {
+  const ROOMS = SEED.rooms || [], VENUES = SEED.venues || [], CAMPUS = SEED.campus;
+  const placeOf = (e) => { const r = e.room_code && ROOMS.find((x) => x.code === e.room_code); if (r) return { kind: 'room', code: r.code, name: r.name, floor: r.floor, x: r.x, y: r.y, capacity: r.capacity, i18n: r.i18n, lat: CAMPUS.lat, lng: CAMPUS.lng };
+    const v = e.venue && VENUES.find((x) => x.id === e.venue); return v ? { kind: 'venue', id: v.id, name: v.name, lat: v.lat, lng: v.lng, i18n: v.i18n } : null; };
   const TYPES = ['sports', 'creative', 'tech', 'intellectual', 'social'];
   const iso = (d) => new Date(d).toISOString();
   const rnd = () => 'CP-' + Array.from(globalThis.crypto.getRandomValues(new Uint8Array(5)), (b) => b.toString(16).padStart(2, '0')).join('').toUpperCase();
@@ -20,28 +24,35 @@ function createCore(SEED, state) {
     const me = ids['student1@test.local'], org = ids['organizer1@test.local'];
     const F = SEED.first, L = SEED.last, crowd = [];
     for (let i = 0; i < 120; i++) crowd.push(U(`s${String(i + 1).padStart(3, '0')}@test.local`, 'Student123!', F[i % F.length] + ' ' + L[(i * 7 + 3) % L.length], String(240100 + i), 'ST-24' + String(i % 9 + 1).padStart(2, '0'), 'student', null));
-    const at = (o, h, m) => { const d = new Date(now); d.setDate(d.getDate() + o); d.setHours(h, m, 0, 0); return d; };
+    // Times are set in Astana time (UTC+5): Netlify servers run in UTC
+    const TZ = 5, local = new Date(now.getTime() + TZ * 3600000);
+    const at = (o, h, m) => new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + o, h - TZ, m));
     const all = [...SEED.events,
-      { title: 'Open Lab Demo Day', club: 'GDSC (Google Developer Student Club)', location: 'Coworking Space, 1st Floor', type: 'tech', capacity: 30, taken: 8, coins: 25, description: 'Short demos of student projects. Check-in opens one hour before the start.', status: 'approved', waitlist: 0, demoSoon: true },
-      { title: 'Welcome Fair of Clubs', club: 'Volunteers Club', location: 'Main Atrium', type: 'social', capacity: 200, taken: 60, coins: 20, description: 'Meet all student clubs in one place.', status: 'approved', waitlist: 0, past: true }];
+      { title: 'Open Lab Demo Day', room: 'C1.3.370L', club: 'GDSC (Google Developer Student Club)', location: 'Coworking Space, 1st Floor', type: 'tech', capacity: 30, taken: 8, coins: 25, description: 'Short demos of student projects. Check-in opens one hour before the start.', status: 'approved', waitlist: 0, demoSoon: true },
+      { title: 'Welcome Fair of Clubs', room: 'C1.2.AT', club: 'Volunteers Club', location: 'Main Atrium', type: 'social', capacity: 200, taken: 60, coins: 20, description: 'Meet all student clubs in one place.', status: 'approved', waitlist: 0, past: -3, me: 'checked_in' },
+      // past events for the attendance history of student1: one missed (no-show) and one cancelled
+      { title: 'Board Games Evening', room: 'C1.2.CW', club: 'Board Games', location: 'Board games corner, coworking', type: 'intellectual', capacity: 24, taken: 20, coins: 15, description: 'An evening of strategy and party board games.', status: 'approved', waitlist: 0, past: -6, me: 'confirmed' },
+      { title: 'Campus Photo Walk', room: 'C1.2.AT', club: 'ART Club', location: 'Main entrance', type: 'creative', capacity: 25, taken: 18, coins: 15, description: 'A walk around the campus to photograph its architecture.', status: 'approved', waitlist: 0, past: -10, me: 'cancelled' }];
     let ci = 0;
     for (const e of all) {
-      const start = e.demoSoon ? new Date(now.getTime() + 30 * 60000) : e.past ? at(-3, 12, 0) : at(e.dayOffset, e.hour, e.minute);
-      const ev = { id: id(), title: e.title, i18n: e.i18n || (SEED.extraEventI18n || {})[e.title] || null, description: e.description, club_id: club(e.club), location: e.location, type: e.type, starts_at: iso(start), ends_at: iso(start.getTime() + 7200000), capacity: e.capacity, coins: e.coins, status: e.status, created_by: e.club === 'GDSC (Google Developer Student Club)' ? org : null, comment: null };
+      const start = e.demoSoon ? new Date(now.getTime() + 30 * 60000) : e.past ? at(e.past, 12, 0) : at(e.dayOffset, e.hour, e.minute);
+      const ev = { id: id(), room_code: e.room || null, venue: e.venue || null, title: e.title, i18n: e.i18n || (SEED.extraEventI18n || {})[e.title] || null, description: e.description, club_id: club(e.club), location: e.location, type: e.type, starts_at: iso(start), ends_at: iso(start.getTime() + 7200000), capacity: e.capacity, coins: e.coins, status: e.status, created_by: e.club === 'GDSC (Google Developer Student Club)' ? org : null, comment: null };
       D.events.push(ev);
       if (e.status !== 'approved') continue;
       for (let k = 0; k < e.taken; k++) D.regs.push(reg(id(), ev.id, crowd[(ci++) % 120], e.past ? 'checked_in' : 'confirmed', rnd(), t));
       for (let k = 0; k < e.waitlist; k++) D.regs.push(reg(id(), ev.id, crowd[(ci++) % 120], 'waitlisted', null, t));
-      if (e.past) { const r = reg(id(), ev.id, me, 'checked_in', rnd(), t); r.method = 'qr'; D.regs.push(r); D.coins.push({ user_id: me, amount: e.coins, reason: 'Check-in', event_id: ev.id, created_at: iso(start) }); }
+      if (e.past) { const r = reg(id(), ev.id, me, e.me, rnd(), t); if (e.me === 'checked_in') { r.method = 'qr'; D.coins.push({ user_id: me, amount: e.coins, reason: 'Check-in', event_id: ev.id, created_at: iso(start) }); } D.regs.push(r); }
     }
     D.coins.push({ user_id: me, amount: 100, reason: 'Welcome bonus', event_id: null, created_at: t });
     D.members.push({ user_id: me, club_id: gdsc, status: 'accepted', message: '', created_at: t });
+    D.clubs.forEach((c, k) => { const n = 6 + ((k * 13) % 35); for (let j = 0; j < n; j++) { const uid = crowd[(k * 17 + j) % crowd.length]; if (!D.members.find((m) => m.user_id === uid && m.club_id === c.id)) D.members.push({ user_id: uid, club_id: c.id, status: 'accepted', message: '', created_at: t }); } });
     D.members.push({ user_id: crowd[0], club_id: club('Music Club'), status: 'pending', message: 'I play guitar and would like to join the acoustic nights.', created_at: t });
     return D;
   }
   function reg(id, event_id, user_id, status, ticket, t) { return { id, event_id, user_id, status, ticket, channel: 'off', day: true, hour: true, day_sent: false, hour_sent: false, method: null, created_at: t, updated_at: t }; }
 
-  let D = state || seed();
+  const astanaDay = (d) => new Date(new Date(d).getTime() + 5 * 3600000).toISOString().slice(0, 10);
+  let D = state && state.created && astanaDay(state.created) === astanaDay(new Date()) ? state : seed();
   let TOKEN = null, NEW_TOKEN;
 
   // ---------- helpers mirroring server/app.js ----------
@@ -57,7 +68,7 @@ function createCore(SEED, state) {
   const str = (v, n, a, b) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < a || s.length > b) fail(400, 'invalid_' + n, `${n[0].toUpperCase() + n.slice(1)} must be ${a}–${b} characters.`); return s; };
   function view(e, u) {
     const c = D.clubs.find((x) => x.id === e.club_id), tk = taken(e.id), q = waitQ(e.id);
-    const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status, i18n: e.i18n || null, clubI18n: c.i18n || null };
+    const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status, i18n: e.i18n || null, clubI18n: c.i18n || null , place: placeOf(e) };
     if (u) { const r = D.regs.find((x) => x.event_id === e.id && x.user_id === u.id); if (r && r.status !== 'cancelled') {
       o.my = { id: r.id, status: r.status, ticketCode: r.status === 'waitlisted' ? null : r.ticket, reminder: { channel: r.channel, day: r.day, hour: r.hour } };
       if (r.status === 'waitlisted') o.my.position = q.indexOf(r) + 1;
@@ -108,6 +119,15 @@ function createCore(SEED, state) {
   });
   on('PUT', '/api/registrations/:id/reminders', (b, u, p) => { need(u, 'student'); const r = D.regs.find((x) => x.id === Number(p.id) && x.user_id === u.id); if (!r) fail(404, 'not_found', 'Registration not found.'); if (!['off', 'push', 'telegram'].includes(b.channel)) fail(400, 'invalid_channel', 'Channel must be off, push or telegram.'); Object.assign(r, { channel: b.channel, day: !!b.day, hour: !!b.hour }); return { channel: r.channel, day: r.day, hour: r.hour }; });
   on('GET', '/api/me/registrations', (b, u) => { need(u); return D.regs.filter((r) => r.user_id === u.id && r.status !== 'cancelled').map((r) => ev(r.event_id)).sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => view(e, u)); });
+  on('GET', '/api/me/history', (b, u) => {
+    need(u); const t = iso(now());
+    const items = D.regs.filter((r) => r.user_id === u.id).map((r) => ({ r, e: ev(r.event_id) })).filter(({ r, e }) => e.starts_at <= t || r.status === 'cancelled')
+      .sort((a, c) => (a.e.starts_at < c.e.starts_at ? 1 : -1)).map(({ r, e }) => {
+        const ended = e.ends_at <= t; const result = r.status === 'checked_in' ? 'attended' : r.status === 'cancelled' ? 'cancelled' : r.status === 'waitlisted' ? 'expired' : ended ? 'missed' : 'ongoing';
+        return { ...view(e, u), result, coinsEarned: result === 'attended' ? e.coins : 0 };
+      }).filter((x) => x.result !== 'ongoing');
+    return { items, attended: items.filter((x) => x.result === 'attended').length, missed: items.filter((x) => x.result === 'missed').length };
+  });
   on('GET', '/api/me/coins', (b, u) => { need(u); return { balance: balance(u.id), history: D.coins.filter((c) => c.user_id === u.id).sort((a, c) => (a.created_at < c.created_at ? 1 : -1)).map((c) => ({ amount: c.amount, reason: c.reason, createdAt: c.created_at, event: c.event_id ? ev(c.event_id).title : null })) }; });
   on('GET', '/api/me/notifications', (b, u) => { need(u); return D.notes.filter((n) => n.user_id === u.id).slice(0, 30); });
   on('POST', '/api/events/:id/feedback', (b, u, p) => {
@@ -126,14 +146,25 @@ function createCore(SEED, state) {
     else D.members.push({ user_id: u.id, club_id: cid, status: 'pending', message: String(b.message || '').slice(0, 500), created_at: iso(now()) });
     return { status: 'pending' };
   });
+  on('GET', '/api/places', (b, u) => { need(u); return { campus: CAMPUS, rooms: ROOMS, venues: VENUES }; });
+  on('GET', '/api/rooms/availability', (b, u, p, q) => {
+    need(u, 'organizer', 'admin'); const start = new Date(q.get('start')); if (isNaN(start)) fail(400, 'invalid_start', 'Enter a valid date and time.');
+    const minutes = Math.min(720, Math.max(15, Number(q.get('minutes')) || 120)), end = new Date(start.getTime() + minutes * 60000);
+    return ROOMS.map((r) => ({ ...r, ...availability(r, ROOMS, start, end, D.events) }));
+  });
   on('POST', '/api/events', (b, u) => {
     need(u, 'organizer', 'admin');
-    const title = str(b.title, 'title', 3, 120), description = str(b.description, 'description', 10, 1000), location = str(b.location, 'location', 2, 120);
+    const title = str(b.title, 'title', 3, 120), description = str(b.description, 'description', 10, 1000);
+    const room = b.roomCode ? ROOMS.find((x) => x.code === b.roomCode) : null, venue = b.venueId ? VENUES.find((x) => x.id === b.venueId) : null;
+    if (!room && !venue) fail(400, 'place_required', 'Choose a free room on campus or a place in the city.');
+    const location = room ? room.name : venue.name;
     if (!TYPES.includes(b.type)) fail(400, 'invalid_type', 'Choose an event type.');
     const s = new Date(b.startsAt); if (isNaN(s)) fail(400, 'invalid_start', 'Enter a valid date and time.'); if (s <= now()) fail(400, 'start_in_past', 'The event must start in the future.');
     const mins = Number(b.durationMinutes) || 120; if (mins < 15 || mins > 720) fail(400, 'invalid_duration', 'Duration must be 15–720 minutes.');
     const cap = Number(b.capacity); if (!Number.isInteger(cap) || cap < 1 || cap > 500) fail(400, 'invalid_capacity', 'Seats must be 1–500.');
-    const e = { id: D.seq++, title, description, club_id: u.role === 'admin' ? Number(b.clubId) : u.club_id, location, type: b.type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins: 20, status: 'pending', created_by: u.id, comment: null };
+    if (room && cap > room.capacity) fail(400, 'room_too_small', `This room has ${room.capacity} seats.`);
+    if (room && !availability(room, ROOMS, s, new Date(s.getTime() + mins * 60000), D.events).free) fail(409, 'room_busy', 'The room is not free at this time.');
+    const e = { id: D.seq++, room_code: room ? room.code : null, venue: venue ? venue.id : null, title, description, club_id: u.role === 'admin' ? Number(b.clubId) : u.club_id, location, type: b.type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins: 20, status: 'pending', created_by: u.id, comment: null };
     D.events.push(e); D.users.filter((x) => x.role === 'admin').forEach((a) => notify(a.id, 'app', `New event waiting for review: ${title}.`)); return { id: e.id, status: 'pending' };
   });
   on('GET', '/api/organizer/events', (b, u) => { need(u, 'organizer', 'admin'); return D.events.filter((e) => u.role === 'admin' || e.club_id === u.club_id).sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => ({ ...view(e, null), comment: e.comment })); });
@@ -155,6 +186,7 @@ function createCore(SEED, state) {
     need(u, 'admin'); const e = ev(p.id); if (e.status !== 'pending') fail(409, 'not_pending', 'This event is not waiting for review.');
     if (!['approve', 'reject'].includes(b.decision)) fail(400, 'invalid_decision', 'Decision must be approve or reject.');
     const c = String(b.comment || '').trim().slice(0, 500); if (b.decision === 'reject' && c.length < 5) fail(400, 'comment_required', 'Write a short reason for the rejection.');
+    if (b.decision === 'approve' && e.room_code) { const r = ROOMS.find((x) => x.code === e.room_code); if (r && !availability(r, ROOMS, e.starts_at, e.ends_at, D.events.filter((x) => x.status === 'approved'), e.id).free) fail(409, 'room_busy', 'The room is not free at this time.'); }
     e.status = b.decision === 'approve' ? 'approved' : 'rejected'; e.comment = c || null; if (e.created_by) notify(e.created_by, 'app', `Your event "${e.title}" was ${e.status}.${c ? ' Comment: ' + c : ''}`); return { id: e.id, status: e.status };
   });
   on('GET', '/api/admin/club-requests', (b, u) => { need(u, 'admin'); return D.members.filter((m) => m.status === 'pending').map((m) => { const s = D.users.find((x) => x.id === m.user_id); return { userId: m.user_id, clubId: m.club_id, message: m.message, createdAt: m.created_at, name: s.name, studentId: s.student_id, club: D.clubs.find((c) => c.id === m.club_id).name, clubI18n: D.clubs.find((c) => c.id === m.club_id).i18n || null }; }); });
