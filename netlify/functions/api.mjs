@@ -5,7 +5,7 @@ import { getStore } from '@netlify/blobs';
 import core from '../core.js';
 import seedData from '../../server/seed-data.json' with { type: 'json' };
 
-const KEY = 'state-v5'; // bump when the data structure changes, so Netlify starts with fresh test data
+const KEY = 'state-v6'; // bump when the data structure changes, so Netlify starts with fresh test data
 const json = (status, data, headers = {}) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers } });
 
 export default async (req) => {

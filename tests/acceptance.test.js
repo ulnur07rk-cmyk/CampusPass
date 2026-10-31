@@ -104,7 +104,7 @@ test('AT-08 (FR-15) manual check-in from the participant list works; a ticket fo
 test('AT-09 (FR-11, FR-12) organizer submits an event; it stays hidden until the moderator approves it', async () => {
   const org = await login('organizer1@test.local', 'Organizer123!');
   const start = new Date(Date.now() + 3 * 86400000).toISOString();
-  const r = await call('POST', '/api/events', { title: 'Flutter Study Jam', type: 'tech', location: 'Lab 3.201', startsAt: start, durationMinutes: 90, capacity: 30, description: 'Build your first Flutter app together.' }, org);
+  const r = await call('POST', '/api/events', { title: 'Flutter Study Jam', type: 'tech', venueId: 'expo', startsAt: start, durationMinutes: 90, capacity: 30, description: 'Build your first Flutter app together.' }, org);
   assert.equal(r.status, 200); assert.equal(r.body.status, 'pending');
   const st = await login('student1@test.local', 'Student123!');
   assert.ok(!(await call('GET', '/api/events', null, st)).body.some((e) => e.id === r.body.id));
@@ -149,6 +149,26 @@ test('AT-14 (F10) attendance history shows attended, missed and cancelled events
   const res = h.items.map((x) => x.result).sort();
   assert.deepEqual(res, ['attended', 'cancelled', 'missed']);
   assert.equal(h.attended, 1); assert.equal(h.missed, 1);
+});
+
+test('AT-14 (F21) organizers see free rooms; a busy room or a too small room cannot be booked; approval confirms the booking', async () => {
+  const org = await login('organizer1@test.local', 'Organizer123!');
+  const d = new Date(Date.now() + 2 * 86400000); while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+  d.setUTCHours(13, 0, 0, 0); // 18:00 in Astana, after lectures
+  const av = (await call('GET', `/api/rooms/availability?start=${d.toISOString()}&minutes=90`, null, org)).body;
+  assert.equal(av.length, 15);
+  const hall = av.find((r) => r.code === 'C1.1.AH'); assert.equal(hall.free, true);
+  const base = { title: 'Robotics Showcase', type: 'tech', startsAt: d.toISOString(), durationMinutes: 90, description: 'Student robots on stage for everyone.' };
+  assert.equal((await call('POST', '/api/events', { ...base, capacity: 500, roomCode: 'C1.2.245' }, org)).body.error.code, 'room_too_small');
+  const ok = await call('POST', '/api/events', { ...base, capacity: 100, roomCode: 'C1.1.AH' }, org); assert.equal(ok.status, 200);
+  const again = await call('POST', '/api/events', { ...base, title: 'Second booking', capacity: 50, roomCode: 'C1.1.AH' }, org);
+  assert.equal(again.status, 409); assert.equal(again.body.error.code, 'room_busy');
+  const st = await login('student3@test.local', 'Student123!');
+  assert.equal((await call('GET', `/api/rooms/availability?start=${d.toISOString()}`, null, st)).status, 403);
+  const mod = await login('moderator@test.local', 'Moderator123!');
+  assert.equal((await call('POST', `/api/admin/events/${ok.body.id}/decision`, { decision: 'approve' }, mod)).status, 200);
+  const ev = (await call('GET', `/api/events/${ok.body.id}`, null, st)).body;
+  assert.equal(ev.place.kind, 'room'); assert.equal(ev.place.floor, 1);
 });
 
 test('AT-12 (FR-17, FR-18) only attendees can rate once; statistics show the average', async () => {

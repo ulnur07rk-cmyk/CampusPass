@@ -38,6 +38,8 @@ What one user does is saved in the database and is immediately visible to the ot
 | FR-18 | Statistics: fill rate, waitlist, check-ins, rating | `GET /api/admin/stats` |
 | FR-19 | Interface in English, Kazakh and Russian | language switch |
 | FR-20 | Moderator assigns roles | `PUT /api/admin/users/:id/role`, Roles |
+| F21 | Free rooms for organizers and the moderator (fictional lecture timetable); booking a room with the event, confirmed by the moderator; conflicts are blocked | `GET /api/rooms/availability`, `POST /api/events` |
+| F22 | Map: events on an OpenStreetMap city map, street route from the student's location, route inside the building on the floor plans | Map tab, `GET /api/places`, `public/maps.js` |
 | FR-21 | Notification inbox (simulated e-mail / push / Telegram) | `GET /api/me/notifications`, Profile |
 
 ## Technology stack and why
@@ -99,7 +101,8 @@ tests/    acceptance.test.js
 ## Credits and licences
 - QR code generation: `vendor/qrcode.js` is a browser bundle of the QR encoder from [qrcode-terminal](https://github.com/gtanner/qrcode-terminal) (Apache-2.0), which is based on *QRCode for JavaScript* by Kazuhiko Arase (MIT).
 - QR scanning in browsers without the built-in BarcodeDetector: [jsQR](https://github.com/cozmo/jsQR) 1.4.0 (Apache-2.0), loaded from the jsDelivr CDN only when the organizer presses *Scan with camera* (needs internet and HTTPS or localhost).
-- Campus map: the event dialog can show the student-made interactive campus map https://yuujiso.github.io/aitumap/ in a frame (loaded only when the user presses “Campus map”); it belongs to its author and is not part of this project.
+- City map: © OpenStreetMap contributors (ODbL), shown with Leaflet 1.9.4 (BSD-2-Clause) loaded from cdnjs; street routes from the public routing service of routing.openstreetmap.de (no key, demo use only).
+- Floor plans (`public/floors/`): screenshots made by the team from the student-made campus map https://yuujiso.github.io/aitumap/; rooms, capacities and the lecture timetable in the prototype are fictional.
 - Club names and descriptions are based on public information; events, people and numbers are invented.
 
 ## AI use
