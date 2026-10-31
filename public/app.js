@@ -53,13 +53,13 @@
 
   // ---------- navigation ----------
   const NAV = {
-    student: [['events', 'nav_events'], ['clubs', 'nav_clubs'], ['tickets', 'nav_tickets'], ['profile', 'nav_profile']],
-    organizer: [['events', 'nav_events'], ['myevents', 'nav_myevents'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
-    admin: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['checkin', 'nav_checkin'], ['roles', 'nav_users'], ['profile', 'nav_profile']]
+    student: [['events', 'nav_events'], ['map', 'nav_map'], ['clubs', 'nav_clubs'], ['tickets', 'nav_tickets'], ['history', 'nav_history'], ['profile', 'nav_profile']],
+    organizer: [['events', 'nav_events'], ['map', 'nav_map'], ['myevents', 'nav_myevents'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
+    admin: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['roles', 'nav_users'], ['profile', 'nav_profile']]
   };
   const go = (v) => { if (location.hash !== '#/' + v) location.hash = '#/' + v; else render(); };
   const svg = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-  const ICON = { events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), out: svg('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>') };
+  const ICON = { map: svg('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), out: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>') };
   function chrome(view) {
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
@@ -83,7 +83,7 @@
   // Live updates: every 15 s the open screen reloads its data, so changes made by other users appear without a manual refresh
   setInterval(async () => {
     const a = document.activeElement;
-    if (!S.me || document.hidden || document.querySelector('.modal') || pending || (a && ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) return;
+    if (!S.me || document.hidden || document.querySelector('.modal') || pending || location.hash.startsWith('#/map') || (a && ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) return;
     const y = window.scrollY, key = a && a !== document.body ? (a.id ? '#' + a.id : [...a.attributes].filter((x) => x.name.startsWith('data-')).map((x) => `[${x.name}="${x.value}"]`).join('')) : '';
     await render(true); window.scrollTo(0, y);
     if (key) { const el = document.querySelector(key); if (el) el.focus({ preventScroll: true }); }
@@ -120,13 +120,14 @@
   }
   function actionBlock(e) {
     if (S.me.role !== 'student') return '';
-    const m = e.my;
+    const m = e.my, started = new Date(e.startsAt) <= new Date();
+    if (started && (!m || m.status === 'waitlisted')) return `<p class="note info">${esc(t('live_now'))}</p>`;
     if (!m) return `<div class="row"><button class="btn" data-reg="${e.id}">${esc(t(e.free ? 'register' : 'join_waitlist'))}</button><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
     if (m.status === 'confirmed') return `<p class="note ok">${esc(t('registered'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button><button class="btn danger" data-cancel="${e.id}">${esc(t('cant_come'))}</button></div>`;
     if (m.status === 'waitlisted') return `<p class="note warn">${esc(t('waitlisted', { n: m.position }))}</p><div class="row"><button class="btn danger" data-cancel="${e.id}">${esc(t('leave_waitlist'))}</button></div>`;
-    return `<p class="note ok">✓ ${esc(t('checked_in'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
+    return `<p class="note ok">✓ ${esc(t('status_checked'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
   }
-  const eventCard = (e) => `<article class="card ev"><div class="spread"><span class="pill">${esc(t('type_' + e.type))}</span><span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}</span></div>
+  const eventCard = (e) => `<article class="card ev"><div class="spread"><span class="pill">${esc(t('type_' + e.type))}</span>${new Date(e.startsAt) <= new Date() ? `<span class="pill live">● ${esc(t('live'))}</span>` : ''}<span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}</span></div>
     <h3>${esc(L(e, 'title'))}</h3><div class="meta">${esc(clubName(e))} · ${esc(L(e, 'location'))}</div>${seatsBlock(e)}${actionBlock(e)}</article>`;
 
   async function register(id, btn) { return act(btn, async () => { try { const e = await api('POST', `/api/events/${id}/register`); toast(e.my.status === 'confirmed' ? t('registered') : t('waitlisted', { n: e.my.position })); render(); } catch (err) { fail(err); } }); }
@@ -142,16 +143,20 @@
 
   VIEWS.events = async () => {
     const list = await api('GET', '/api/events?days=7');
+    const linked = /[?&]e=(\d+)/.exec(location.hash); if (linked && !S.openedLink) { S.openedLink = true; const ev = list.find((x) => String(x.id) === linked[1]); if (ev) setTimeout(() => openEvent(ev), 50); }
     const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + i); return d; });
-    const byType = list.filter((e) => S.type === 'all' || e.type === S.type);
+    const kw = (S.kw || '').trim().toLowerCase();
+    const byType = list.filter((e) => (S.type === 'all' || e.type === S.type) && (!kw || [L(e, 'title'), clubName(e), L(e, 'location'), L(e, 'description'), e.title, e.club].join(' ').toLowerCase().includes(kw)));
     const shown = S.day ? byType.filter((e) => dayKey(e.startsAt) === S.day) : byType;
     const dayName = (d, i) => (i === 0 ? t('today') : i === 1 ? t('tomorrow') : wdShort(d));
     app.innerHTML = `<h1>${esc(t('poster_title'))}</h1><p class="sub">${esc(t('poster_sub'))}</p>
+      <input id="kw" type="search" placeholder="${esc(t('search_events'))}" aria-label="${esc(t('search_events'))}" value="${esc(S.kw || '')}" style="margin-top:4px">
       <div class="spread" style="margin-top:6px"><span class="meta">${S.day ? esc(dateLong(days.find((d) => dayKey(d) === S.day) || new Date())) : esc(t('whole_week'))}</span>${S.day ? `<button class="chip" id="allweek">✕ ${esc(t('whole_week'))}</button>` : ''}</div>
       <div class="days">${days.map((d, i) => { const n = byType.filter((e) => dayKey(e.startsAt) === dayKey(d)).length; return `<button class="day ${S.day === dayKey(d) ? 'on' : ''}" data-day="${dayKey(d)}" aria-pressed="${S.day === dayKey(d)}"><small>${esc(dayName(d, i))}</small><b>${d.getDate()}</b><span class="n">${n || ''}</span></button>`; }).join('')}</div>
       <div class="chips">${['all', 'tech', 'sports', 'creative', 'intellectual', 'social'].map((c) => `<button class="chip ${S.type === c ? 'on' : ''}" data-type="${c}">${esc(c === 'all' ? t('all') : t('type_' + c))}</button>`).join('')}</div>
       ${shown.length ? `<div class="grid">${shown.map(eventCard).join('')}</div>` : `<p class="note info">${esc(t('no_events'))}</p>`}`;
     const aw = $('#allweek'); if (aw) aw.addEventListener('click', () => { S.day = null; render(); });
+    const kwi = $('#kw'); kwi.addEventListener('input', () => { S.kw = kwi.value; clearTimeout(S.kwT); S.kwT = setTimeout(async () => { await render(true); const n = $('#kw'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 250); });
     app.querySelectorAll('[data-day]').forEach((b) => b.addEventListener('click', () => { S.day = S.day === b.dataset.day ? null : b.dataset.day; render(); }));
     app.querySelectorAll('[data-type]').forEach((b) => b.addEventListener('click', () => { S.type = b.dataset.type; render(); }));
     bindEventButtons(app, list);
@@ -182,13 +187,30 @@
     const o = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(e.title)}&startdt=${encodeURIComponent(e.startsAt)}&enddt=${encodeURIComponent(e.endsAt)}&location=${encodeURIComponent(e.location)}`;
     return `<label>${esc(t('calendar'))}</label><div class="row" style="margin-top:0"><a class="btn ghost small" target="_blank" rel="noopener" href="${g}">Google</a><a class="btn ghost small" target="_blank" rel="noopener" href="${o}">Outlook</a><a class="btn ghost small" href="/api/events/${e.id}/ics">${esc(t('ics'))}</a></div>`;
   }
+  // Place of an event: a room on the campus floor plans or a venue in the city (F3, F22)
+  const roomName = (r) => (r.i18n && r.i18n[S.lang] && r.i18n[S.lang].name) || r.name;
+  const placeName = (pl) => (pl ? (pl.i18n && pl.i18n[S.lang] && pl.i18n[S.lang].name) || pl.name : '');
+  const indoor = (room, route) => CPMaps.openIndoor(room, { t, esc, modal, roomName, route });
+  function placeLine(e) {
+    const pl = e.place; if (!pl) return `<p class="note info" style="margin:6px 0">📍 ${esc(L(e, 'location'))}</p>`;
+    if (pl.kind === 'room') return `<p class="note info" style="margin:6px 0">📍 ${esc(roomName(pl))} · ${esc(t('floor_n', { n: pl.floor }))} · ${esc(t('campus_c1'))}<br><button class="btn ghost small" type="button" data-indoor style="margin-top:6px">🧭 ${esc(t('route_inside'))}</button> <a class="btn ghost small" href="#/map?e=${e.id}" style="margin-top:6px">🗺 ${esc(t('on_map'))}</a></p>`;
+    return `<p class="note info" style="margin:6px 0">📍 ${esc(placeName(pl))}<br><a class="btn ghost small" href="#/map?e=${e.id}" style="margin-top:6px">🗺 ${esc(t('on_map'))}</a></p>`;
+  }
+  async function shareEvent(e) {
+    const url = location.origin + '/#/events?e=' + e.id, text = `${L(e, 'title')} — ${dateLong(e.startsAt)}, ${time(e.startsAt)} · ${L(e, 'location')}`;
+    try { if (navigator.share) { await navigator.share({ title: L(e, 'title'), text, url }); return; } await navigator.clipboard.writeText(text + ' ' + url); toast(t('link_copied')); }
+    catch { toast(text + ' ' + url); }
+  }
   function openEvent(e) {
     const m = e.my, rem = m && m.reminder;
     const reminders = m && m.status === 'confirmed' ? `<label>${esc(t('reminders'))}</label><div class="seg" role="group">${['off', 'push', 'telegram'].map((c) => `<button data-ch="${c}" aria-pressed="${rem.channel === c}">${esc(t(c === 'off' ? 'rem_off' : c === 'push' ? 'rem_push' : 'rem_tg'))}</button>`).join('')}</div>
       <div><label class="chk"><input type="checkbox" id="rd" ${rem.day ? 'checked' : ''}> ${esc(t('rem_day'))}</label><label class="chk"><input type="checkbox" id="rh" ${rem.hour ? 'checked' : ''}> ${esc(t('rem_hour'))}</label></div><p class="meta">${esc(t('rem_note'))}</p>` : '';
     const rating = m && m.status === 'checked_in' ? (m.rating ? `<p class="note ok">${esc(t('rated', { n: m.rating }))}</p>` : `<label>${esc(t('rate'))}</label><div class="stars">${[1, 2, 3, 4, 5].map((n) => `<button data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`) : '';
-    modal(`<span class="pill">${esc(t('type_' + e.type))}</span><h2 style="margin-top:8px">${esc(L(e, 'title'))}</h2><p class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}–${esc(time(e.endsAt))} · ${esc(L(e, 'location'))} · ${esc(clubName(e))}</p><p>${esc(L(e, 'description'))}</p>${seatsBlock(e)}${actionBlock(e)}${reminders}${m && m.status !== 'waitlisted' ? calendarLinks(e) : ''}${rating}`, (root, close) => {
+    modal(`<span class="pill">${esc(t('type_' + e.type))}</span><h2 style="margin-top:8px">${esc(L(e, 'title'))}</h2><p class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}–${esc(time(e.endsAt))} · ${esc(clubName(e))}</p>${placeLine(e)}<p>${esc(L(e, 'description'))}</p>${seatsBlock(e)}${actionBlock(e)}${reminders}${m && m.status !== 'waitlisted' ? calendarLinks(e) : ''}<div class="row"><button class="btn ghost small" data-share>↗ ${esc(t('share'))}</button></div>${rating}`, (root, close) => {
       bindEventButtons(root, [e]); root.querySelectorAll('[data-reg],[data-cancel]').forEach((b) => b.addEventListener('click', close));
+      const sh = root.querySelector('[data-share]'); if (sh) sh.addEventListener('click', () => shareEvent(e));
+      const ib = root.querySelector('[data-indoor]'); if (ib) ib.addEventListener('click', () => indoor(e.place, true));
+      root.querySelectorAll('a[href^="#/map"]').forEach((x) => x.addEventListener('click', () => root.querySelector('[data-close]') && root.querySelector('[data-close]').click()));
       const save = async (channel) => { try { await api('PUT', `/api/registrations/${m.id}/reminders`, { channel, day: $('#rd', root).checked, hour: $('#rh', root).checked }); m.reminder = { channel, day: $('#rd', root).checked, hour: $('#rh', root).checked }; root.querySelectorAll('[data-ch]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.ch === channel)); toast(t('saved')); } catch (err) { fail(err); } };
       root.querySelectorAll('[data-ch]').forEach((b) => b.addEventListener('click', () => save(b.dataset.ch)));
       root.querySelectorAll('#rd,#rh').forEach((c) => c.addEventListener('change', () => save(m.reminder.channel)));
@@ -232,18 +254,93 @@
   };
 
   // ---------- W06 Profile (FR-16, FR-19, FR-21) ----------
+  // Attendance history (shared by the History tab and the Profile)
+  const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'] };
+  function historyHTML(regs) { const hist = regs.items, rate = regs.attended + regs.missed ? Math.round((regs.attended / (regs.attended + regs.missed)) * 100) : null; return `<section class="card" style="grid-column:1/-1"><h2>${esc(t('history_title'))}</h2>${rate !== null ? `<p class="meta">${esc(t('hist_summary', { a: regs.attended, t: regs.attended + regs.missed, p: rate }))}</p>` : ''}${hist.length ? `<div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_status'))}</th><th>${esc(t('coins'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>${hist.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(clubName(e))}</span></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_status'))}"><span class="note ${RES[e.result][0]}" style="margin:0;padding:3px 8px;display:inline-block">${esc(t(RES[e.result][1]))}</span></td><td data-label="${esc(t('coins'))}">${e.coinsEarned ? '+' + e.coinsEarned : '—'}</td><td data-label="${esc(t('th_rating'))}">${e.result !== 'attended' ? '—' : e.my && e.my.rating ? '★ ' + e.my.rating + '/5' : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</td></tr>`).join('')}</tbody></table></div><p class="meta">${esc(t('rate_hint'))}</p>` : `<p class="meta">${esc(t('hist_empty'))}</p>`}</section>`; }
+  function bindRating(root) { root.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', async () => { try { await api('POST', `/api/events/${b.dataset.rate}/feedback`, { rating: Number(b.dataset.star) }); toast(t('rated', { n: b.dataset.star })); render(); } catch (err) { fail(err); } })); }
+  VIEWS.history = async () => {
+    const regs = await api('GET', '/api/me/history');
+    app.innerHTML = `<h1>${esc(t('history_title'))}</h1><p class="sub">${esc(t('history_sub'))}</p><div class="grid">${historyHTML(regs)}</div>`;
+    bindRating(app);
+  };
   VIEWS.profile = async () => {
-    const [me, coins, notes, clubs, regs] = await Promise.all([api('GET', '/api/me'), api('GET', '/api/me/coins'), api('GET', '/api/me/notifications'), api('GET', '/api/clubs'), S.me.role === 'student' ? api('GET', '/api/me/registrations') : []]);
+    const [me, coins, notes, clubs, regs] = await Promise.all([api('GET', '/api/me'), api('GET', '/api/me/coins'), api('GET', '/api/me/notifications'), api('GET', '/api/clubs'), S.me.role === 'student' ? api('GET', '/api/me/history') : { items: [] }]);
     const mine = clubs.filter((c) => c.myStatus === 'accepted' || c.myStatus === 'pending');
-    const attended = regs.filter((e) => e.my && e.my.status === 'checked_in');
+    const hist = regs.items, rate = regs.attended + regs.missed ? Math.round((regs.attended / (regs.attended + regs.missed)) * 100) : null;
+    const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'] };
     app.innerHTML = `<h1>${esc(me.name)}</h1><p class="sub">${esc(me.email)}${me.studentId ? ' · ID ' + esc(me.studentId) : ''}${me.group ? ' · ' + esc(me.group) : ''}${me.club ? ' · ' + esc(me.club.name) : ''}</p>
-      <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>+${h.amount}</b></li>`).join('')}</ul></section>
-      <section class="card"><h2>${esc(t('notifications'))}</h2>${notes.length ? `<ul class="list">${notes.map((n) => `<li><span class="pill">${esc(n.channel)}</span> ${esc(n.text)}<br><span class="meta">${esc(dateLong(n.createdAt))}, ${esc(time(n.createdAt))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('no_notifications'))}</p>`}</section>
-      ${S.me.role === 'student' ? `<section class="card"><h2>${esc(t('attended'))}</h2><ul class="list">${attended.map((e) => `<li><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(dateLong(e.startsAt))}</span>${e.my.rating ? `<p class="note ok" style="margin:6px 0 0">${esc(t('rated', { n: e.my.rating }))}</p>` : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</li>`).join('') || '<li class="meta">—</li>'}</ul></section>` : ''}
+      <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div><p class="note info" style="margin:8px 0">${esc(t('coins_info'))}</p><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>+${h.amount}</b></li>`).join('')}</ul></section>
+      <section class="card"><h2>${esc(t('notifications'))}</h2><p class="meta">${esc(t('notes_info'))}</p>${notes.length ? `<ul class="list">${notes.map((n) => `<li><span class="pill">${esc(t('ch_' + n.channel))}</span> ${esc(n.text)}<br><span class="meta">${esc(dateLong(n.createdAt))}, ${esc(time(n.createdAt))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('no_notifications'))}</p>`}</section>
+      ${S.me.role === 'student' ? `<section class="card" style="grid-column:1/-1"><h2>${esc(t('history_title'))}</h2>${rate !== null ? `<p class="meta">${esc(t('hist_summary', { a: regs.attended, t: regs.attended + regs.missed, p: rate }))}</p>` : ''}${hist.length ? `<div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_status'))}</th><th>${esc(t('coins'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>${hist.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(clubName(e))}</span></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_status'))}"><span class="note ${RES[e.result][0]}" style="margin:0;padding:3px 8px;display:inline-block">${esc(t(RES[e.result][1]))}</span></td><td data-label="${esc(t('coins'))}">${e.coinsEarned ? '+' + e.coinsEarned : '—'}</td><td data-label="${esc(t('th_rating'))}">${e.result !== 'attended' ? '—' : e.my && e.my.rating ? '★ ' + e.my.rating + '/5' : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</td></tr>`).join('')}</tbody></table></div><p class="meta">${esc(t('rate_hint'))}</p>` : `<p class="meta">${esc(t('hist_empty'))}</p>`}</section>` : ''}
       <section class="card"><h2>${esc(t('my_clubs'))}</h2><ul class="list">${mine.map((c) => `<li class="spread"><span>${esc(L(c, 'name'))}</span><span class="meta">${esc(t(c.myStatus === 'accepted' ? 'st_accepted' : 'st_pending'))}</span></li>`).join('') || '<li class="meta">—</li>'}</ul>
       <label for="pl">${esc(t('language'))}</label><select id="pl"><option value="en">English</option><option value="kk">Қазақша</option><option value="ru">Русский</option></select></section></div>`;
     app.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', async () => { try { await api('POST', `/api/events/${b.dataset.rate}/feedback`, { rating: Number(b.dataset.star) }); toast(t('rated', { n: b.dataset.star })); render(); } catch (err) { fail(err); } }));
     $('#pl').value = S.lang; $('#pl').addEventListener('change', (e) => { $('#lang').value = e.target.value; $('#lang').dispatchEvent(new Event('change')); });
+  };
+
+
+  // ---------- Map: city map with routes (all roles) and free rooms (organizer, moderator) — F21, F22 ----------
+  VIEWS.map = async () => {
+    const staff = S.me.role !== 'student';
+    const [list, places] = await Promise.all([api('GET', '/api/events?days=7'), api('GET', '/api/places')]);
+    const C = places.campus, campusLL = [C.lat, C.lng], onCampus = list.filter((e) => e.place && e.place.kind === 'room'), inCity = list.filter((e) => e.place && e.place.kind === 'venue');
+    if (!S.mapTab) S.mapTab = 'events'; if (!S.mapMode) S.mapMode = 'foot';
+    const item = (e) => `<li class="mapitem" data-ev="${e.id}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))} · ${esc(e.place.kind === 'room' ? roomName(e.place) + ' · ' + t('floor_n', { n: e.place.floor }) : placeName(e.place))}</span>
+      <div class="row" style="margin-top:6px"><button class="btn small" data-route="${e.id}">${esc(t('route_here'))}</button>${e.place.kind === 'room' ? `<button class="btn ghost small" data-in="${e.id}">🧭 ${esc(t('route_inside'))}</button>` : ''}<button class="btn ghost small" data-det="${e.id}">${esc(t('details'))}</button></div></li>`;
+    app.innerHTML = `<h1>${esc(t('map_title'))}</h1><p class="sub">${esc(t(staff ? 'map_sub_staff' : 'map_sub'))}</p>
+      <div class="maplayout"><aside class="card mapside">
+        ${staff ? `<div class="seg" role="tablist" style="margin-bottom:10px"><button data-tab="events" aria-pressed="${S.mapTab === 'events'}">${esc(t('nav_events'))}</button><button data-tab="rooms" aria-pressed="${S.mapTab === 'rooms'}">${esc(t('free_rooms'))}</button></div>` : ''}
+        <div id="tab-events" ${S.mapTab === 'events' ? '' : 'hidden'}>
+          <div class="row" style="margin-top:0"><button class="btn ghost small" id="me">📍 ${esc(t('my_location'))}</button><div class="seg"><button data-mode="foot" aria-pressed="${S.mapMode === 'foot'}">🚶 ${esc(t('walk'))}</button><button data-mode="car" aria-pressed="${S.mapMode === 'car'}">🚗 ${esc(t('car'))}</button></div></div>
+          <p class="note info" id="rinfo" style="margin:8px 0">${esc(t('route_hint'))}</p>
+          <h3 class="maph">${esc(t('on_campus'))} · ${esc(C.i18n && C.i18n[S.lang] ? C.i18n[S.lang].address : C.address)} (${onCampus.length})</h3><ul class="list">${onCampus.map(item).join('')}</ul>
+          <h3 class="maph">${esc(t('in_city'))} (${inCity.length})</h3><ul class="list">${inCity.map(item).join('') || `<li class="meta">—</li>`}</ul>
+        </div>
+        ${staff ? `<div id="tab-rooms" ${S.mapTab === 'rooms' ? '' : 'hidden'}><label for="rs">${esc(t('f_start'))}</label><input id="rs" type="datetime-local"><label for="rd">${esc(t('f_duration'))}</label><input id="rd" type="number" min="15" max="720" value="120"><ul class="list" id="rooms" style="margin-top:8px"></ul></div>` : ''}
+      </aside><div class="card mapbox"><div id="map"></div></div></div>`;
+    // tabs
+    app.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { S.mapTab = b.dataset.tab; app.querySelectorAll('[data-tab]').forEach((x) => x.setAttribute('aria-pressed', x === b)); $('#tab-events').hidden = S.mapTab !== 'events'; $('#tab-rooms').hidden = S.mapTab !== 'rooms'; if (S.mapTab === 'rooms') loadFree(); }));
+    app.querySelectorAll('[data-det]').forEach((b) => b.addEventListener('click', () => openEvent(list.find((x) => String(x.id) === b.dataset.det))));
+    app.querySelectorAll('[data-in]').forEach((b) => b.addEventListener('click', () => indoor(list.find((x) => String(x.id) === b.dataset.in).place, true)));
+    // free rooms (staff)
+    async function loadFree() {
+      const rs = $('#rs'); if (!rs.value) { const d = new Date(Date.now() + 86400000); d.setHours(18, 0, 0, 0); rs.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
+      try {
+        const rooms = await api('GET', `/api/rooms/availability?start=${encodeURIComponent(new Date(rs.value).toISOString())}&minutes=${Number($('#rd').value) || 120}`);
+        const why = (r) => (r.reason === 'lecture' ? t('busy_lecture', { from: time(r.from), to: time(r.to) }) : r.reason === 'requested' ? t('busy_requested', { title: r.title }) : t('busy_event', { title: r.title }));
+        $('#rooms').innerHTML = rooms.sort((a, b) => b.free - a.free || a.floor - b.floor).map((r) => `<li class="spread"><span><b>${esc(roomName(r))}</b><br><span class="meta">${esc(t('floor_n', { n: r.floor }))} · ${esc(t('seats_n', { n: r.capacity }))}</span></span><span class="row" style="margin:0"><span class="note ${r.free ? 'ok' : 'bad'}" style="margin:0;padding:3px 8px">${esc(r.free ? t('room_free') : why(r))}</span><button class="btn ghost small" data-plan="${esc(r.code)}">🧭</button></span></li>`).join('');
+        app.querySelectorAll('[data-plan]').forEach((b) => b.addEventListener('click', () => indoor(rooms.find((r) => r.code === b.dataset.plan), false)));
+      } catch (err) { fail(err); }
+    }
+    if (staff) { ['#rs', '#rd'].forEach((id) => $(id).addEventListener('change', loadFree)); if (S.mapTab === 'rooms') loadFree(); }
+    // city map
+    try { await CPMaps.loadLeaflet(); } catch { $('#map').innerHTML = `<p class="note warn" style="margin:16px">${esc(t('map_offline'))}</p>`; return; }
+    const Lf = window.L, map = Lf.map('map', { zoomControl: true }).setView(campusLL, 13);
+    Lf.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors' }).addTo(map);
+    const campusName = C.i18n && C.i18n[S.lang] ? C.i18n[S.lang].name : C.name;
+    const markers = {};
+    const cm = Lf.marker(campusLL, { icon: CPMaps.pin('#2563eb', 'C1') }).addTo(map).bindPopup(`<b>${esc(campusName)}</b><br>${esc(t('events_n', { n: onCampus.length }))}`);
+    onCampus.forEach((e) => { markers[e.id] = cm; });
+    inCity.forEach((e) => { markers[e.id] = Lf.marker([e.place.lat, e.place.lng], { icon: CPMaps.pin('#16a34a', '★') }).addTo(map).bindPopup(`<b>${esc(L(e, 'title'))}</b><br>${esc(placeName(e.place))}<br>${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}`); });
+    map.fitBounds(Lf.latLngBounds([campusLL, ...inCity.map((e) => [e.place.lat, e.place.lng])]).pad(0.2));
+    let me = null, meMarker = null, line = null;
+    const setMe = (ll) => { me = ll; if (meMarker) meMarker.setLatLng(ll); else meMarker = Lf.marker(ll, { icon: CPMaps.pin('#0f172a', '●') }).addTo(map).bindPopup(t('you_here')); };
+    const locate = () => new Promise((ok) => { if (!navigator.geolocation) return ok(false); navigator.geolocation.getCurrentPosition((p) => { setMe([p.coords.latitude, p.coords.longitude]); ok(true); }, () => ok(false), { enableHighAccuracy: true, timeout: 8000 }); });
+    map.on('click', (ev) => { setMe([ev.latlng.lat, ev.latlng.lng]); $('#rinfo').textContent = t('start_set'); });
+    $('#me').addEventListener('click', async () => { if (await locate()) map.setView(me, 14); else $('#rinfo').textContent = t('loc_denied'); });
+    app.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => { S.mapMode = b.dataset.mode; app.querySelectorAll('[data-mode]').forEach((x) => x.setAttribute('aria-pressed', x === b)); }));
+    async function routeTo(e) {
+      if (!me && !(await locate())) { $('#rinfo').textContent = t('loc_denied'); return; }
+      const to = [e.place.lat, e.place.lng]; $('#rinfo').textContent = t('loading');
+      const r = await CPMaps.cityRoute(me, to, S.mapMode);
+      if (line) map.removeLayer(line);
+      line = Lf.polyline(r.line, { color: '#2563eb', weight: 6, opacity: 0.85 }).addTo(map); map.fitBounds(line.getBounds().pad(0.2)); markers[e.id].openPopup();
+      $('#rinfo').innerHTML = `${esc(t('route_to', { place: e.place.kind === 'room' ? campusName : placeName(e.place) }))}: <b>${r.km.toFixed(1)} km · ${r.min} ${esc(t('min'))}</b>${r.exact ? '' : ' (' + esc(t('route_approx')) + ')'}${e.place.kind === 'room' ? `<br><button class="btn ghost small" id="cont" style="margin-top:6px">🧭 ${esc(t('continue_inside'))}</button>` : ''}`;
+      const c = $('#cont'); if (c) c.addEventListener('click', () => indoor(e.place, true));
+    }
+    app.querySelectorAll('[data-route]').forEach((b) => b.addEventListener('click', () => routeTo(list.find((x) => String(x.id) === b.dataset.route))));
+    app.querySelectorAll('.mapitem').forEach((li) => li.addEventListener('mouseenter', () => { const mk = markers[li.dataset.ev]; if (mk) mk.openPopup(); }));
+    const linked = /[?&]e=(\d+)/.exec(location.hash); if (linked) { const ev = list.find((x) => String(x.id) === linked[1]); if (ev && ev.place) { map.setView([ev.place.lat, ev.place.lng], 15); markers[ev.id].openPopup(); } }
   };
 
   // ---------- W07 Organizer: submit event and own events (FR-11) ----------
@@ -254,11 +351,31 @@
     const local = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     app.innerHTML = `<h1>${esc(t('submit_title'))}</h1><p class="sub">${esc(S.me.club ? S.me.club.name : '')}</p><div class="grid"><form class="card" id="ef" novalidate>
       <label for="ft">${esc(t('f_title'))}</label><input id="ft" maxlength="120" required><label for="fy">${esc(t('f_type'))}</label><select id="fy">${['tech', 'sports', 'creative', 'intellectual', 'social'].map((c) => `<option value="${c}">${esc(t('type_' + c))}</option>`).join('')}</select>
-      <label for="fl">${esc(t('f_location'))}</label><input id="fl" maxlength="120" required><label for="fs">${esc(t('f_start'))}</label><input id="fs" type="datetime-local" value="${local}" min="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}" required>
+      <label for="fs">${esc(t('f_start'))}</label><input id="fs" type="datetime-local" value="${local}" min="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}" required>
       <div class="spread"><div style="flex:1"><label for="fd">${esc(t('f_duration'))}</label><input id="fd" type="number" min="15" max="720" value="120"></div><div style="flex:1"><label for="fc">${esc(t('f_capacity'))}</label><input id="fc" type="number" min="1" max="500" value="40"></div></div>
+      <label>${esc(t('f_place'))}</label><div class="seg" role="group"><button type="button" data-pk="room" aria-pressed="true">${esc(t('place_campus'))}</button><button type="button" data-pk="venue" aria-pressed="false">${esc(t('place_city'))}</button></div>
+      <div id="pk-room"><select id="fr" aria-label="${esc(t('f_place'))}" style="margin-top:8px"></select><div class="row" style="margin-top:6px"><button class="btn ghost small" type="button" id="frshow">🧭 ${esc(t('show_on_plan'))}</button><span class="meta" id="frinfo"></span></div></div>
+      <div id="pk-venue" hidden><select id="fv" aria-label="${esc(t('place_city'))}" style="margin-top:8px"></select></div>
       <label for="fx">${esc(t('f_desc'))}</label><textarea id="fx" rows="4" maxlength="1000" required></textarea><div id="ferr"></div><button class="btn" style="margin-top:12px">${esc(t('send_moderation'))}</button></form>
       <section class="card"><h2>${esc(t('my_submissions'))}</h2><ul class="list">${list.map((e) => `<li class="spread"><span><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))} · ${e.taken}/${e.capacity}</span>${e.comment ? `<br><span class="meta">${esc(e.comment)}</span>` : ''}</span>${statusPill(e.status)}</li>`).join('')}</ul></section></div>`;
-    const FIELD = { invalid_title: 'ft', invalid_location: 'fl', invalid_start: 'fs', start_in_past: 'fs', invalid_duration: 'fd', invalid_capacity: 'fc', invalid_description: 'fx', invalid_type: 'fy' };
+    // F21 Place: a free room on campus (availability for the chosen time) or a venue in the city
+    let PK = 'room', ROOMS = [];
+    const places = await api('GET', '/api/places');
+    $('#fv').innerHTML = places.venues.map((v) => `<option value="${esc(v.id)}">${esc(placeName(v))}</option>`).join('');
+    const why = (r) => (r.reason === 'lecture' ? t('busy_lecture', { from: time(r.from), to: time(r.to) }) : r.reason === 'requested' ? t('busy_requested', { title: r.title }) : t('busy_event', { title: r.title }));
+    async function loadRooms() {
+      const st = new Date($('#fs').value); if (isNaN(st)) return;
+      try { ROOMS = await api('GET', `/api/rooms/availability?start=${encodeURIComponent(st.toISOString())}&minutes=${Number($('#fd').value) || 120}`); } catch (err) { return fail(err); }
+      const keep = $('#fr').value, need = Number($('#fc').value) || 1;
+      $('#fr').innerHTML = `<option value="">${esc(t('choose_room'))}</option>` + ROOMS.map((r) => `<option value="${esc(r.code)}" ${!r.free || r.capacity < need ? 'disabled' : ''}>${esc(roomName(r))} · ${esc(t('floor_n', { n: r.floor }))} · ${esc(t('seats_n', { n: r.capacity }))}${r.free ? (r.capacity < need ? ' — ' + esc(t('too_small')) : ' — ' + esc(t('room_free'))) : ' — ' + esc(why(r))}</option>`).join('');
+      if (keep && ROOMS.find((r) => r.code === keep && r.free && r.capacity >= need)) $('#fr').value = keep;
+      $('#frinfo').textContent = t('rooms_free_n', { n: ROOMS.filter((r) => r.free).length, all: ROOMS.length });
+    }
+    ['#fs', '#fd', '#fc'].forEach((id) => $(id).addEventListener('change', loadRooms));
+    app.querySelectorAll('[data-pk]').forEach((b) => b.addEventListener('click', () => { PK = b.dataset.pk; app.querySelectorAll('[data-pk]').forEach((x) => x.setAttribute('aria-pressed', x === b)); $('#pk-room').hidden = PK !== 'room'; $('#pk-venue').hidden = PK !== 'venue'; }));
+    $('#frshow').addEventListener('click', () => { const r = ROOMS.find((x) => x.code === $('#fr').value) || ROOMS[0]; if (r) indoor(r, false); });
+    await loadRooms();
+    const FIELD = { invalid_title: 'ft', place_required: 'fr', room_busy: 'fr', room_too_small: 'fc', invalid_start: 'fs', start_in_past: 'fs', invalid_duration: 'fd', invalid_capacity: 'fc', invalid_description: 'fx', invalid_type: 'fy' };
     const clearErr = () => { app.querySelectorAll('.field-err').forEach((x) => x.remove()); app.querySelectorAll('[aria-invalid]').forEach((x) => x.removeAttribute('aria-invalid')); $('#ferr').innerHTML = ''; };
     const showErr = (code, message) => {
       const el = FIELD[code] && $('#' + FIELD[code]);
@@ -271,7 +388,7 @@
     const check = () => {
       const len = (id) => $('#' + id).value.trim().length, num = (id) => Number($('#' + id).value), start = new Date($('#fs').value);
       if (len('ft') < 3 || len('ft') > 120) return 'invalid_title';
-      if (len('fl') < 2) return 'invalid_location';
+      if (PK === 'room' ? !$('#fr').value : !$('#fv').value) return 'place_required';
       if (isNaN(start)) return 'invalid_start';
       if (start <= new Date()) return 'start_in_past';
       if (!(num('fd') >= 15 && num('fd') <= 720)) return 'invalid_duration';
@@ -283,7 +400,7 @@
     $('#ef').addEventListener('submit', async (ev) => {
       ev.preventDefault(); clearErr();
       const bad = check(); if (bad) return showErr(bad, t('err_' + bad));
-      const body = { title: $('#ft').value, type: $('#fy').value, location: $('#fl').value, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value), description: $('#fx').value };
+      const body = { title: $('#ft').value, type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value), description: $('#fx').value };
       await act(ev.submitter || $('#ef button'), async () => { try { await api('POST', '/api/events', body); toast(t('submitted')); render(); } catch (err) { showErr(err.code, err.message); } });
     });
   };
