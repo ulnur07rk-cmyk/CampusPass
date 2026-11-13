@@ -13,7 +13,7 @@
 const LANGS = ['en', 'kk', 'ru'];
 const T = {
   en: {
-    plan: '🙋 I plan to come', planned_n: '🙋 {n} plan to come · open event, no seat limit', st_planned: 'You plan to come', planned_ok: '🙋 Noted: you plan to come.', consent: 'First accept the data processing terms on the website (it opens after sign-in).', welcome: '👋 Hi! I am the CampusPass bot.\nChoose what you need:', welcome_role: '👋 Hi, {name}! You are signed in as: {role}.\nChoose what you need:',
+    r_shop: 'merch shop cashier', help_shop: 'ℹ️ Merch shop\nScan student vouchers on the website: Check-out.\n/today, /events — events\n/lang — language · /stop — disconnect', voucher_used: '🛍 Your merch voucher {code} was used: {pct}% discount, {discount} ₸ off. Thank you!', voucher_line: '🛍 Active voucher: {code} ({pct}%), valid until {until}', shop_hint: '🛍 Merch shop: 5% off for 100 coins, 10% off for 200 coins (at most 2 000 ₸). Get a voucher on the website: Profile → Merch shop. Coins expire on {date}.', plan: '🙋 I plan to come', planned_n: '🙋 {n} plan to come · open event, no seat limit', st_planned: 'You plan to come', planned_ok: '🙋 Noted: you plan to come.', consent: 'First accept the data processing terms on the website (it opens after sign-in).', welcome: '👋 Hi! I am the CampusPass bot.\nChoose what you need:', welcome_role: '👋 Hi, {name}! You are signed in as: {role}.\nChoose what you need:',
     linked: '✅ CampusPass is connected for {name} ({role}). Your menu and commands are ready.',
     bad_code: '⚠️ This link is not valid or was already used. Open your Profile in CampusPass and press “Connect Telegram” again.',
     not_linked: '🔒 This needs your CampusPass account. Open Profile → “Connect Telegram” on the website, then press Start.',
@@ -61,7 +61,7 @@ const T = {
     err: '⚠️ {msg}', unknown: 'I did not understand. Use the buttons or /help.'
   },
   kk: {
-    plan: '🙋 Барамын', planned_n: '🙋 {n} адам барады · ашық іс-шара, орын шектеусіз', st_planned: 'Барамын деп белгіледіңіз', planned_ok: '🙋 Белгіленді: барасыз.', consent: 'Алдымен сайтта деректерді өңдеу шарттарын қабылдаңыз (кіргеннен кейін ашылады).', welcome: '👋 Сәлем! Мен CampusPass ботымын.\nҚажетін таңдаңыз:', welcome_role: '👋 Сәлем, {name}! Сіздің рөліңіз: {role}.\nҚажетін таңдаңыз:',
+    r_shop: 'мерч дүкенінің кассирі', help_shop: 'ℹ️ Мерч дүкені\nСтуденттердің ваучерлерін сайтта тексеріңіз: Касса.\n/today, /events — іс-шаралар\n/lang — тіл · /stop — ажырату', voucher_used: '🛍 {code} мерч ваучеріңіз қолданылды: {pct}% жеңілдік, {discount} ₸ үнемделді. Рақмет!', voucher_line: '🛍 Белсенді ваучер: {code} ({pct}%), {until} дейін жарамды', shop_hint: '🛍 Мерч дүкені: 100 монетаға 5%, 200 монетаға 10% жеңілдік (ең көбі 2 000 ₸). Ваучерді сайтта алыңыз: Профиль → Мерч дүкені. Монеталар {date} күйеді.', plan: '🙋 Барамын', planned_n: '🙋 {n} адам барады · ашық іс-шара, орын шектеусіз', st_planned: 'Барамын деп белгіледіңіз', planned_ok: '🙋 Белгіленді: барасыз.', consent: 'Алдымен сайтта деректерді өңдеу шарттарын қабылдаңыз (кіргеннен кейін ашылады).', welcome: '👋 Сәлем! Мен CampusPass ботымын.\nҚажетін таңдаңыз:', welcome_role: '👋 Сәлем, {name}! Сіздің рөліңіз: {role}.\nҚажетін таңдаңыз:',
     linked: '✅ CampusPass {name} үшін қосылды ({role}). Мәзір мен командалар дайын.',
     bad_code: '⚠️ Сілтеме жарамсыз немесе қолданылып қойған. CampusPass профилінде «Telegram-ды қосу» батырмасын қайта басыңыз.',
     not_linked: '🔒 Бұл үшін CampusPass аккаунты керек. Сайтта Профиль → «Telegram-ды қосу», содан кейін Start басыңыз.',
@@ -109,7 +109,7 @@ const T = {
     err: '⚠️ {msg}', unknown: 'Түсінбедім. Батырмаларды немесе /help пайдаланыңыз.'
   },
   ru: {
-    plan: '🙋 Я планирую прийти', planned_n: '🙋 Планируют прийти: {n} · открытое мероприятие, без лимита мест', st_planned: 'Вы планируете прийти', planned_ok: '🙋 Отмечено: вы планируете прийти.', consent: 'Сначала примите условия обработки данных на сайте (экран откроется после входа).', welcome: '👋 Привет! Я бот CampusPass.\nВыберите, что нужно:', welcome_role: '👋 Привет, {name}! Ваша роль: {role}.\nВыберите, что нужно:',
+    r_shop: 'кассир магазина мерча', help_shop: 'ℹ️ Магазин мерча\nПроверяйте ваучеры студентов на сайте: Касса.\n/today, /events — мероприятия\n/lang — язык · /stop — отключить', voucher_used: '🛍 Ваш ваучер на мерч {code} использован: скидка {pct}%, {discount} ₸. Спасибо!', voucher_line: '🛍 Активный ваучер: {code} ({pct}%), действует до {until}', shop_hint: '🛍 Магазин мерча: скидка 5% за 100 монет, 10% за 200 монет (не больше 2 000 ₸). Ваучер — на сайте: Профиль → Магазин мерча. Монеты сгорают {date}.', plan: '🙋 Я планирую прийти', planned_n: '🙋 Планируют прийти: {n} · открытое мероприятие, без лимита мест', st_planned: 'Вы планируете прийти', planned_ok: '🙋 Отмечено: вы планируете прийти.', consent: 'Сначала примите условия обработки данных на сайте (экран откроется после входа).', welcome: '👋 Привет! Я бот CampusPass.\nВыберите, что нужно:', welcome_role: '👋 Привет, {name}! Ваша роль: {role}.\nВыберите, что нужно:',
     linked: '✅ CampusPass подключён для {name} ({role}). Меню и команды готовы.',
     bad_code: '⚠️ Ссылка недействительна или уже использована. Откройте Профиль в CampusPass и снова нажмите «Подключить Telegram».',
     not_linked: '🔒 Для этого нужен аккаунт CampusPass. На сайте откройте Профиль → «Подключить Telegram», затем нажмите Start.',
@@ -174,14 +174,16 @@ const MENU = {
   student: [['today', 'week'], ['my', 'coins'], ['lang', 'help']],
   organizer: [['club', 'checkin'], ['today', 'week'], ['lang', 'help']],
   moderator: [['pending', 'requests'], ['stats'], ['today', 'week'], ['lang', 'help']],
-  admin: [['complaints', 'pending'], ['requests', 'stats'], ['today', 'week'], ['lang', 'help']]
+  admin: [['complaints', 'pending'], ['requests', 'stats'], ['today', 'week'], ['lang', 'help']],
+  shop: [['today', 'week'], ['lang', 'help']]
 };
 const ROLE_CMDS = {
   guest: ['today', 'events', 'lang', 'help'],
   student: ['today', 'events', 'my', 'coins', 'lang', 'help', 'stop'],
   organizer: ['club', 'checkin', 'today', 'events', 'lang', 'help', 'stop'],
   moderator: ['pending', 'requests', 'stats', 'today', 'events', 'lang', 'help', 'stop'],
-  admin: ['complaints', 'pending', 'requests', 'stats', 'today', 'events', 'lang', 'help', 'stop']
+  admin: ['complaints', 'pending', 'requests', 'stats', 'today', 'events', 'lang', 'help', 'stop'],
+  shop: ['today', 'events', 'lang', 'help', 'stop']
 };
 const CMD_TEXT = {
   en: { today: 'Events today', events: 'Events this week', my: 'My tickets', coins: 'Campus Coins', club: 'Events of my club', checkin: 'Check a student in by ticket code', pending: 'Events waiting for review', requests: 'Club join requests', stats: 'Statistics', complaints: 'Open complaints', lang: 'Change language', help: 'Help', stop: 'Disconnect this chat' },
@@ -285,8 +287,9 @@ async function handle(update, api, opts = {}) {
       say(listMsg(tr(lang, 'my'), list, lang, 'none_my', { label: (e) => L(e, 'title', lang), text: (e, i) => `${i}. ${L(e, 'title', lang)}\n   🕒 ${when(e.startsAt, lang)}\n   🎟 ${statusLine(e, lang)}` }, (e) => 'my:' + e.id));
     },
     coins: async () => {
-      const c = await as('GET', '/api/me/coins');
-      say({ text: `${tr(lang, 'coins_title', { n: c.balance })}\n\n${tr(lang, 'coins_hist')}\n${c.history.slice(0, 6).map((h) => `${h.amount > 0 ? '+' : ''}${h.amount} · ${h.event || h.reason}`).join('\n')}`, reply_markup: backMenu(lang) });
+      const c = await as('GET', '/api/me/coins'), shop = await as('GET', '/api/shop');
+      const v = shop.vouchers.find((x) => x.status === 'active'), d = (x) => { const y = local(x); return `${y.getUTCDate()} ${MO[lang][y.getUTCMonth()]} ${y.getUTCFullYear()}`; };
+      say({ text: `${tr(lang, 'coins_title', { n: c.balance })}\n${v ? '\n' + tr(lang, 'voucher_line', { code: v.code, pct: v.pct, until: d(v.expiresAt) }) + '\n' : ''}\n${tr(lang, 'shop_hint', { date: d(shop.coinsExpireAt) })}\n\n${tr(lang, 'coins_hist')}\n${c.history.slice(0, 6).map((h) => `${h.amount > 0 ? '+' : ''}${h.amount} · ${h.event || h.reason}`).join('\n')}`, reply_markup: backMenu(lang) });
     },
     // ---- organizer
     club: async () => {

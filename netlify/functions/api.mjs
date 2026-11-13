@@ -6,7 +6,7 @@ import core from '../core.js';
 import bot from '../../server/bot.js';
 import seedData from '../../server/seed-data.json' with { type: 'json' };
 
-const KEY = 'state-v9'; // bump when the data structure changes, so Netlify starts with fresh test data
+const KEY = 'state-v10'; // bump when the data structure changes, so Netlify starts with fresh test data
 const TG = process.env.TELEGRAM_BOT_TOKEN || '';
 const tg = async (method, params) => { const r = await fetch(`https://api.telegram.org/bot${TG}/${method}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params || {}) }); const d = await r.json(); if (!d.ok) throw new Error(d.description); return d.result; };
 let BOT = null; const botName = async () => { if (!TG) return null; if (!BOT) BOT = (await tg('getMe')).username; return BOT; };
@@ -20,7 +20,7 @@ export default async (req) => {
   let body = {};
   if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
     const text = await req.text();
-    if (text.length > 100000) return json(413, { error: { code: 'too_large', message: 'Request body is too large.' } });
+    if (text.length > 250000) return json(413, { error: { code: 'too_large', message: 'Request body is too large.' } });
     if (text) { try { body = JSON.parse(text); } catch { return json(400, { error: { code: 'bad_json', message: 'Invalid JSON.' } }); } }
   }
   const m = /(?:^|;\s*)cp_session=([a-f0-9]{64})/.exec(req.headers.get('cookie') || '');

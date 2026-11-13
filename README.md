@@ -44,10 +44,12 @@ What one user does is saved in the database and is immediately visible to the ot
 | F22 | Map: events on the **2GIS** city map (OpenStreetMap if no key), street route from the student's location, route inside the building on the floor plans | Map tab, `GET /api/places`, `public/maps.js` |
 | FR-21 | Notification inbox (simulated e-mail / push / Telegram) | `GET /api/me/notifications`, Profile |
 
-**Final release (after the Endterm defense).** FR-28 … FR-33 (Coin redemption in the merch shop) are planned for Release 2.0 and are not in the prototype.
+**Final release (after the Endterm defense).**
 
 | ID | Requirement (short) | Where |
 |---|---|---|
+| FR-28 … FR-33 | **Campus Coins → merch discount** (agreement with the university merch shop): a student exchanges 100 coins for a 5% voucher or 200 coins for 10%; the voucher is a QR code valid 7 days for one purchase; the **cashier** scans it, types the amount and confirms; BR-07 offers, BR-08 at most 2 000 ₸ off, BR-09 unused or cancelled voucher returns the coins, BR-10 coins expire on 30 June (end of the academic year) | `/api/shop`, `/api/shop/vouchers`, `/api/shop/redeem`, Profile → Merch shop, role *shop* → Check-out |
+| F3 | **Event pictures**: every event has a cover of its type (original artwork, `public/covers/`); the organizer or the administrator can upload an own photo (cut to 16:9 and compressed in the browser) | `image` in `POST /api/events`, `PUT /api/admin/events/:id` |
 | FR-34 | Telegram bot commands `/today`, `/events`, `/my`, `/help`, `/lang`, `/stop`; command menu in EN/KK/RU | `server/bot.js` |
 | FR-35 | Inline buttons: menu, event list → event card, back | `server/bot.js` |
 | FR-36 | A linked student registers for an event from the bot and gets the ticket code; same rules as the website | `botApi.register` in `server/app.js`, `netlify/core.js` |
@@ -88,7 +90,7 @@ cp .env.example .env        # Windows: copy .env.example .env
 npm start                   # opens http://localhost:3000
 ```
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
-- `npm test` — run the 23 automated acceptance tests (AT-01 … AT-22; AT-20 checks that the Netlify version has the same rules, AT-21 the bot for every role).
+- `npm test` — run the 25 automated acceptance tests (AT-01 … AT-24; AT-20 checks that the Netlify version has the same rules, AT-21 the bot for every role).
 - `npm run demo` — build `CampusPass_demo.html`, one file that works without a server (data in the browser).
 - `npm run contrast` — check the colour contrast of both themes (WCAG AA).
 - Administrator → **Administration → Database**: all tables, columns, keys and row counts of the live database (passwords and Telegram data are hidden). ER diagram: `public/diagrams/fig_er_diagram.png`.
@@ -127,6 +129,7 @@ All accounts are fictional. On the sign-in screen, choose an account in the list
 | Organizer, Music Club | organizer3@test.local | Organizer123! |
 | Moderator (Student Affairs) | moderator@test.local | Moderator123! |
 | Administrator (IT office) | admin@test.local | Admin123! |
+| Merch shop cashier | shop@test.local | Shop123! |
 
 `student1` (Aruzhan Bekova) already has some history and has given consent; all other accounts see the **consent screen** (C08) at the first sign-in. `student2` … `student10` start clean, so each usability tester can get an own account. *Acoustic Night* is an **open event** (“I plan to come”).
 Before each round of usability testing, the administrator can press **Administration → Users → Reset test data** to restore the starting data (everyone is signed out). Self-registration is intentionally not offered: the prototype must not collect data from real people.
@@ -153,7 +156,8 @@ tests/    acceptance.test.js
 - City map: base map tiles from Esri World Street Map (© Esri, HERE, Garmin, © OpenStreetMap contributors), shown with Leaflet 1.9.4 (BSD-2-Clause) loaded from cdnjs; street routes from the public routing service of routing.openstreetmap.de (no key, demo use only).
 - 2GIS city map: MapGL JS API (© 2GIS), free demo key; the key is stored in `.env` and in Netlify environment variables, not in the repository.
 - Telegram reminders: Telegram Bot API (bot created by the team with @BotFather).
-- ER diagram drawn with Graphviz from `public/diagrams/fig_er_diagram.dot`.
+- ER diagram and the state diagrams (Registration, Merch voucher) drawn with Graphviz from `public/diagrams/*.dot`.
+- Event covers in `public/covers/` are original artwork made for this project.
 - Floor plans (`public/floors/`): screenshots made by the team from the student-made campus map https://yuujiso.github.io/aitumap/; rooms, capacities and the lecture timetable in the prototype are fictional.
 - Club names and descriptions are based on public information; events, people and numbers are invented.
 

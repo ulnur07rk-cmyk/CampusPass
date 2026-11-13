@@ -6,7 +6,7 @@ import core from '../core.js';
 import bot from '../../server/bot.js';
 import seedData from '../../server/seed-data.json' with { type: 'json' };
 
-const KEY = 'state-v9';
+const KEY = 'state-v10';
 const TG = process.env.TELEGRAM_BOT_TOKEN || '';
 const SECRET = (process.env.TELEGRAM_WEBHOOK_SECRET || TG.split(':')[1] || '').slice(0, 32).replace(/[^A-Za-z0-9_-]/g, '');
 const call = async (method, params) => { const r = await fetch(`https://api.telegram.org/bot${TG}/${method}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) }); const d = await r.json(); if (!d.ok) throw new Error(d.description); return d.result; };

@@ -1,0 +1,15 @@
+// UML state diagram of the business object "Merch voucher" (FR-28 … FR-33, BR-07 … BR-10). Drawn with Graphviz.
+digraph Voucher {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=12, bgcolor="white", pad=0.3, nodesep=0.6, ranksep=1.0];
+  node  [shape=box, style="rounded,filled", fillcolor="#fffcf5", color="#2e6b45", penwidth=1.6, fontname="Helvetica", fontsize=12, margin="0.25,0.12"];
+  edge  [color="#475569", fontname="Helvetica", fontsize=9.5, arrowsize=0.8];
+  start [shape=circle, label="", width=0.22, style=filled, fillcolor="#1f2a22", color="#1f2a22"];
+  final [shape=doublecircle, label="", width=0.18, style=filled, fillcolor="#1f2a22", color="#1f2a22"];
+  Active; Used; Expired [label="Expired"]; Cancelled;
+  start -> Active [label="student chooses 5% or 10%\n[consent, enough coins, no other active voucher]\n/ take 100 or 200 coins, make QR code (BR-07)"];
+  Active -> Used [label="cashier scans QR and confirms the amount\n/ discount = min(amount × %, 2 000 ₸) (BR-08), notify"];
+  Active -> Expired [label="7 days pass [not used]\n/ return coins (BR-09)"];
+  Active -> Cancelled [label="student cancels\n/ return coins"];
+  Used -> final; Expired -> final; Cancelled -> final;
+  note [shape=note, style=filled, fillcolor="#e4eedf", color="#2e6b45", fontsize=10, label="Coins that are not spent expire\non 30 June, the end of the\nacademic year (BR-10)."];
+}

@@ -23,10 +23,17 @@ const parse = (s) => { try { return s ? JSON.parse(s) : null; } catch { return n
 const TYPES = ['sports', 'creative', 'tech', 'intellectual', 'social'];
 const LANGS = ['en', 'kk', 'ru'];
 // Roles: student, organizer (one club), moderator (Student Affairs: moderation, statistics), admin (everything, complaints)
-const ROLES = ['student', 'organizer', 'moderator', 'admin'];
+const ROLES = ['student', 'organizer', 'moderator', 'admin', 'shop'];
 const STAFF = ['moderator', 'admin'];
 const REASONS = ['wrong_info', 'spam', 'offensive', 'safety', 'other'];
 const C_STATUS = ['new', 'in_review', 'resolved', 'rejected'];
+// FR-28 … FR-33 Coin redemption in the university merch shop (agreement with the shop, Appendix D)
+// BR-07 offers: 5 % for 100 coins, 10 % for 200 coins · BR-08 at most 2 000 ₸ discount per purchase, one voucher per purchase
+// BR-09 a voucher is valid 7 days and only once; unused coins come back · BR-10 coins expire at the end of the academic year (30 June)
+const SHOP = { offers: [{ pct: 5, coins: 100 }, { pct: 10, coins: 200 }], maxDiscount: 2000, validDays: 7 };
+const yearStart = (d) => { const x = new Date(d); const y = x.getUTCMonth() >= 7 ? x.getUTCFullYear() : x.getUTCFullYear() - 1; return new Date(Date.UTC(y, 7, 1) - 5 * 3600000); }; // 1 August, Astana time
+const yearEnd = (d) => new Date(Date.UTC(yearStart(d).getUTCFullYear() + 1, 5, 30, 23, 59) - 5 * 3600000); // 30 June
+const IMG = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json' };
 
 class HttpError extends Error { constructor(status, code, message) { super(message); this.status = status; this.code = code; } }
@@ -68,7 +75,7 @@ function createApp(db, opts = {}) {
   const eventRow = (id) => { const e = q('SELECT * FROM events WHERE id = ?').get(id); if (!e) fail(404, 'event_not_found', 'Event not found.'); return e; };
   const taken = (eid) => q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status IN ('confirmed','checked_in')").get(eid).n;
   const canManage = (u, e) => STAFF.includes(u.role) || (u.role === 'organizer' && u.club_id === e.club_id);
-  const balance = (uid) => q('SELECT COALESCE(SUM(amount),0) AS b FROM coin_transactions WHERE user_id = ?').get(uid).b;
+  const balance = (uid) => q('SELECT COALESCE(SUM(amount),0) AS b FROM coin_transactions WHERE user_id = ? AND created_at >= ?').get(uid, iso(yearStart(now()))).b; // BR-10
 
   function eventView(e, u) {
     const c = q('SELECT name, category, i18n FROM clubs WHERE id = ?').get(e.club_id);
@@ -76,7 +83,7 @@ function createApp(db, opts = {}) {
     const wait = q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'waitlisted'").get(e.id).n;
     const out = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type,
       startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: wait, coins: e.coins, status: e.status,
-      i18n: parse(e.i18n), clubI18n: parse(c.i18n), place: placeOf(e), open: !!e.is_open,
+      i18n: parse(e.i18n), clubI18n: parse(c.i18n), place: placeOf(e), open: !!e.is_open, image: e.image || null,
       planned: e.is_open ? q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'planned'").get(e.id).n : 0 };
     if (u) {
       const r = q('SELECT * FROM registrations WHERE event_id = ? AND user_id = ?').get(e.id, u.id);
@@ -107,6 +114,8 @@ function createApp(db, opts = {}) {
     const base = i18n[languages[0]];
     return { title: base.title, description: base.description, location: (room || venue).name, i18n, languages };
   }
+
+  const checkImage = (v) => { if (typeof v !== 'string' || !IMG.test(v) || v.length > 150000) fail(400, 'invalid_image', 'The picture must be a JPEG, PNG or WebP up to about 100 KB.'); return v; };
 
   // ---------- routes ----------
   const routes = [];
@@ -253,7 +262,7 @@ function createApp(db, opts = {}) {
   // FR-16 Coin balance and history
   route('GET', '/api/me/coins', ({ user }) => {
     need(user);
-    return { balance: balance(user.id), history: q('SELECT t.amount, t.reason, t.created_at AS createdAt, e.title AS event FROM coin_transactions t LEFT JOIN events e ON e.id = t.event_id WHERE t.user_id = ? ORDER BY t.created_at DESC, t.id DESC').all(user.id) };
+    return { balance: balance(user.id), history: q('SELECT t.amount, t.reason, t.created_at AS createdAt, e.title AS event FROM coin_transactions t LEFT JOIN events e ON e.id = t.event_id WHERE t.user_id = ? AND t.created_at >= ? ORDER BY t.created_at DESC, t.id DESC').all(user.id, iso(yearStart(now()))), expiresAt: iso(yearEnd(now())) };
   });
   // FR-21 Notification inbox (simulated e-mail, push and Telegram messages)
   route('GET', '/api/me/notifications', ({ user }) => { need(user); return q('SELECT channel, text, created_at AS createdAt FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT 30').all(user.id); });
@@ -307,11 +316,12 @@ function createApp(db, opts = {}) {
     const capacity = Number(body.capacity); if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) fail(400, 'invalid_capacity', 'Seats must be 1–500.');
     if (room && capacity > room.capacity) fail(400, 'room_too_small', `This room has ${room.capacity} seats.`);
     if (room) { const a = availability(room, ROOMS, start, new Date(start.getTime() + minutes * 60000), q("SELECT id, title, room_code, status, starts_at, ends_at FROM events WHERE room_code IS NOT NULL").all()); if (!a.free) fail(409, 'room_busy', 'The room is not free at this time.'); }
+    const image = body.image ? checkImage(body.image) : null; // own photo of the organizer (compressed in the browser); otherwise a cover by type
     const isOpen = body.open === true ? 1 : 0; // F13 open event (concert, fair): no registration limit, "I plan to come"
     const clubId = user.role === 'admin' ? int(body.clubId) : user.club_id;
     if (user.role === 'admin' && !q('SELECT 1 FROM clubs WHERE id = ?').get(clubId)) fail(404, 'club_not_found', 'Club not found.');
-    const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, room_code, venue, i18n, is_open) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?, ?, ?, ?, ?)`)
-      .run(texts.title, texts.description, clubId, texts.location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, isOpen ? 0 : 20, user.id, iso(now()), room ? room.code : null, venue ? venue.id : null, JSON.stringify(texts.i18n), isOpen).lastInsertRowid;
+    const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, room_code, venue, i18n, is_open, image) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?, ?, ?, ?, ?, ?)`)
+      .run(texts.title, texts.description, clubId, texts.location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, isOpen ? 0 : 20, user.id, iso(now()), room ? room.code : null, venue ? venue.id : null, JSON.stringify(texts.i18n), isOpen, image).lastInsertRowid;
     const newEv = eventView(eventRow(id), null);
     for (const a of q("SELECT id FROM users WHERE role IN ('moderator','admin')").all()) alert(a.id, `New event waiting for review: ${texts.title}.`, (lang) => bot.newEventAlert(lang, newEv, siteUrl()));
     return { id, status: 'pending', languages: texts.languages };
@@ -387,7 +397,8 @@ function createApp(db, opts = {}) {
     const clubs = q('SELECT category, COUNT(*) AS n FROM clubs GROUP BY category').all();
     const pending = q("SELECT COUNT(*) AS n FROM events WHERE status = 'pending'").get().n + q("SELECT COUNT(*) AS n FROM memberships WHERE status = 'pending'").get().n;
     const complaints = q("SELECT COUNT(*) AS n FROM complaints WHERE status IN ('new','in_review')").get().n;
-    return { totals: { clubs: clubs.reduce((a, c) => a + c.n, 0), approvedEvents: events.length, registrations: events.reduce((a, e) => a + e.registered, 0), pending, complaints }, clubsByCategory: clubs, events };
+    const shop = q("SELECT COUNT(*) AS n, COUNT(DISTINCT user_id) AS s FROM vouchers WHERE status = 'used'").get();
+    return { totals: { clubs: clubs.reduce((a, c) => a + c.n, 0), approvedEvents: events.length, registrations: events.reduce((a, e) => a + e.registered, 0), pending, complaints, shopStudents: shop.s }, clubsByCategory: clubs, events };
   });
   // FR-20, FR-42 Administrator: users and roles (search over all accounts; the 120 seat-filling students are hidden unless searched)
   route('GET', '/api/admin/users', ({ user, query }) => {
@@ -425,8 +436,9 @@ function createApp(db, opts = {}) {
       const capacity = body.capacity === undefined ? e.capacity : Number(body.capacity); if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) fail(400, 'invalid_capacity', 'Seats must be 1–500.');
       const coins = body.coins === undefined ? e.coins : Number(body.coins); if (!Number.isInteger(coins) || coins < 0 || coins > 100) fail(400, 'invalid_coins', 'Coins must be 0–100.');
       const status = body.status === undefined ? e.status : body.status; if (!['pending', 'approved', 'rejected', 'cancelled'].includes(status)) fail(400, 'invalid_status', 'Unknown status.');
-      q('UPDATE events SET title = ?, description = ?, i18n = ?, type = ?, starts_at = ?, ends_at = ?, capacity = ?, coins = ?, status = ? WHERE id = ?')
-        .run(texts ? texts.title : e.title, texts ? texts.description : e.description, texts ? JSON.stringify(texts.i18n) : e.i18n, type, iso(start), iso(start.getTime() + minutes * 60000), capacity, coins, status, e.id);
+      const image = body.image === undefined ? e.image : body.image === null ? null : checkImage(body.image);
+      q('UPDATE events SET title = ?, description = ?, i18n = ?, type = ?, starts_at = ?, ends_at = ?, capacity = ?, coins = ?, status = ?, image = ? WHERE id = ?')
+        .run(texts ? texts.title : e.title, texts ? texts.description : e.description, texts ? JSON.stringify(texts.i18n) : e.i18n, type, iso(start), iso(start.getTime() + minutes * 60000), capacity, coins, status, image, e.id);
       // State diagram: when an event is cancelled, every Confirmed / Waitlisted / Planned registration becomes Cancelled and the student is told
       if (status === 'cancelled' && e.status !== 'cancelled') { for (const r of q("SELECT user_id FROM registrations WHERE event_id = ? AND status IN ('confirmed','waitlisted','planned')").all(e.id)) notify(r.user_id, 'app', `The event "${e.title}" was cancelled.`); q("UPDATE registrations SET status = 'cancelled', updated_at = ? WHERE event_id = ? AND status IN ('confirmed','waitlisted','planned')").run(iso(now()), e.id); }
       return { ...eventView(eventRow(e.id), null), comment: e.moderation_comment };
@@ -489,6 +501,68 @@ function createApp(db, opts = {}) {
     q('UPDATE complaints SET status = ?, admin_comment = ?, handled_by = ?, updated_at = ? WHERE id = ?').run(body.status, comment || c.admin_comment, user.id, iso(now()), c.id);
     alert(c.user_id, `Your complaint #${c.id} is now: ${body.status.replace('_', ' ')}.${comment ? ' Answer: ' + comment : ''}`, (lang) => bot.complaintStatusMsg(lang, c.id, body.status, comment));
     return { id: c.id, status: body.status };
+  });
+
+  // ---------- FR-28 … FR-33 Merch shop: discount vouchers for Campus Coins ----------
+  const voucherOut = (v) => ({ id: v.id, code: v.code, pct: v.percent, coins: v.coins, status: v.status, createdAt: v.created_at, expiresAt: v.expires_at, usedAt: v.used_at, amount: v.purchase_amount, discount: v.discount });
+  // BR-09 Expired vouchers give the coins back (checked lazily on every shop request)
+  function expireVouchers() {
+    for (const v of q("SELECT * FROM vouchers WHERE status = 'active' AND expires_at <= ?").all(iso(now()))) {
+      q("UPDATE vouchers SET status = 'expired' WHERE id = ?").run(v.id);
+      q('INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?,?,?,?)').run(v.user_id, v.coins, `Voucher ${v.code} expired, coins returned`, iso(now()));
+    }
+  }
+  route('GET', '/api/shop', ({ user }) => {
+    need(user, 'student'); expireVouchers();
+    return { offers: SHOP.offers, maxDiscount: SHOP.maxDiscount, validDays: SHOP.validDays, balance: balance(user.id), coinsExpireAt: iso(yearEnd(now())),
+      vouchers: q('SELECT * FROM vouchers WHERE user_id = ? ORDER BY id DESC LIMIT 20').all(user.id).map(voucherOut) };
+  });
+  route('POST', '/api/shop/vouchers', ({ user, body }) => {
+    need(user, 'student');
+    return tx(db, () => {
+      expireVouchers();
+      if (!q('SELECT consent_at FROM users WHERE id = ?').get(user.id).consent_at) fail(403, 'consent_required', 'Accept the data processing terms first (C08).');
+      const offer = SHOP.offers.find((o) => o.pct === Number(body.pct)); if (!offer) fail(400, 'invalid_offer', 'Choose 5% or 10%.');
+      if (q("SELECT 1 FROM vouchers WHERE user_id = ? AND status = 'active'").get(user.id)) fail(409, 'voucher_active', 'You already have an active voucher. Use it or cancel it first.');
+      if (balance(user.id) < offer.coins) fail(409, 'not_enough_coins', `You need ${offer.coins} coins.`);
+      const code = 'MERCH-' + crypto.randomBytes(4).toString('hex').toUpperCase(), t = iso(now()), exp = iso(now().getTime() + SHOP.validDays * 86400000);
+      const id = q("INSERT INTO vouchers (user_id, code, percent, coins, status, created_at, expires_at) VALUES (?,?,?,?, 'active', ?, ?)").run(user.id, code, offer.pct, offer.coins, t, exp).lastInsertRowid;
+      q('INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?,?,?,?)').run(user.id, -offer.coins, `Merch voucher ${offer.pct}% (${code})`, t);
+      return voucherOut(q('SELECT * FROM vouchers WHERE id = ?').get(id));
+    });
+  });
+  route('DELETE', '/api/shop/vouchers/:id', ({ user, params }) => {
+    need(user, 'student');
+    return tx(db, () => {
+      const v = q("SELECT * FROM vouchers WHERE id = ? AND user_id = ? AND status = 'active'").get(int(params.id), user.id); if (!v) fail(404, 'voucher_not_found', 'Voucher not found.');
+      q("UPDATE vouchers SET status = 'cancelled' WHERE id = ?").run(v.id);
+      q('INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?,?,?,?)').run(user.id, v.coins, `Voucher ${v.code} cancelled, coins returned`, iso(now()));
+      return { status: 'cancelled', balance: balance(user.id) };
+    });
+  });
+  // FR-31 The cashier scans the voucher QR (or types the code) and the purchase amount; confirm = the voucher is used
+  route('POST', '/api/shop/redeem', ({ user, body }) => {
+    need(user, 'shop', 'admin');
+    return tx(db, () => {
+      expireVouchers();
+      const v = q('SELECT * FROM vouchers WHERE code = ?').get(String(body.code || '').trim().toUpperCase());
+      if (!v || v.status === 'cancelled') fail(404, 'voucher_not_found', 'Voucher not found. Check the code.');
+      if (v.status === 'used') fail(409, 'voucher_used', 'This voucher was already used.');
+      if (v.status === 'expired') fail(409, 'voucher_expired', 'This voucher has expired.');
+      const amount = Number(body.amount); if (!Number.isInteger(amount) || amount < 1 || amount > 1000000) fail(400, 'invalid_amount', 'Enter the purchase amount in tenge.');
+      const discount = Math.min(Math.round((amount * v.percent) / 100), SHOP.maxDiscount), student = q('SELECT name FROM users WHERE id = ?').get(v.user_id).name;
+      if (body.confirm === true) {
+        q("UPDATE vouchers SET status = 'used', used_at = ?, purchase_amount = ?, discount = ?, cashier_id = ? WHERE id = ?").run(iso(now()), amount, discount, user.id, v.id);
+        alert(v.user_id, `Your merch voucher ${v.code} was used: ${v.percent}% discount, ${discount} ₸ off.`, (lang) => ({ text: bot.tr(lang, 'voucher_used', { code: v.code, pct: v.percent, discount }) }));
+      }
+      return { code: v.code, pct: v.percent, amount, discount, toPay: amount - discount, student, used: body.confirm === true };
+    });
+  });
+  route('GET', '/api/shop/redemptions', ({ user }) => {
+    need(user, 'shop', 'admin');
+    const rows = q("SELECT v.*, u.name FROM vouchers v JOIN users u ON u.id = v.user_id WHERE v.status = 'used' ORDER BY v.used_at DESC LIMIT 30").all();
+    const all = q("SELECT COUNT(*) AS n, COUNT(DISTINCT user_id) AS s, COALESCE(SUM(discount),0) AS d FROM vouchers WHERE status = 'used'").get();
+    return { items: rows.map((v) => ({ ...voucherOut(v), student: v.name })), totals: { used: all.n, students: all.s, discount: all.d } };
   });
 
   // Reset all data to the fictional test data (moderator only; used between usability-test sessions)
@@ -555,7 +629,7 @@ function createApp(db, opts = {}) {
   // ---------- request handling ----------
   async function readJson(req) {
     const chunks = []; let size = 0;
-    for await (const c of req) { size += c.length; if (size > 100000) fail(413, 'too_large', 'Request body is too large.'); chunks.push(c); }
+    for await (const c of req) { size += c.length; if (size > 250000) fail(413, 'too_large', 'Request body is too large.'); chunks.push(c); }
     if (!chunks.length) return {};
     if (!/application\/json/.test(req.headers['content-type'] || '')) fail(415, 'json_required', 'Send JSON.');
     try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { fail(400, 'bad_json', 'Invalid JSON.'); }

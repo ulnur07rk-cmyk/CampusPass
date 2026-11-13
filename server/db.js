@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   student_id TEXT,
   group_name TEXT,
-  role TEXT NOT NULL CHECK (role IN ('student','organizer','moderator','admin')),
+  role TEXT NOT NULL CHECK (role IN ('student','organizer','moderator','admin','shop')),
   club_id INTEGER REFERENCES clubs(id),
   lang TEXT NOT NULL DEFAULT 'en' CHECK (lang IN ('en','kk','ru')),
   telegram_chat_id TEXT,
@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS events (
   status TEXT NOT NULL CHECK (status IN ('pending','approved','rejected','cancelled')),
   moderation_comment TEXT,
   is_open INTEGER NOT NULL DEFAULT 0,
+  image TEXT,
   created_by INTEGER REFERENCES users(id),
   created_at TEXT NOT NULL
 );
@@ -126,6 +127,21 @@ CREATE TABLE IF NOT EXISTS telegram_chats (
   await_action TEXT,
   updated_at TEXT NOT NULL
 );
+-- FR-28 … FR-33 Merch-shop vouchers bought with Campus Coins
+CREATE TABLE IF NOT EXISTS vouchers (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  code TEXT NOT NULL UNIQUE,
+  percent INTEGER NOT NULL CHECK (percent IN (5,10)),
+  coins INTEGER NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('active','used','expired','cancelled')),
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  purchase_amount INTEGER,
+  discount INTEGER,
+  cashier_id INTEGER REFERENCES users(id)
+);
 CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints(status);
 CREATE INDEX IF NOT EXISTS idx_reg_event ON registrations(event_id, status);
 CREATE INDEX IF NOT EXISTS idx_events_start ON events(status, starts_at);
@@ -137,15 +153,16 @@ function open(dbPath) {
   // A database made by an older version (no 'moderator' role) is rebuilt: it holds only fictional test data
   const old = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").get();
   const oldReg = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'registrations'").get();
-  if ((old && !old.sql.includes("'moderator'")) || (oldReg && !oldReg.sql.includes("'planned'"))) {
+  if ((old && !old.sql.includes("'shop'")) || (oldReg && !oldReg.sql.includes("'planned'"))) {
     db.exec('PRAGMA foreign_keys = OFF');
-    for (const tb of ['notifications', 'coin_transactions', 'feedback', 'memberships', 'registrations', 'events', 'sessions', 'complaints', 'telegram_chats', 'users', 'clubs']) db.exec(`DROP TABLE IF EXISTS ${tb}`);
+    for (const tb of ['notifications', 'coin_transactions', 'feedback', 'memberships', 'registrations', 'vouchers', 'events', 'sessions', 'complaints', 'telegram_chats', 'users', 'clubs']) db.exec(`DROP TABLE IF EXISTS ${tb}`);
     console.log('Old database format: rebuilt with fresh fictional test data.');
   }
   db.exec(SCHEMA);
   // Older local databases: add the Telegram columns if they are missing
   const cols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
   for (const c of ['telegram_chat_id', 'telegram_code', 'consent_at']) if (!cols.includes(c)) db.exec(`ALTER TABLE users ADD COLUMN ${c} TEXT`);
+  if (!db.prepare('PRAGMA table_info(events)').all().some((c) => c.name === 'image')) { try { db.exec('ALTER TABLE events ADD COLUMN image TEXT'); } catch { /* new table */ } }
   if (!db.prepare('PRAGMA table_info(events)').all().some((c) => c.name === 'is_open')) db.exec('ALTER TABLE events ADD COLUMN is_open INTEGER NOT NULL DEFAULT 0');
   // FR-47 The bot waits for a typed answer (rejection reason, answer to a complaint): saved per chat
   if (!db.prepare('PRAGMA table_info(telegram_chats)').all().some((c) => c.name === 'await_action')) db.exec('ALTER TABLE telegram_chats ADD COLUMN await_action TEXT');
@@ -166,7 +183,7 @@ const SEED_DATA = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.jso
 const FIRST = SEED_DATA.first, LAST = SEED_DATA.last;
 
 function reset(db) {
-  tx(db, () => { for (const tb of ['notifications', 'coin_transactions', 'feedback', 'complaints', 'telegram_chats', 'memberships', 'registrations', 'events', 'sessions', 'users', 'clubs']) db.exec(`DELETE FROM ${tb}`); });
+  tx(db, () => { for (const tb of ['notifications', 'coin_transactions', 'feedback', 'complaints', 'telegram_chats', 'vouchers', 'memberships', 'registrations', 'events', 'sessions', 'users', 'clubs']) db.exec(`DELETE FROM ${tb}`); });
   return seed(db);
 }
 

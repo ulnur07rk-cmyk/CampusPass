@@ -1460,6 +1460,15 @@
    "group": null,
    "role": "admin",
    "club": null
+  },
+  {
+   "email": "shop@test.local",
+   "password": "Shop123!",
+   "name": "Merch shop cashier (fictional)",
+   "studentId": null,
+   "group": null,
+   "role": "shop",
+   "club": null
   }
  ],
  "campus": {

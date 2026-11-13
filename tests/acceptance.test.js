@@ -141,10 +141,10 @@ test('AT-11 (FR-10, FR-13) student sends a club request; moderator accepts it', 
   assert.equal((await call('GET', '/api/clubs', null, st)).body.find((c) => c.id === club).myStatus, 'accepted');
 });
 
-test('AT-13 (testing support) 15 fictional test accounts are listed; a new student starts clean; only the administrator can reset', async () => {
+test('AT-13 (testing support) 16 fictional test accounts are listed; a new student starts clean; only the administrator can reset', async () => {
   const list = (await call('GET', '/api/test-accounts')).body;
-  assert.equal(list.length, 15);
-  assert.deepEqual(['student', 'organizer', 'moderator', 'admin'].map((r) => list.filter((a) => a.role === r).length), [10, 3, 1, 1]);
+  assert.equal(list.length, 16);
+  assert.deepEqual(['student', 'organizer', 'moderator', 'admin', 'shop'].map((r) => list.filter((a) => a.role === r).length), [10, 3, 1, 1, 1]);
   const s3 = await login('student3@test.local', 'Student123!');
   assert.equal((await call('GET', '/api/me/registrations', null, s3)).body.length, 0);
   assert.equal((await call('POST', '/api/admin/reset', {}, s3)).status, 403);
@@ -490,4 +490,75 @@ test('AT-22 (C08, F4/F13, state diagram, C10) consent, open events, cancelled ev
   const r = await bot.handle({ callback_query: { id: 'x', data: 'op:' + demo, from: {}, message: { message_id: 1, chat: { id: 700 } } } }, app6.botApi, { now: () => new Date(NOW) });
   const listText = r.find((c) => c.params.text && /participants/.test(c.params.text)).params.text;
   assert.ok(!/\b2401\d\d\b/.test(listText), 'no student IDs in the participant list sent to Telegram');
+});
+
+test('AT-23 (FR-28 … FR-33, BR-07 … BR-10) Campus Coins buy a 5% / 10% merch voucher; the cashier redeems it once', async () => {
+  const NOW = new Date(); NOW.setHours(8, 0, 0, 0);
+  const db7 = open(':memory:'); seed(db7, NOW);
+  const app7 = createApp(db7, { clock: () => new Date(NOW) });
+  const srv = http.createServer(app7); await new Promise((r) => srv.listen(0, r));
+  const b7 = `http://localhost:${srv.address().port}`;
+  const c7 = async (m, p, body, ck) => { const r = await fetch(b7 + p, { method: m, headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(ck ? { Cookie: ck } : {}) }, body: body ? JSON.stringify(body) : undefined }); return { status: r.status, body: await r.json(), cookie: (r.headers.get('set-cookie') || '').split(';')[0] }; };
+  try {
+    const st = (await c7('POST', '/api/auth/login', { email: 'student1@test.local', password: 'Student123!' })).cookie;
+    const uid = db7.prepare("SELECT id FROM users WHERE email = 'student1@test.local'").get().id;
+    let shop = (await c7('GET', '/api/shop', null, st)).body;
+    assert.deepEqual(shop.offers, [{ pct: 5, coins: 100 }, { pct: 10, coins: 200 }]); assert.equal(shop.maxDiscount, 2000);
+    const start = shop.balance; assert.ok(start >= 100 && start < 200);
+    assert.match(shop.coinsExpireAt, /-06-30T/);                                                       // BR-10 end of the academic year
+    // BR-07 not enough coins for 10%; 5% works and takes 100 coins
+    assert.equal((await c7('POST', '/api/shop/vouchers', { pct: 10 }, st)).body.error.code, 'not_enough_coins');
+    assert.equal((await c7('POST', '/api/shop/vouchers', { pct: 7 }, st)).status, 400);
+    const v = (await c7('POST', '/api/shop/vouchers', { pct: 5 }, st)).body;
+    assert.match(v.code, /^MERCH-[0-9A-F]{8}$/); assert.equal(v.status, 'active');
+    assert.equal((await c7('GET', '/api/shop', null, st)).body.balance, start - 100);
+    assert.equal((await c7('POST', '/api/shop/vouchers', { pct: 5 }, st)).body.error.code, 'voucher_active');   // one active voucher
+    // FR-31 Only the cashier (or the administrator) redeems; preview first, then confirm; a voucher works once
+    assert.equal((await c7('POST', '/api/shop/redeem', { code: v.code, amount: 15000 }, st)).status, 403);
+    const cash = (await c7('POST', '/api/auth/login', { email: 'shop@test.local', password: 'Shop123!' })).cookie;
+    assert.equal((await c7('POST', '/api/shop/redeem', { code: 'MERCH-00000000', amount: 1000 }, cash)).body.error.code, 'voucher_not_found');
+    const pre = (await c7('POST', '/api/shop/redeem', { code: v.code.toLowerCase(), amount: 15000 }, cash)).body;
+    assert.deepEqual([pre.discount, pre.toPay, pre.used], [750, 14250, false]);
+    const done = (await c7('POST', '/api/shop/redeem', { code: v.code, amount: 15000, confirm: true }, cash)).body;
+    assert.equal(done.used, true); assert.equal(done.student, 'Aruzhan Bekova');
+    assert.equal((await c7('POST', '/api/shop/redeem', { code: v.code, amount: 15000, confirm: true }, cash)).body.error.code, 'voucher_used');
+    assert.ok((await c7('GET', '/api/me/notifications', null, st)).body.some((n) => /750 ₸/.test(n.text)));
+    // BR-08 at most 2 000 ₸ off
+    db7.prepare("INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?, 300, 'Test coins', ?)").run(uid, new Date(NOW).toISOString());
+    const v10 = (await c7('POST', '/api/shop/vouchers', { pct: 10 }, st)).body;
+    assert.equal((await c7('POST', '/api/shop/redeem', { code: v10.code, amount: 50000 }, cash)).body.discount, 2000);
+    // BR-09 cancel → coins back; an expired voucher gives the coins back too
+    const before = (await c7('GET', '/api/shop', null, st)).body.balance;
+    assert.equal((await c7('DELETE', `/api/shop/vouchers/${v10.id}`, {}, st)).body.balance, before + 200);
+    const v3 = (await c7('POST', '/api/shop/vouchers', { pct: 5 }, st)).body;
+    db7.prepare("UPDATE vouchers SET expires_at = '2000-01-01T00:00:00.000Z' WHERE id = ?").run(v3.id);
+    shop = (await c7('GET', '/api/shop', null, st)).body;
+    assert.equal(shop.vouchers.find((x) => x.id === v3.id).status, 'expired'); assert.equal(shop.balance, before + 200);
+    // BR-10 coins from the previous academic year do not count
+    db7.prepare("INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?, 500, 'Last year', '2020-05-01T00:00:00.000Z')").run(uid);
+    assert.equal((await c7('GET', '/api/shop', null, st)).body.balance, before + 200);
+    // Statistics for BO6 (students who used the shop) and the cashier's list
+    const red = (await c7('GET', '/api/shop/redemptions', null, cash)).body; assert.equal(red.totals.used, 1); assert.equal(red.totals.discount, 750);
+    const adm = (await c7('POST', '/api/auth/login', { email: 'admin@test.local', password: 'Admin123!' })).cookie;
+    assert.equal((await c7('GET', '/api/admin/stats', null, adm)).body.totals.shopStudents, 1);
+  } finally { srv.close(); }
+  // The Netlify version follows the same rules
+  const core = createCore(SEED, null);
+  const tk = (e, p) => core.handle('POST', '/api/auth/login', { email: e, password: p }).token;
+  const s1 = tk('student1@test.local', 'Student123!'), cs = tk('shop@test.local', 'Shop123!');
+  const cv = core.handle('POST', '/api/shop/vouchers', { pct: 5 }, s1); assert.equal(cv.status, 200);
+  assert.equal(core.handle('POST', '/api/shop/redeem', { code: cv.data.code, amount: 60000, confirm: true }, cs).data.discount, 2000);
+  assert.equal(core.handle('POST', '/api/shop/redeem', { code: cv.data.code, amount: 100, confirm: true }, cs).data.error.code, 'voucher_used');
+});
+
+test('AT-24 (F3) an event can have its own picture; a wrong file is refused', async () => {
+  const org = await login('organizer2@test.local', 'Organizer123!');
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const base = { type: 'intellectual', venueId: SEED.venues[0].id, startsAt: at(16, 0, 6), durationMinutes: 60, capacity: 10, i18n: { en: { title: 'Picture Test', description: 'An event with its own picture.' } } };
+  assert.equal((await call('POST', '/api/events', { ...base, image: 'data:text/html;base64,PHNjcmlwdD4=' }, org)).body.error.code, 'invalid_image');
+  const ok = await call('POST', '/api/events', { ...base, image: png }, org);
+  assert.equal(ok.status, 200);
+  assert.equal((await call('GET', `/api/events/${ok.body.id}`, null, org)).body.image, png);
+  const adm = await login('admin@test.local', 'Admin123!');
+  assert.equal((await call('PUT', `/api/admin/events/${ok.body.id}`, { image: null }, adm)).body.image, null);   // back to the cover by type
 });

@@ -56,11 +56,12 @@
     student: [['events', 'nav_events'], ['map', 'nav_map'], ['clubs', 'nav_clubs'], ['tickets', 'nav_tickets'], ['history', 'nav_history'], ['profile', 'nav_profile']],
     organizer: [['events', 'nav_events'], ['map', 'nav_map'], ['myevents', 'nav_myevents'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
     moderator: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
-    admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['profile', 'nav_profile']] // UI01: at most six sections
+    admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['profile', 'nav_profile']], // UI01: at most six sections
+    shop: [['checkout', 'nav_checkout'], ['events', 'nav_events'], ['profile', 'nav_profile']]
   };
   const go = (v) => { if (location.hash !== '#/' + v) location.hash = '#/' + v; else render(); };
   const svg = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-  const ICON = { db: svg('<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>'), map: svg('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), admin: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), out: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>') };
+  const ICON = { db: svg('<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>'), map: svg('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), admin: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), checkout: svg('<path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/>'), shop: svg('<path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/>'), out: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>') };
   function chrome(view) {
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
@@ -79,7 +80,7 @@
     if (!S.me) { try { S.me = await api('GET', '/api/me'); if (S.me.lang && !localStorage.getItem('cp.lang')) S.lang = S.me.lang; } catch { S.me = null; } }
     if (!S.me) { chrome('signin'); return viewSignin(); }
     if (!S.me.consentAt) { chrome('consent'); return viewConsent(); }
-    const allowed = NAV[S.me.role].map((x) => x[0]).concat(S.me.role === 'student' ? [] : ['profile']);
+    const allowed = NAV[S.me.role].map((x) => x[0]).concat(S.me.role === 'student' ? ['shop'] : ['profile']);
     const v = allowed.includes(view) ? view : NAV[S.me.role][0][0];
     chrome(v);
     if (quiet !== true) app.innerHTML = `<p class="sub" style="margin-top:24px">${esc(t('loading'))}</p>`;
@@ -103,7 +104,7 @@
   async function viewSignin() {
     let accounts = [];
     try { accounts = await api('GET', '/api/test-accounts'); } catch { accounts = []; }
-    const groups = [['student', 'group_students'], ['organizer', 'group_organizers'], ['moderator', 'group_moderator'], ['admin', 'group_admin']];
+    const groups = [['student', 'group_students'], ['organizer', 'group_organizers'], ['moderator', 'group_moderator'], ['admin', 'group_admin'], ['shop', 'group_shop']];
     const options = groups.map(([r, k]) => `<optgroup label="${esc(t(k))}">${accounts.filter((x) => x.role === r).map((x) => `<option value="${esc(x.email)}">${esc(x.name)}${x.club ? ' — ' + esc(x.club) : ''} (${esc(x.email)})</option>`).join('')}</optgroup>`).join('');
     app.innerHTML = `<div class="signin-wrap"><section class="hero"><h1>${esc(t('sv_title'))}</h1><ul>${['sv_1', 'sv_2', 'sv_3'].map((k, i) => `<li>${[ICON.events, ICON.tickets, ICON.stats][i]}<span>${esc(t(k))}</span></li>`).join('')}</ul></section><section class="card signin"><h2>${esc(t('signin_title'))}</h2><p class="sub">${esc(t('signin_sub'))}</p>
       <label for="who">${esc(t('sign_in_as'))}</label><select id="who"><option value="">${esc(t('choose_account'))}</option>${options}</select>
@@ -149,7 +150,9 @@
     if (m.status === 'waitlisted') return `<p class="note warn">${esc(t('waitlisted', { n: m.position }))}</p><div class="row"><button class="btn danger" data-cancel="${e.id}">${esc(t('leave_waitlist'))}</button></div>`;
     return `<p class="note ok">✓ ${esc(t('status_checked'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
   }
-  const eventCard = (e) => `<article class="card ev"><div class="spread"><span class="pill">${esc(t('type_' + e.type))}</span>${new Date(e.startsAt) <= new Date() ? `<span class="pill live">● ${esc(t('live'))}</span>` : ''}<span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}</span></div>
+  // Picture of an event: the organizer's own photo or a cover by type (original artwork in public/covers)
+  const coverOf = (e) => e.image || (window.__COVERS ? window.__COVERS[e.type] : `/covers/${e.type}.svg`);
+  const eventCard = (e) => `<article class="card ev"><img class="cover" src="${esc(coverOf(e))}" alt="" loading="lazy"><div class="spread"><span class="pill">${esc(t('type_' + e.type))}</span>${new Date(e.startsAt) <= new Date() ? `<span class="pill live">● ${esc(t('live'))}</span>` : ''}<span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}</span></div>
     <h3>${esc(L(e, 'title'))}</h3><div class="meta">${esc(clubName(e))} · ${esc(L(e, 'location'))}</div>${seatsBlock(e)}${actionBlock(e)}</article>`;
 
   async function register(id, btn) { return act(btn, async () => { try { const e = await api('POST', `/api/events/${id}/register`); toast(e.my.status === 'confirmed' ? t('registered') : e.my.status === 'planned' ? t('you_plan') : t('waitlisted', { n: e.my.position })); render(); } catch (err) { fail(err); } }); }
@@ -247,7 +250,7 @@
     const reminders = m && ['confirmed', 'planned'].includes(m.status) ? `<label>${esc(t('reminders'))}</label><div class="seg" role="group">${['off', 'push', 'telegram'].map((c) => `<button data-ch="${c}" aria-pressed="${rem.channel === c}">${esc(t(c === 'off' ? 'rem_off' : c === 'push' ? 'rem_push' : 'rem_tg'))}</button>`).join('')}</div>
       <div><label class="chk"><input type="checkbox" id="rd" ${rem.day ? 'checked' : ''}> ${esc(t('rem_day'))}</label><label class="chk"><input type="checkbox" id="rh" ${rem.hour ? 'checked' : ''}> ${esc(t('rem_hour'))}</label></div><p class="meta">${esc(t('rem_note'))}</p>` : '';
     const rating = m && m.status === 'checked_in' ? (m.rating ? `<p class="note ok">${esc(t('rated', { n: m.rating }))}</p>` : `<label>${esc(t('rate'))}</label><div class="stars">${[1, 2, 3, 4, 5].map((n) => `<button data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`) : '';
-    modal(`<span class="pill">${esc(t('type_' + e.type))}</span><h2 style="margin-top:8px">${esc(L(e, 'title'))}</h2><p class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}–${esc(time(e.endsAt))} · ${esc(clubName(e))}</p>${placeLine(e)}<p>${esc(L(e, 'description'))}</p>${seatsBlock(e)}${actionBlock(e)}${reminders}${m && m.status !== 'waitlisted' ? calendarLinks(e) : ''}<div class="row"><button class="btn ghost small" data-share>↗ ${esc(t('share'))}</button>${canReport() ? `<button class="btn ghost small" data-report>🚩 ${esc(t('report'))}</button>` : ''}</div>${rating}`, (root, close) => {
+    modal(`<img class="cover big" src="${esc(coverOf(e))}" alt=""><span class="pill">${esc(t('type_' + e.type))}</span><h2 style="margin-top:8px">${esc(L(e, 'title'))}</h2><p class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}–${esc(time(e.endsAt))} · ${esc(clubName(e))}</p>${placeLine(e)}<p>${esc(L(e, 'description'))}</p>${seatsBlock(e)}${actionBlock(e)}${reminders}${m && m.status !== 'waitlisted' ? calendarLinks(e) : ''}<div class="row"><button class="btn ghost small" data-share>↗ ${esc(t('share'))}</button>${canReport() ? `<button class="btn ghost small" data-report>🚩 ${esc(t('report'))}</button>` : ''}</div>${rating}`, (root, close) => {
       const rp = root.querySelector('[data-report]'); if (rp) rp.addEventListener('click', () => { close(); reportBox('event', e.id, L(e, 'title')); });
       bindEventButtons(root, [e]); root.querySelectorAll('[data-reg],[data-cancel]').forEach((b) => b.addEventListener('click', close));
       const sh = root.querySelector('[data-share]'); if (sh) sh.addEventListener('click', () => shareEvent(e));
@@ -311,7 +314,7 @@
     const mine = clubs.filter((c) => c.myStatus === 'accepted' || c.myStatus === 'pending');
     const hist = regs.items, rate = regs.attended + regs.missed ? Math.round((regs.attended / (regs.attended + regs.missed)) * 100) : null;
     app.innerHTML = `<h1>${esc(me.name)}</h1><p class="sub">${esc(me.email)}${me.studentId ? ' · ID ' + esc(me.studentId) : ''}${me.group ? ' · ' + esc(me.group) : ''}${me.club ? ' · ' + esc(me.club.name) : ''}</p>
-      <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div><p class="note info" style="margin:8px 0">${esc(t('coins_info'))}</p><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>+${h.amount}</b></li>`).join('')}</ul></section>
+      <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div>${S.me.role === 'student' ? `<a class="btn small" href="#/shop" style="display:inline-block;text-decoration:none;margin:6px 0">🛍 ${esc(t('shop_open'))}</a>` : ''}<p class="note info" style="margin:8px 0">${esc(t('coins_info'))}</p><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>${h.amount > 0 ? '+' : ''}${h.amount}</b></li>`).join('')}</ul></section>
       <section class="card"><h2>${esc(t('notifications'))}</h2><p class="meta">${esc(t('notes_info'))}</p>${notes.length ? `<ul class="list">${notes.map((n) => `<li><span class="pill">${esc(t('ch_' + n.channel))}</span> ${esc(n.text)}<br><span class="meta">${esc(dateLong(n.createdAt))}, ${esc(time(n.createdAt))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('no_notifications'))}</p>`}</section>
       <section class="card"><h2>✈️ Telegram</h2><div id="tgbody"><p class="meta">${esc(t('loading'))}</p></div></section>
       ${reports.length ? `<section class="card"><h2>🚩 ${esc(t('my_complaints'))}</h2><ul class="list">${reports.map((c) => `<li><div class="spread"><b>${esc(c.targetTitle || '—')}</b>${cstPill(c.status)}</div><span class="meta">${esc(t('target_' + c.targetType))} · ${esc(t('reason_' + c.reason))} · ${esc(dateLong(c.createdAt))}</span><br><span style="font-size:14px">${esc(c.text)}</span>${c.comment ? `<p class="note info" style="margin:6px 0 0">💬 ${esc(c.comment)}</p>` : ''}</li>`).join('')}</ul></section>` : ''}
@@ -435,6 +438,7 @@
       ${langFields('f', {})}<label for="fy">${esc(t('f_type'))}</label><select id="fy">${['tech', 'sports', 'creative', 'intellectual', 'social'].map((c) => `<option value="${c}">${esc(t('type_' + c))}</option>`).join('')}</select>
       <label for="fs">${esc(t('f_start'))}</label><input id="fs" type="datetime-local" value="${local}" min="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}" required>
       <div class="spread"><div style="flex:1"><label for="fd">${esc(t('f_duration'))}</label><input id="fd" type="number" min="15" max="720" value="120"></div><div style="flex:1"><label for="fc">${esc(t('f_capacity'))}</label><input id="fc" type="number" min="1" max="500" value="40"></div></div>
+      ${imageField('fimg', null)}
       <label class="chk" style="margin-top:12px"><input type="checkbox" id="fopen"> ${esc(t('f_open'))}</label><p class="meta" style="margin:2px 0 0">${esc(t('f_open_hint'))}</p>
       <label>${esc(t('f_place'))}</label><div class="seg" role="group"><button type="button" data-pk="room" aria-pressed="true">${esc(t('place_campus'))}</button><button type="button" data-pk="venue" aria-pressed="false">${esc(t('place_city'))}</button></div>
       <div id="pk-room"><select id="fr" aria-label="${esc(t('f_place'))}" style="margin-top:8px"></select><div class="row" style="margin-top:6px"><button class="btn ghost small" type="button" id="frshow">🧭 ${esc(t('show_on_plan'))}</button><span class="meta" id="frinfo"></span></div></div>
@@ -465,7 +469,7 @@
       $('#fr').value = r.code; if ($('#fr').value !== r.code) toast(t('err_room_too_small')); else { toast(t('room_chosen', { room: roomName(r) })); const ti = app.querySelector('[data-lpane]:not([hidden]) input'); if (ti) ti.focus(); }
     } });
     ['#fs', '#fd'].forEach((id) => $(id).addEventListener('change', () => panel.set($('#fs').value, $('#fd').value)));
-    const LF = bindLangFields(app, 'f');
+    const LF = bindLangFields(app, 'f'), IMGF = bindImageField(app, 'fimg');
     const FIELD = { place_required: 'fr', room_busy: 'fr', room_too_small: 'fc', invalid_start: 'fs', start_in_past: 'fs', invalid_duration: 'fd', invalid_capacity: 'fc', invalid_type: 'fy' };
     const clearErr = () => { app.querySelectorAll('.field-err').forEach((x) => x.remove()); app.querySelectorAll('[aria-invalid]').forEach((x) => x.removeAttribute('aria-invalid')); $('#ferr').innerHTML = ''; };
     const showErr = (code, message) => {
@@ -491,7 +495,7 @@
     $('#ef').addEventListener('submit', async (ev) => {
       ev.preventDefault(); clearErr();
       const bad = check(); if (bad) return showErr(bad, bad === 'lang' ? LMSG : t('err_' + bad));
-      const body = { i18n: LF.read(), type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value), open: $('#fopen').checked };
+      const body = { i18n: LF.read(), type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value), open: $('#fopen').checked, image: IMGF.get() || undefined };
       await act(ev.submitter || $('#ef button'), async () => { try { await api('POST', '/api/events', body); toast(t('submitted')); render(); } catch (err) { showErr(err.code, err.message); } });
     });
   };
@@ -518,8 +522,14 @@
     $('#cgo').addEventListener('click', (ev) => doCheck({ ticketCode: $('#cc').value }, ev.currentTarget));
     $('#cc').addEventListener('keydown', (e) => { if (e.key === 'Enter') doCheck({ ticketCode: $('#cc').value }); });
     $('#pq').addEventListener('input', drawPeople);
-    // QR scanning: the browser's BarcodeDetector if available, otherwise the jsQR library (Apache-2.0).
     const msg = (k, cls = 'warn') => { $('#cres').innerHTML = `<p class="note ${cls}" role="alert">${esc(t(k))}</p>`; };
+    bindScanner((code) => { $('#cc').value = code; doCheck({ ticketCode: code }); }, msg);
+    loadPeople();
+  };
+
+  // QR scanning shared by Check-in and the merch check-out: needs #scan, #photo and #cam on the screen
+  function bindScanner(onCode, msg) {
+    // QR scanning: the browser's BarcodeDetector if available, otherwise the jsQR library (Apache-2.0).
     const loadJsQR = () => window.jsQR ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; sc.onload = ok; sc.onerror = () => no(Object.assign(new Error('lib'), { name: 'LibError' })); document.head.appendChild(sc); });
     async function decoder() {
       if ('BarcodeDetector' in window) { try { const det = new BarcodeDetector({ formats: ['qr_code'] }); return async (src) => { const c = await det.detect(src).catch(() => []); return c.length ? c[0].rawValue : null; }; } catch { /* fall back to jsQR */ } }
@@ -542,7 +552,7 @@
           if (!document.body.contains(v)) return stop();
           if (Date.now() - started > 60000) { stop(); return msg('scan_timeout'); }
           const code = await detect(v);
-          if (code) { stop(); $('#cc').value = code; doCheck({ ticketCode: code }); } else setTimeout(tick, 200);
+          if (code) { stop(); onCode(code); } else setTimeout(tick, 200);
         };
         tick();
       } catch (e) { if (stream) stream.getTracks().forEach((x) => x.stop()); explain(e); }
@@ -551,11 +561,10 @@
     $('#photo').addEventListener('change', async (ev) => {
       const f = ev.target.files && ev.target.files[0]; if (!f) return;
       try { const detect = await decoder(); const bmp = await createImageBitmap(f); const code = await detect(bmp); ev.target.value = '';
-        if (code) { $('#cc').value = code; doCheck({ ticketCode: code }); } else msg('scan_notfound'); }
+        if (code) onCode(code); else msg('scan_notfound'); }
       catch (e) { explain(e); }
     });
-    loadPeople();
-  };
+  }
 
   // ---------- W09 Moderator: moderation, statistics, roles (FR-12, FR-13, FR-18, FR-20) ----------
   VIEWS.moderation = async () => {
@@ -575,10 +584,52 @@
   };
   VIEWS.stats = async () => {
     const s = await api('GET', '/api/admin/stats');
-    app.innerHTML = `<h1>${esc(t('stats_title'))}</h1><div class="kpis">${[['t_clubs', s.totals.clubs], ['t_events', s.totals.approvedEvents], ['t_regs', s.totals.registrations], ['t_pending', s.totals.pending], ['t_complaints', s.totals.complaints]].filter((x) => x[1] !== undefined).map(([k, v]) => `<div class="card kpi"><b>${v}</b><span>${esc(t(k))}</span></div>`).join('')}</div>
+    app.innerHTML = `<h1>${esc(t('stats_title'))}</h1><div class="kpis">${[['t_clubs', s.totals.clubs], ['t_events', s.totals.approvedEvents], ['t_regs', s.totals.registrations], ['t_pending', s.totals.pending], ['t_complaints', s.totals.complaints], ['t_shop', s.totals.shopStudents]].filter((x) => x[1] !== undefined).map(([k, v]) => `<div class="card kpi"><b>${v}</b><span>${esc(t(k))}</span></div>`).join('')}</div>
       <section class="card tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_seats'))}</th><th>${esc(t('th_fill'))}</th><th>${esc(t('th_wait'))}</th><th>${esc(t('th_checked'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>
       ${s.events.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_seats'))}">${e.registered}/${e.capacity}</td><td data-label="${esc(t('th_fill'))}"><div class="bar" style="width:90px;margin:0;display:inline-block;vertical-align:middle"><i style="width:${Math.min(100, e.fillRate)}%"></i></div> ${e.fillRate}%</td><td data-label="${esc(t('th_wait'))}">${e.waitlist}</td><td data-label="${esc(t('th_checked'))}">${e.checkedIn}</td><td data-label="${esc(t('th_rating'))}">${e.avgRating ?? '—'}</td></tr>`).join('')}</tbody></table></section>`;
   };
+  // ---------- FR-28 … FR-33 Merch shop: student buys a 5% / 10% voucher with Campus Coins ----------
+  const VST = { active: 'ok', used: 'info', expired: 'warn', cancelled: 'warn' };
+  const money = (n) => Number(n).toLocaleString('ru-RU').replace(/\u00a0/g, ' ') + ' ₸';
+  VIEWS.shop = async () => {
+    const sh = await api('GET', '/api/shop'), active = sh.vouchers.find((v) => v.status === 'active');
+    app.innerHTML = `<h1>🛍 ${esc(t('shop_title'))}</h1><p class="sub">${esc(t('shop_sub'))}</p>
+      <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${sh.balance}</b><span>${esc(t('coins_expire', { date: dateLong(sh.coinsExpireAt) + ' ' + new Date(sh.coinsExpireAt).getFullYear() }))}</span></div>
+        <ul class="list" style="margin-top:8px">${['shop_r1', 'shop_r2', 'shop_r3', 'shop_r4'].map((k) => `<li class="meta">${esc(t(k, { max: money(sh.maxDiscount), days: sh.validDays }))}</li>`).join('')}</ul></section>
+      ${sh.offers.map((o) => `<section class="card offer"><div class="big">${o.pct}%</div><h2>${esc(t('shop_offer', { pct: o.pct }))}</h2><p class="meta">${esc(t('shop_cost', { n: o.coins, max: money(sh.maxDiscount) }))}</p>
+        <button class="btn" data-buy="${o.pct}" ${active || sh.balance < o.coins ? 'disabled' : ''}>${esc(t('shop_buy', { n: o.coins }))}</button>${active ? `<p class="meta">${esc(t('shop_one'))}</p>` : sh.balance < o.coins ? `<p class="meta">${esc(t('shop_need', { n: o.coins - sh.balance }))}</p>` : ''}</section>`).join('')}</div>
+      ${active ? `<section class="card ticket" style="margin-top:14px;max-width:420px"><h2>${esc(t('shop_active'))}</h2><div class="qr" data-qr="${esc(active.code)}"></div><p class="code">${esc(active.code)}</p><p><b>${active.pct}%</b> · ${esc(t('shop_until', { date: dateLong(active.expiresAt) + ', ' + time(active.expiresAt) }))}</p><p class="meta">${esc(t('shop_show'))}</p><button class="btn danger small" data-vcancel="${active.id}">${esc(t('shop_cancel', { n: active.coins }))}</button></section>` : ''}
+      <h2 style="margin-top:22px">${esc(t('shop_history'))}</h2><section class="card">${sh.vouchers.length ? `<ul class="list">${sh.vouchers.map((v) => `<li class="spread"><span><b>${esc(v.code)}</b> · ${v.pct}%<br><span class="meta">${esc(dateLong(v.createdAt))}${v.status === 'used' ? ' · ' + esc(t('shop_saved', { d: money(v.discount), a: money(v.amount) })) : ''}</span></span><span class="note ${VST[v.status]}" style="margin:0;padding:3px 8px">${esc(t('vst_' + v.status))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('shop_none'))}</p>`}</section>`;
+    app.querySelectorAll('[data-qr]').forEach((el) => { try { new QRCode(el, { text: el.dataset.qr, width: 176, height: 176, colorDark: '#0f172a', colorLight: '#ffffff' }); } catch { el.textContent = el.dataset.qr; } });
+    app.querySelectorAll('[data-buy]').forEach((b) => b.addEventListener('click', async () => { const o = sh.offers.find((x) => String(x.pct) === b.dataset.buy); if (!(await confirmBox(t('shop_confirm', { n: o.coins, pct: o.pct }), t('shop_buy', { n: o.coins })))) return; act(b, async () => { try { await api('POST', '/api/shop/vouchers', { pct: o.pct }); toast(t('shop_bought')); render(); } catch (err) { fail(err); } }); }));
+    app.querySelectorAll('[data-vcancel]').forEach((b) => b.addEventListener('click', async () => { if (!(await confirmBox(t('shop_cancel_q'), t('yes_cancel')))) return; act(b, async () => { try { await api('DELETE', `/api/shop/vouchers/${b.dataset.vcancel}`); render(); } catch (err) { fail(err); } }); }));
+  };
+  // FR-31 Cashier of the merch shop: scan the voucher, type the purchase amount, see the discount, confirm
+  VIEWS.checkout = async () => {
+    const red = await api('GET', '/api/shop/redemptions');
+    app.innerHTML = `<h1>🛍 ${esc(t('co_title'))}</h1><p class="sub">${esc(t('co_sub'))}</p><div class="grid"><section class="card">
+      <label for="cc">${esc(t('co_code'))}</label><input id="cc" placeholder="MERCH-…" autocomplete="off"><div class="row"><button class="btn ghost" id="scan">${esc(t('scan'))}</button><label class="btn ghost" style="margin:0;color:var(--accent)">${esc(t('scan_photo'))}<input id="photo" type="file" accept="image/*" capture="environment" hidden></label></div>
+      <video id="cam" playsinline muted style="width:100%;border-radius:10px;margin-top:10px;display:none"></video>
+      <label for="camt">${esc(t('co_amount'))}</label><input id="camt" type="number" min="1" max="1000000" inputmode="numeric" placeholder="15000">
+      <div class="row"><button class="btn" id="cchk">${esc(t('co_check'))}</button></div><div id="cres"></div></section>
+      <section class="card"><h2>${esc(t('co_done'))}</h2><div class="kpis" style="margin:0 0 8px"><div class="kpi"><b>${red.totals.used}</b><span>${esc(t('co_used'))}</span></div><div class="kpi"><b>${red.totals.students}</b><span>${esc(t('co_students'))}</span></div><div class="kpi"><b>${money(red.totals.discount)}</b><span>${esc(t('co_discount'))}</span></div></div>
+        <ul class="list">${red.items.map((v) => `<li class="spread"><span><b>${esc(v.student)}</b> · ${v.pct}%<br><span class="meta">${esc(v.code)} · ${esc(dateLong(v.usedAt))}, ${esc(time(v.usedAt))}</span></span><span>−${money(v.discount)}</span></li>`).join('') || `<li class="meta">—</li>`}</ul></section></div>`;
+    const msg = (k, cls = 'warn') => { $('#cres').innerHTML = `<p class="note ${cls}" role="alert">${esc(t(k))}</p>`; };
+    const check = (btn) => act(btn, async () => {
+      const code = $('#cc').value.trim(), amount = Number($('#camt').value);
+      if (!code) { msg('co_need_code'); $('#cc').focus(); return; }
+      if (!Number.isInteger(amount) || amount < 1) { msg('err_invalid_amount'); $('#camt').focus(); return; }
+      try {
+        const r = await api('POST', '/api/shop/redeem', { code, amount });
+        $('#cres').innerHTML = `<div class="note info"><b>${esc(r.student)}</b> · ${esc(r.code)} · ${r.pct}%<br>${esc(t('co_sum', { a: money(r.amount), d: money(r.discount), p: money(r.toPay) }))}</div><div class="row"><button class="btn" id="cconf">✓ ${esc(t('co_confirm', { p: money(r.toPay) }))}</button></div>`;
+        $('#cconf').addEventListener('click', (ev) => act(ev.currentTarget, async () => { try { await api('POST', '/api/shop/redeem', { code, amount, confirm: true }); toast(t('co_ok')); render(); } catch (err) { $('#cres').innerHTML = `<p class="note bad" role="alert">${esc(err.message)}</p>`; } }));
+      } catch (err) { $('#cres').innerHTML = `<p class="note bad" role="alert">${esc(err.message)}</p>`; }
+    });
+    $('#cchk').addEventListener('click', (ev) => check(ev.currentTarget));
+    $('#camt').addEventListener('keydown', (e) => { if (e.key === 'Enter') check($('#cchk')); });
+    bindScanner((code) => { $('#cc').value = code; $('#camt').focus(); }, msg);
+  };
+
   // ---------- Administration (administrator only): complaints, events, clubs, users — FR-40 … FR-45 ----------
   const cstPill = (st) => `<span class="note ${st === 'new' ? 'bad' : st === 'in_review' ? 'warn' : st === 'resolved' ? 'ok' : 'info'}" style="margin:0;padding:3px 8px;display:inline-block;font-size:12px;font-weight:700">${esc(t('cst_' + st))}</span>`;
   const estPill = (st) => `<span class="note ${st === 'approved' ? 'ok' : st === 'pending' ? 'warn' : st === 'rejected' ? 'bad' : 'info'}" style="margin:0;padding:3px 8px;display:inline-block;font-size:12px;font-weight:700">${esc(t('est_' + st))}</span>`;
@@ -629,7 +680,7 @@
       $('#reset').addEventListener('click', async (ev) => { const btn = ev.currentTarget; if (!(await confirmBox(t('reset_confirm'), t('reset_btn')))) return; await act(btn, async () => { try { await api('POST', '/api/admin/reset', {}); S.me = null; toast(t('reset_done')); go('signin'); } catch (err) { fail(err); } }); });
       const load = async () => {
         const users = await api('GET', '/api/admin/users' + (S.userQ ? '?q=' + encodeURIComponent(S.userQ) : ''));
-        $('#urows').innerHTML = users.map((u) => `<tr data-u="${u.id}"><td data-label="${esc(t('th_name'))}"><span class="cellbox"><input class="n" value="${esc(u.name)}" aria-label="${esc(t('th_name'))}" maxlength="80"><span class="meta">${esc(u.email)}${u.telegram ? ' · ✈️ ' + esc(t('tg_linked')) : ''}</span></span></td><td data-label="${esc(t('th_role'))}"><select class="r" aria-label="${esc(t('th_role'))}" ${u.id === S.me.id ? 'disabled' : ''}>${['student', 'organizer', 'moderator', 'admin'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${esc(t('role_' + r))}</option>`).join('')}</select></td><td data-label="${esc(t('th_club'))}"><select class="c" aria-label="${esc(t('th_club'))}">${opts}</select></td><td><button class="btn small">${esc(t('save'))}</button></td></tr>`).join('');
+        $('#urows').innerHTML = users.map((u) => `<tr data-u="${u.id}"><td data-label="${esc(t('th_name'))}"><span class="cellbox"><input class="n" value="${esc(u.name)}" aria-label="${esc(t('th_name'))}" maxlength="80"><span class="meta">${esc(u.email)}${u.telegram ? ' · ✈️ ' + esc(t('tg_linked')) : ''}</span></span></td><td data-label="${esc(t('th_role'))}"><select class="r" aria-label="${esc(t('th_role'))}" ${u.id === S.me.id ? 'disabled' : ''}>${['student', 'organizer', 'moderator', 'admin', 'shop'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${esc(t('role_' + r))}</option>`).join('')}</select></td><td data-label="${esc(t('th_club'))}"><select class="c" aria-label="${esc(t('th_club'))}">${opts}</select></td><td><button class="btn small">${esc(t('save'))}</button></td></tr>`).join('');
         $('#urows').querySelectorAll('tr[data-u]').forEach((row) => {
           const u = users.find((x) => String(x.id) === row.dataset.u); if (u.clubId) row.querySelector('.c').value = u.clubId;
           const sync = () => { row.querySelector('.c').disabled = row.querySelector('.r').value !== 'organizer'; }; sync(); row.querySelector('.r').addEventListener('change', sync);
@@ -640,6 +691,29 @@
       await load();
     }
   };
+  // Picture upload: the photo is cut to 16:9 and compressed in the browser (JPEG, about 60 KB), so no file server is needed
+  function imageField(id, current) {
+    return `<label for="${id}">${esc(t('f_image'))}</label><div class="imgbox"><img id="${id}-prev" class="cover" src="${esc(current || '')}" alt="" ${current ? '' : 'hidden'}>
+      <div class="row" style="margin-top:6px"><label class="btn ghost small" style="margin:0">📷 ${esc(t('img_choose'))}<input id="${id}" type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" class="btn ghost small" id="${id}-del" ${current ? '' : 'hidden'}>✕ ${esc(t('img_remove'))}</button></div><p class="meta" style="margin:4px 0 0">${esc(t('img_hint'))}</p></div>`;
+  }
+  function bindImageField(root, id) {
+    let value; // undefined = not changed, null = removed, string = new picture
+    const prev = $('#' + id + '-prev', root), del = $('#' + id + '-del', root);
+    $('#' + id, root).addEventListener('change', async (ev) => {
+      const f = ev.target.files && ev.target.files[0]; if (!f) return;
+      try {
+        const bmp = await createImageBitmap(f), W = 960, H = 540, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+        const k = Math.max(W / bmp.width, H / bmp.height), w = bmp.width * k, h = bmp.height * k;
+        cv.getContext('2d').drawImage(bmp, (W - w) / 2, (H - h) / 2, w, h);
+        let q = 0.78, url = cv.toDataURL('image/jpeg', q); while (url.length > 140000 && q > 0.35) { q -= 0.1; url = cv.toDataURL('image/jpeg', q); }
+        value = url; prev.src = url; prev.hidden = false; del.hidden = false;
+      } catch { toast(t('err_invalid_image')); }
+      ev.target.value = '';
+    });
+    del.addEventListener('click', () => { value = null; prev.hidden = true; del.hidden = true; });
+    return { get: () => value };
+  }
+
   // Language tabs for texts in EN / KK / RU (event form and event editor) — FR-39
   function langFields(prefix, values, opts = {}) {
     const first = opts.first || S.lang;
@@ -678,11 +752,12 @@
       <div class="spread"><div style="flex:1"><label for="ee-type">${esc(t('f_type'))}</label><select id="ee-type">${TYPESL.map((c) => `<option value="${c}" ${e.type === c ? 'selected' : ''}>${esc(t('type_' + c))}</option>`).join('')}</select></div><div style="flex:1"><label for="ee-st">${esc(t('f_status'))}</label><select id="ee-st">${['pending', 'approved', 'rejected', 'cancelled'].map((st) => `<option value="${st}" ${e.status === st ? 'selected' : ''}>${esc(t('est_' + st))}</option>`).join('')}</select></div></div>
       <label for="ee-start">${esc(t('f_start'))}</label><input id="ee-start" type="datetime-local" value="${toLocalInput(e.startsAt)}">
       <div class="spread"><div style="flex:1"><label for="ee-dur">${esc(t('f_duration'))}</label><input id="ee-dur" type="number" min="15" max="720" value="${mins}"></div><div style="flex:1"><label for="ee-cap">${esc(t('f_capacity'))}</label><input id="ee-cap" type="number" min="1" max="500" value="${e.capacity}"></div><div style="flex:1"><label for="ee-coins">${esc(t('f_coins'))}</label><input id="ee-coins" type="number" min="0" max="100" value="${e.coins}"></div></div>
+      ${imageField('ee-img', e.image)}
       <div id="ee-err"></div><div class="row"><button class="btn" id="ee-save">${esc(t('save'))}</button><button class="btn danger" id="ee-del">🗑 ${esc(t('ev_delete'))}</button></div>`, (root, close) => {
-      const lf = bindLangFields(root, 'ee');
+      const lf = bindLangFields(root, 'ee'), im = bindImageField(root, 'ee-img');
       $('#ee-save', root).addEventListener('click', (ev) => act(ev.currentTarget, async () => {
         const bad = lf.check(); if (bad) { $('#ee-err', root).innerHTML = `<p class="note bad" role="alert">${esc(bad.msg)}</p>`; $('#' + bad.field, root).focus(); return; }
-        try { await api('PUT', `/api/admin/events/${e.id}`, { i18n: lf.read(), type: $('#ee-type', root).value, status: $('#ee-st', root).value, startsAt: new Date($('#ee-start', root).value).toISOString(), durationMinutes: Number($('#ee-dur', root).value), capacity: Number($('#ee-cap', root).value), coins: Number($('#ee-coins', root).value) }); close(); toast(t('saved')); render(); }
+        try { await api('PUT', `/api/admin/events/${e.id}`, { i18n: lf.read(), type: $('#ee-type', root).value, status: $('#ee-st', root).value, startsAt: new Date($('#ee-start', root).value).toISOString(), durationMinutes: Number($('#ee-dur', root).value), capacity: Number($('#ee-cap', root).value), coins: Number($('#ee-coins', root).value), image: im.get() }); close(); toast(t('saved')); render(); }
         catch (err) { $('#ee-err', root).innerHTML = `<p class="note bad" role="alert">${esc(err.message)}</p>`; }
       }));
       $('#ee-del', root).addEventListener('click', async () => { close(); if (!(await confirmBox(t('ev_delete_confirm'), t('ev_delete')))) return; try { await api('DELETE', `/api/admin/events/${e.id}`); toast(t('deleted')); render(); } catch (err) { fail(err); } });

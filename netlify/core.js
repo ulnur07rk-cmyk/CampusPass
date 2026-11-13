@@ -8,7 +8,12 @@ function createCore(SEED, state) {
   const placeOf = (e) => { const r = e.room_code && ROOMS.find((x) => x.code === e.room_code); if (r) return { kind: 'room', code: r.code, name: r.name, floor: r.floor, x: r.x, y: r.y, capacity: r.capacity, i18n: r.i18n, lat: CAMPUS.lat, lng: CAMPUS.lng };
     const v = e.venue && VENUES.find((x) => x.id === e.venue); return v ? { kind: 'venue', id: v.id, name: v.name, lat: v.lat, lng: v.lng, i18n: v.i18n } : null; };
   const TYPES = ['sports', 'creative', 'tech', 'intellectual', 'social'], LANGS = ['en', 'kk', 'ru'];
-  const ROLES = ['student', 'organizer', 'moderator', 'admin'], STAFF = ['moderator', 'admin'];
+  const ROLES = ['student', 'organizer', 'moderator', 'admin', 'shop'], STAFF = ['moderator', 'admin'];
+  // FR-28 … FR-33 merch shop (same rules as server/app.js: BR-07 … BR-10)
+  const SHOP = { offers: [{ pct: 5, coins: 100 }, { pct: 10, coins: 200 }], maxDiscount: 2000, validDays: 7 };
+  const yearStart = (d) => { const x = new Date(d); const y = x.getUTCMonth() >= 7 ? x.getUTCFullYear() : x.getUTCFullYear() - 1; return new Date(Date.UTC(y, 7, 1) - 5 * 3600000); };
+  const yearEnd = (d) => new Date(Date.UTC(yearStart(d).getUTCFullYear() + 1, 5, 30, 23, 59) - 5 * 3600000);
+  const IMG = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
   const REASONS = ['wrong_info', 'spam', 'offensive', 'safety', 'other'], C_STATUS = ['new', 'in_review', 'resolved', 'rejected'];
   const siteUrl = () => (typeof process !== 'undefined' && process.env && (process.env.SITE_URL || process.env.URL)) || '';
   const iso = (d) => new Date(d).toISOString();
@@ -17,7 +22,7 @@ function createCore(SEED, state) {
   const fail = (s, c, m) => { throw new E(s, c, m); };
 
   function seed() {
-    const now = new Date(), t = iso(now), D = { users: [], clubs: [], events: [], regs: [], members: [], feedback: [], coins: [], notes: [], complaints: [], tgChats: {}, sessions: {}, seq: 1, created: t };
+    const now = new Date(), t = iso(now), D = { users: [], clubs: [], events: [], regs: [], members: [], feedback: [], coins: [], notes: [], complaints: [], vouchers: [], tgChats: {}, sessions: {}, seq: 1, created: t };
     const id = () => D.seq++;
     SEED.clubs.forEach((c) => D.clubs.push({ id: id(), ...c }));
     const club = (n) => D.clubs.find((c) => c.name === n).id;
@@ -79,11 +84,11 @@ function createCore(SEED, state) {
   const taken = (eid) => D.regs.filter((r) => r.event_id === eid && (r.status === 'confirmed' || r.status === 'checked_in')).length;
   const waitQ = (eid) => D.regs.filter((r) => r.event_id === eid && r.status === 'waitlisted').sort((a, b) => (a.updated_at < b.updated_at ? -1 : a.updated_at > b.updated_at ? 1 : a.id - b.id));
   const canManage = (u, e) => STAFF.includes(u.role) || (u.role === 'organizer' && u.club_id === e.club_id);
-  const balance = (uid) => D.coins.filter((c) => c.user_id === uid).reduce((a, c) => a + c.amount, 0);
+  const balance = (uid) => { const ys = iso(yearStart(now())); return D.coins.filter((c) => c.user_id === uid && c.created_at >= ys).reduce((a, c) => a + c.amount, 0); }; // BR-10
   const str = (v, n, a, b) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < a || s.length > b) fail(400, 'invalid_' + n, `${n[0].toUpperCase() + n.slice(1)} must be ${a}–${b} characters.`); return s; };
   function view(e, u) {
     const c = D.clubs.find((x) => x.id === e.club_id), tk = taken(e.id), q = waitQ(e.id);
-    const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status, i18n: e.i18n || null, clubI18n: c.i18n || null , place: placeOf(e), open: !!e.is_open, planned: e.is_open ? D.regs.filter((r) => r.event_id === e.id && r.status === 'planned').length : 0 };
+    const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status, i18n: e.i18n || null, clubI18n: c.i18n || null , place: placeOf(e), open: !!e.is_open, image: e.image || null, planned: e.is_open ? D.regs.filter((r) => r.event_id === e.id && r.status === 'planned').length : 0 };
     if (u) { const r = D.regs.find((x) => x.event_id === e.id && x.user_id === u.id); if (r && r.status !== 'cancelled') {
       o.my = { id: r.id, status: r.status, ticketCode: ['waitlisted', 'planned'].includes(r.status) ? null : r.ticket, reminder: { channel: r.channel, day: r.day, hour: r.hour } };
       if (r.status === 'waitlisted') o.my.position = q.indexOf(r) + 1;
@@ -116,6 +121,7 @@ function createCore(SEED, state) {
     if (!languages.length) fail(400, 'invalid_title', 'Write the title and the description in at least one language.');
     const base = i18n[languages[0]]; return { title: base.title, description: base.description, location: (room || venue).name, i18n, languages };
   }
+  const checkImage = (v) => { if (typeof v !== 'string' || !IMG.test(v) || v.length > 150000) fail(400, 'invalid_image', 'The picture must be a JPEG, PNG or WebP up to about 100 KB.'); return v; };
   function registerStudent(u, eventId) {
     const e = ev(eventId);
     if (e.status !== 'approved') fail(409, 'not_open', 'Registration is not open for this event.');
@@ -196,7 +202,7 @@ function createCore(SEED, state) {
       }).filter((x) => x.result !== 'ongoing');
     return { items, attended: items.filter((x) => x.result === 'attended').length, missed: items.filter((x) => x.result === 'missed').length };
   });
-  on('GET', '/api/me/coins', (b, u) => { need(u); return { balance: balance(u.id), history: D.coins.filter((c) => c.user_id === u.id).sort((a, c) => (a.created_at < c.created_at ? 1 : -1)).map((c) => ({ amount: c.amount, reason: c.reason, createdAt: c.created_at, event: c.event_id ? ev(c.event_id).title : null })) }; });
+  on('GET', '/api/me/coins', (b, u) => { need(u); const ys = iso(yearStart(now())); return { balance: balance(u.id), expiresAt: iso(yearEnd(now())), history: D.coins.filter((c) => c.user_id === u.id && c.created_at >= ys).sort((a, c) => (a.created_at < c.created_at ? 1 : -1)).map((c) => ({ amount: c.amount, reason: c.reason, createdAt: c.created_at, event: c.event_id ? ev(c.event_id).title : null })) }; });
   on('GET', '/api/me/notifications', (b, u) => { need(u); return D.notes.filter((n) => n.user_id === u.id).slice(0, 30); });
   on('POST', '/api/events/:id/feedback', (b, u, p) => {
     need(u, 'student'); const eid = Number(p.id), rating = Number(b.rating);
@@ -232,7 +238,7 @@ function createCore(SEED, state) {
     if (room && cap > room.capacity) fail(400, 'room_too_small', `This room has ${room.capacity} seats.`);
     if (room && !availability(room, ROOMS, s, new Date(s.getTime() + mins * 60000), D.events).free) fail(409, 'room_busy', 'The room is not free at this time.');
     const clubId = u.role === 'admin' ? Number(b.clubId) : u.club_id; if (!D.clubs.find((c) => c.id === clubId)) fail(404, 'club_not_found', 'Club not found.');
-    const e = { id: D.seq++, room_code: room ? room.code : null, venue: venue ? venue.id : null, title: texts.title, i18n: texts.i18n, description: texts.description, club_id: clubId, location: texts.location, type: b.type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins: b.open === true ? 0 : 20, is_open: b.open === true, status: 'pending', created_by: u.id, comment: null };
+    const e = { id: D.seq++, room_code: room ? room.code : null, venue: venue ? venue.id : null, title: texts.title, i18n: texts.i18n, description: texts.description, club_id: clubId, location: texts.location, type: b.type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins: b.open === true ? 0 : 20, is_open: b.open === true, image: b.image ? checkImage(b.image) : null, status: 'pending', created_by: u.id, comment: null };
     D.events.push(e); const newEv = view(e, null); D.users.filter((x) => STAFF.includes(x.role)).forEach((a) => alert(a.id, `New event waiting for review: ${texts.title}.`, (lang) => bot.newEventAlert(lang, newEv, siteUrl()))); return { id: e.id, status: 'pending', languages: texts.languages };
   });
   on('GET', '/api/organizer/events', (b, u) => { need(u, 'organizer', ...STAFF); return D.events.filter((e) => STAFF.includes(u.role) || e.club_id === u.club_id).sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => ({ ...view(e, null), comment: e.comment })); });
@@ -267,7 +273,7 @@ function createCore(SEED, state) {
   on('GET', '/api/admin/stats', (b, u) => {
     need(u, ...STAFF);
     const events = D.events.filter((e) => e.status === 'approved').sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => { const v = view(e, null), f = D.feedback.filter((x) => x.event_id === e.id); return { id: e.id, title: e.title, i18n: e.i18n || null, startsAt: e.starts_at, capacity: e.capacity, registered: v.taken, fillRate: Math.round((v.taken / e.capacity) * 100), waitlist: v.waitlist, checkedIn: D.regs.filter((r) => r.event_id === e.id && r.status === 'checked_in').length, avgRating: f.length ? Math.round((f.reduce((a, x) => a + x.rating, 0) / f.length) * 10) / 10 : null }; });
-    return { totals: { clubs: D.clubs.length, approvedEvents: events.length, registrations: events.reduce((a, e) => a + e.registered, 0), pending: D.events.filter((e) => e.status === 'pending').length + D.members.filter((m) => m.status === 'pending').length, complaints: D.complaints.filter((c) => c.status === 'new' || c.status === 'in_review').length }, events };
+    return { totals: { clubs: D.clubs.length, approvedEvents: events.length, registrations: events.reduce((a, e) => a + e.registered, 0), pending: D.events.filter((e) => e.status === 'pending').length + D.members.filter((m) => m.status === 'pending').length, complaints: D.complaints.filter((c) => c.status === 'new' || c.status === 'in_review').length, shopStudents: new Set(D.vouchers.filter((v) => v.status === 'used').map((v) => v.user_id)).size }, events };
   });
   on('GET', '/api/admin/users', (b, u, p, q) => {
     need(u, 'admin'); const k = String(q.get('q') || '').trim().toLowerCase(), rank = { admin: 0, moderator: 1, organizer: 2, student: 3 };
@@ -289,6 +295,7 @@ function createCore(SEED, state) {
     const status = b.status === undefined ? e.status : b.status; if (!['pending', 'approved', 'rejected', 'cancelled'].includes(status)) fail(400, 'invalid_status', 'Unknown status.');
     if (status === 'cancelled' && e.status !== 'cancelled') D.regs.filter((r) => r.event_id === e.id && ['confirmed', 'waitlisted', 'planned'].includes(r.status)).forEach((r) => { notify(r.user_id, 'app', `The event "${e.title}" was cancelled.`); r.status = 'cancelled'; r.updated_at = iso(now()); });
     if (texts) Object.assign(e, { title: texts.title, description: texts.description, i18n: texts.i18n });
+    if (b.image !== undefined) e.image = b.image === null ? null : checkImage(b.image);
     Object.assign(e, { type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins, status });
     return { ...view(e, null), comment: e.comment };
   });
@@ -299,6 +306,40 @@ function createCore(SEED, state) {
   });
   on('POST', '/api/admin/clubs', (b, u) => { need(u, 'admin'); const f = clubFields(b, {}); if (D.clubs.find((c) => c.name === f.name)) fail(409, 'club_exists', 'A club with this name already exists.'); const c = { id: D.seq++, icon: null, ...f }; D.clubs.push(c); return c; });
   on('PUT', '/api/admin/clubs/:id', (b, u, p) => { need(u, 'admin'); const c = D.clubs.find((x) => x.id === Number(p.id)); if (!c) fail(404, 'club_not_found', 'Club not found.'); const f = clubFields(b, c); if (f.name !== c.name && D.clubs.find((x) => x.name === f.name)) fail(409, 'club_exists', 'A club with this name already exists.'); Object.assign(c, f); return c; });
+  // FR-28 … FR-33 Merch shop vouchers
+  const vOut = (v) => ({ id: v.id, code: v.code, pct: v.percent, coins: v.coins, status: v.status, createdAt: v.created_at, expiresAt: v.expires_at, usedAt: v.used_at || null, amount: v.purchase_amount || null, discount: v.discount || null });
+  const vouchers = () => D.vouchers || (D.vouchers = []);
+  const expireVouchers = () => vouchers().forEach((v) => { if (v.status === 'active' && v.expires_at <= iso(now())) { v.status = 'expired'; D.coins.push({ user_id: v.user_id, amount: v.coins, reason: `Voucher ${v.code} expired, coins returned`, event_id: null, created_at: iso(now()) }); } });
+  on('GET', '/api/shop', (b, u) => { need(u, 'student'); expireVouchers(); return { offers: SHOP.offers, maxDiscount: SHOP.maxDiscount, validDays: SHOP.validDays, balance: balance(u.id), coinsExpireAt: iso(yearEnd(now())), vouchers: vouchers().filter((v) => v.user_id === u.id).sort((a, c) => c.id - a.id).slice(0, 20).map(vOut) }; });
+  on('POST', '/api/shop/vouchers', (b, u) => {
+    need(u, 'student'); expireVouchers();
+    if (!u.consent_at) fail(403, 'consent_required', 'Accept the data processing terms first (C08).');
+    const offer = SHOP.offers.find((o) => o.pct === Number(b.pct)); if (!offer) fail(400, 'invalid_offer', 'Choose 5% or 10%.');
+    if (vouchers().find((v) => v.user_id === u.id && v.status === 'active')) fail(409, 'voucher_active', 'You already have an active voucher. Use it or cancel it first.');
+    if (balance(u.id) < offer.coins) fail(409, 'not_enough_coins', `You need ${offer.coins} coins.`);
+    const code = 'MERCH-' + hex(4).toUpperCase(), t = iso(now());
+    const v = { id: D.seq++, user_id: u.id, code, percent: offer.pct, coins: offer.coins, status: 'active', created_at: t, expires_at: iso(now().getTime() + SHOP.validDays * 86400000) };
+    vouchers().push(v); D.coins.push({ user_id: u.id, amount: -offer.coins, reason: `Merch voucher ${offer.pct}% (${code})`, event_id: null, created_at: t }); return vOut(v);
+  });
+  on('DELETE', '/api/shop/vouchers/:id', (b, u, p) => {
+    need(u, 'student'); const v = vouchers().find((x) => x.id === Number(p.id) && x.user_id === u.id && x.status === 'active'); if (!v) fail(404, 'voucher_not_found', 'Voucher not found.');
+    v.status = 'cancelled'; D.coins.push({ user_id: u.id, amount: v.coins, reason: `Voucher ${v.code} cancelled, coins returned`, event_id: null, created_at: iso(now()) }); return { status: 'cancelled', balance: balance(u.id) };
+  });
+  on('POST', '/api/shop/redeem', (b, u) => {
+    need(u, 'shop', 'admin'); expireVouchers();
+    const v = vouchers().find((x) => x.code === String(b.code || '').trim().toUpperCase());
+    if (!v || v.status === 'cancelled') fail(404, 'voucher_not_found', 'Voucher not found. Check the code.');
+    if (v.status === 'used') fail(409, 'voucher_used', 'This voucher was already used.');
+    if (v.status === 'expired') fail(409, 'voucher_expired', 'This voucher has expired.');
+    const amount = Number(b.amount); if (!Number.isInteger(amount) || amount < 1 || amount > 1000000) fail(400, 'invalid_amount', 'Enter the purchase amount in tenge.');
+    const discount = Math.min(Math.round((amount * v.percent) / 100), SHOP.maxDiscount), st = D.users.find((x) => x.id === v.user_id);
+    if (b.confirm === true) { Object.assign(v, { status: 'used', used_at: iso(now()), purchase_amount: amount, discount, cashier_id: u.id }); alert(v.user_id, `Your merch voucher ${v.code} was used: ${v.percent}% discount, ${discount} ₸ off.`, (lang) => ({ text: bot.tr(lang, 'voucher_used', { code: v.code, pct: v.percent, discount }) })); }
+    return { code: v.code, pct: v.percent, amount, discount, toPay: amount - discount, student: st ? st.name : '', used: b.confirm === true };
+  });
+  on('GET', '/api/shop/redemptions', (b, u) => {
+    need(u, 'shop', 'admin'); const used = vouchers().filter((v) => v.status === 'used').sort((a, c) => (a.used_at < c.used_at ? 1 : -1));
+    return { items: used.slice(0, 30).map((v) => ({ ...vOut(v), student: (D.users.find((x) => x.id === v.user_id) || {}).name })), totals: { used: used.length, students: new Set(used.map((v) => v.user_id)).size, discount: used.reduce((a, v) => a + v.discount, 0) } };
+  });
   // FR-43 … FR-45 Complaints
   on('POST', '/api/complaints', (b, u) => {
     need(u); if (!['event', 'club'].includes(b.targetType)) fail(400, 'invalid_target', 'Choose an event or a club.');

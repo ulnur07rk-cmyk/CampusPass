@@ -7,6 +7,7 @@ const R = (p) => fs.readFileSync(path.join(__dirname, '..', p), 'utf8');
 const b64 = (p) => fs.readFileSync(path.join(__dirname, '..', p)).toString('base64');
 const seed = R('server/seed-data.json');
 const floors = { 1: 'data:image/png;base64,' + b64('public/floors/floor1.png'), 2: 'data:image/png;base64,' + b64('public/floors/floor2.png'), 3: 'data:image/png;base64,' + b64('public/floors/floor3.png') };
+const covers = Object.fromEntries(['tech', 'sports', 'creative', 'intellectual', 'social'].map((k) => [k, 'data:image/svg+xml;base64,' + b64(`public/covers/${k}.svg`)]));
 const favicon = 'data:image/svg+xml;base64,' + b64('public/favicon.svg');
 const maps = R('public/maps.js').replace('href="/floors/floor${floor}.png"', 'href="${window.__FLOORS[floor]}"');
 if (maps === R('public/maps.js')) throw new Error('floor image path not found in maps.js');
@@ -54,6 +55,7 @@ const backend = `
   setInterval(function () { core.handle('GET', '/api/me', {}, localStorage.getItem(TOK)); save(); }, 60000);
 })();
 window.__FLOORS = ${JSON.stringify(floors)};
+window.__COVERS = ${JSON.stringify(covers)};
 `;
 const html = `<!DOCTYPE html>
 <html lang="en">

@@ -85,3 +85,9 @@ body{transition:background-color .2s,color .2s}@media (prefers-reduced-motion:re
 details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 
 .cellbox{display:block;min-width:0}@media (max-width:760px){table.stack td .cellbox{flex:1;text-align:right}table.stack td .cellbox input{text-align:left}}
+
+/* ---- Event pictures (F3) and the merch shop (FR-28 … FR-33) ---- */
+.card.ev{padding-top:0;overflow:hidden}.ev .cover{display:block;width:calc(100% + 32px);margin:0 -16px 12px;aspect-ratio:16/9;object-fit:cover;background:var(--soft)}
+.modal .cover.big{display:block;width:calc(100% + 32px);margin:-16px -16px 12px;aspect-ratio:16/9;object-fit:cover;border-radius:18px 18px 0 0}
+.imgbox .cover{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin-top:4px}
+.offer{text-align:center}.offer .big{font-size:46px;font-weight:800;color:var(--accent);line-height:1.1}.offer .btn:disabled{opacity:.5;cursor:not-allowed}
