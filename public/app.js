@@ -59,6 +59,9 @@
     admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['profile', 'nav_profile']], // UI01: at most six sections
     shop: [['checkout', 'nav_checkout'], ['events', 'nav_events'], ['profile', 'nav_profile']]
   };
+  // Screens that are not in the menu: their parent section and a "Back" link at the top (UI01: every screen two taps from the start)
+  const PARENT = { shop: 'profile' };
+  const backLink = (to) => `<a class="backlink" href="#/${to}">← ${esc(t('back_to', { page: t('nav_' + to) }))}</a>`;
   const go = (v) => { if (location.hash !== '#/' + v) location.hash = '#/' + v; else render(); };
   const svg = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const ICON = { db: svg('<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>'), map: svg('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), admin: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), checkout: svg('<path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/>'), shop: svg('<path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/>'), out: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>') };
@@ -66,7 +69,8 @@
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
     const items = S.me && S.me.consentAt ? NAV[S.me.role] : []; // no menu until the consent is given (C08)
-    const link = (icon) => ([v, k]) => `<a href="#/${v}" class="${v === view ? 'on' : ''}" ${v === view ? 'aria-current="page"' : ''}>${icon ? ICON[v] || '' : ''}<span>${esc(t(k))}</span></a>`;
+    const here = (v) => v === view || PARENT[view] === v; // a screen that is not in the menu lights up its parent (Shop → Profile)
+    const link = (icon) => ([v, k]) => `<a href="#/${v}" class="${here(v) ? 'on' : ''}" ${v === view ? 'aria-current="page"' : ''}>${icon ? ICON[v] || '' : ''}<span>${esc(t(k))}</span></a>`;
     $('#nav').innerHTML = items.map(link(false)).join(''); $('#bottom').innerHTML = items.map(link(true)).join('');
     // Day / night switch (theme.js keeps the choice); the label says what the button will do
     const th = $('#theme'), dark = window.CPTheme && CPTheme.get() === 'dark';
@@ -593,7 +597,7 @@
   const money = (n) => Number(n).toLocaleString('ru-RU').replace(/\u00a0/g, ' ') + ' ₸';
   VIEWS.shop = async () => {
     const sh = await api('GET', '/api/shop'), active = sh.vouchers.find((v) => v.status === 'active');
-    app.innerHTML = `<h1>🛍 ${esc(t('shop_title'))}</h1><p class="sub">${esc(t('shop_sub'))}</p>
+    app.innerHTML = `${backLink('profile')}<h1>🛍 ${esc(t('shop_title'))}</h1><p class="sub">${esc(t('shop_sub'))}</p>
       <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${sh.balance}</b><span>${esc(t('coins_expire', { date: dateLong(sh.coinsExpireAt) + ' ' + new Date(sh.coinsExpireAt).getFullYear() }))}</span></div>
         <ul class="list" style="margin-top:8px">${['shop_r1', 'shop_r2', 'shop_r3', 'shop_r4'].map((k) => `<li class="meta">${esc(t(k, { max: money(sh.maxDiscount), days: sh.validDays }))}</li>`).join('')}</ul></section>
       ${sh.offers.map((o) => `<section class="card offer"><div class="big">${o.pct}%</div><h2>${esc(t('shop_offer', { pct: o.pct }))}</h2><p class="meta">${esc(t('shop_cost', { n: o.coins, max: money(sh.maxDiscount) }))}</p>

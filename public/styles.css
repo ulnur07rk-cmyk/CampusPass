@@ -91,3 +91,6 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 .modal .cover.big{display:block;width:calc(100% + 32px);margin:-16px -16px 12px;aspect-ratio:16/9;object-fit:cover;border-radius:18px 18px 0 0}
 .imgbox .cover{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin-top:4px}
 .offer{text-align:center}.offer .big{font-size:46px;font-weight:800;color:var(--accent);line-height:1.1}.offer .btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Back link on screens that are not in the menu */
+.backlink{display:inline-flex;align-items:center;gap:4px;margin:18px 0 -10px;font-weight:600;text-decoration:none;color:var(--accent);padding:6px 10px 6px 0}.backlink:hover{text-decoration:underline}

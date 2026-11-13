@@ -64,6 +64,7 @@ window.I18N = {
 
 // ---------- Final release: administrator, complaints, events in three languages, theme (FR-39 … FR-45) ----------
 Object.assign(window.I18N.en, {
+  back_to: 'Back to {page}',
   shop_one: 'You have an active voucher — use it or cancel it first.',
   nav_checkout: 'Check-out', group_shop: 'Merch shop', role_shop: 'Merch shop cashier', t_shop: 'Students who used the shop',
   f_image: 'Picture (optional)', img_choose: 'Choose a photo', img_remove: 'Remove', img_hint: 'Without a photo the event gets a cover of its type. The photo is cut to 16:9 and made smaller automatically.', err_invalid_image: 'Use a JPEG, PNG or WebP picture.',
@@ -112,6 +113,7 @@ Object.assign(window.I18N.en, {
   err_title_lang: 'Title ({lang}): 3–120 characters.', err_desc_lang: 'Description ({lang}): 10–1000 characters.', err_no_language: 'Write the title and the description in at least one language.'
 });
 Object.assign(window.I18N.kk, {
+  back_to: '{page} бөліміне оралу',
   shop_one: 'Сізде белсенді ваучер бар — алдымен оны қолданыңыз немесе бас тартыңыз.',
   nav_checkout: 'Касса', group_shop: 'Мерч дүкені', role_shop: 'Мерч дүкенінің кассирі', t_shop: 'Дүкенді пайдаланған студенттер',
   f_image: 'Сурет (міндетті емес)', img_choose: 'Фото таңдау', img_remove: 'Өшіру', img_hint: 'Фотосыз іс-шараға түріне сай мұқаба қойылады. Фото 16:9 пішінге кесіліп, автоматты түрде кішірейтіледі.', err_invalid_image: 'JPEG, PNG немесе WebP суретін қолданыңыз.',
@@ -160,6 +162,7 @@ Object.assign(window.I18N.kk, {
   err_title_lang: 'Атауы ({lang}): 3–120 таңба.', err_desc_lang: 'Сипаттама ({lang}): 10–1000 таңба.', err_no_language: 'Атауы мен сипаттамасын кемінде бір тілде жазыңыз.'
 });
 Object.assign(window.I18N.ru, {
+  back_to: 'Назад: {page}',
   shop_one: 'У вас есть активный ваучер — сначала используйте или отмените его.',
   nav_checkout: 'Касса', group_shop: 'Магазин мерча', role_shop: 'Кассир магазина мерча', t_shop: 'Студентов воспользовались магазином',
   f_image: 'Картинка (необязательно)', img_choose: 'Выбрать фото', img_remove: 'Убрать', img_hint: 'Без фото у мероприятия будет обложка по его типу. Фото обрезается до 16:9 и уменьшается автоматически.', err_invalid_image: 'Используйте картинку JPEG, PNG или WebP.',
