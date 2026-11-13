@@ -7,7 +7,7 @@ Students find events and clubs, register in one tap, get a QR ticket and earn Ca
 
 - **Demo video:** _add the OneDrive link here_
 - **SRS:** Team06_FP_Report.pdf (Moodle)
-- **Product backlog:** https://claude.ai/artifact/TKweTmNxmPac5At8RKx4x6 (48 user stories, MoSCoW, story points, release, status, links to FR and tests)
+- **Product backlog:** https://docs.google.com/spreadsheets/d/1Le3d2LIvsIF1ub6BgNCJ2U6lOVJ0m71tfM_AGOumkUU/edit?usp=sharing (48 user stories, MoSCoW, story points, release, status, links to FR and tests)
 
 ## Main use case (end to end)
 1. A **student** opens the events poster, registers for an event and receives a QR ticket (or joins the waitlist if the event is full).
