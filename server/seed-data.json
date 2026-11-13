@@ -1448,6 +1448,15 @@
    "name": "Saule Ermekova (Student Affairs)",
    "studentId": null,
    "group": null,
+   "role": "moderator",
+   "club": null
+  },
+  {
+   "email": "admin@test.local",
+   "password": "Admin123!",
+   "name": "Daniyar Seitov (IT Administrator)",
+   "studentId": null,
+   "group": null,
    "role": "admin",
    "club": null
   }
@@ -1767,6 +1776,24 @@
      "name": "Барыс Арена"
     }
    }
+  }
+ ],
+ "complaints": [
+  {
+   "from": "student2@test.local",
+   "targetType": "event",
+   "target": "Mafia Night",
+   "reason": "wrong_info",
+   "text": "The poster says 3rd floor, but last week it was on the 2nd floor. Please check the room.",
+   "status": "new"
+  },
+  {
+   "from": "student3@test.local",
+   "targetType": "club",
+   "target": "Board Games",
+   "reason": "other",
+   "text": "The club description is very short. It is not clear when the meetings are.",
+   "status": "in_review"
   }
  ]
 }

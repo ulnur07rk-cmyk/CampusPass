@@ -31,7 +31,7 @@ window.CPMaps = (function () {
     return `<svg viewBox="0 0 ${W} ${H}" class="floorplan" role="img" aria-label="${t('floor_n', { n: floor })}">
       <image href="/floors/floor${floor}.png" x="0" y="0" width="${W}" height="${H}"/>
       ${showRoute && pts ? `<polyline points="${pts}" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
-      <polyline points="${pts}" fill="none" stroke="#2563eb" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 0"/>
+      <polyline points="${pts}" fill="none" stroke="#2e6b45" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 0"/>
       <circle cx="${start[0]}" cy="${start[1]}" r="22" fill="#16a34a" stroke="#fff" stroke-width="6"/>` : ''}
       ${isTarget ? `<circle cx="${room.x}" cy="${room.y}" r="46" fill="none" stroke="#dc2626" stroke-width="10"/><circle cx="${room.x}" cy="${room.y}" r="16" fill="#dc2626" stroke="#fff" stroke-width="5"/>`
         : showRoute && end ? `<circle cx="${end[0]}" cy="${end[1]}" r="24" fill="#f59e0b" stroke="#fff" stroke-width="6"/>` : ''}
@@ -108,7 +108,7 @@ window.CPMaps = (function () {
             const node = m.getContent && m.getContent(); if (node) { node.style.cursor = 'pointer'; node.addEventListener('click', (ev) => { ev.stopPropagation(); open(); }); }
             return { open, move: (p) => m.setCoordinates(toLngLat(p)) };
           },
-          line(coords) { if (line) line.destroy(); line = new G.Polyline(map, { coordinates: coords.map(toLngLat), width: 6, color: '#2f6fed' }); },
+          line(coords) { if (line) line.destroy(); line = new G.Polyline(map, { coordinates: coords.map(toLngLat), width: 6, color: '#2e6b45' }); },
           fit(lls) {
             const lat = lls.map((x) => x[0]), lng = lls.map((x) => x[1]);
             map.fitBounds({ southWest: [Math.min(...lng), Math.min(...lat)], northEast: [Math.max(...lng), Math.max(...lat)] }, { padding: { top: 70, right: 70, bottom: 70, left: 70 } });
@@ -127,7 +127,7 @@ window.CPMaps = (function () {
     return {
       kind: 'leaflet',
       marker({ ll, color, label, html }) { const m = Lf.marker(ll, { icon: pin(color, label) }).addTo(map).bindPopup(html); return { open: () => m.openPopup(), move: (p) => m.setLatLng(p) }; },
-      line(coords) { if (line) map.removeLayer(line); line = Lf.polyline(coords, { color: '#2f6fed', weight: 6, opacity: 0.85 }).addTo(map); },
+      line(coords) { if (line) map.removeLayer(line); line = Lf.polyline(coords, { color: '#2e6b45', weight: 6, opacity: 0.85 }).addTo(map); },
       fit(lls) { map.fitBounds(Lf.latLngBounds(lls).pad(0.2)); },
       view(ll, z) { map.setView(ll, z); },
       onClick(cb) { map.on('click', (ev) => cb([ev.latlng.lat, ev.latlng.lng])); },

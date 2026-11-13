@@ -3,9 +3,10 @@
 // Educational project for the course Business Analysis, Astana IT University. Not a real product or service. All data are fictional.
 import { getStore } from '@netlify/blobs';
 import core from '../core.js';
+import bot from '../../server/bot.js';
 import seedData from '../../server/seed-data.json' with { type: 'json' };
 
-const KEY = 'state-v7'; // bump when the data structure changes, so Netlify starts with fresh test data
+const KEY = 'state-v8'; // bump when the data structure changes, so Netlify starts with fresh test data
 const TG = process.env.TELEGRAM_BOT_TOKEN || '';
 const tg = async (method, params) => { const r = await fetch(`https://api.telegram.org/bot${TG}/${method}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params || {}) }); const d = await r.json(); if (!d.ok) throw new Error(d.description); return d.result; };
 let BOT = null; const botName = async () => { if (!TG) return null; if (!BOT) BOT = (await tg('getMe')).username; return BOT; };
@@ -41,11 +42,11 @@ export default async (req) => {
     }
     // Telegram: send queued messages, add the bot name, turn the one-time code into a link
     const box = api.state.outbox || [];
-    if (box.length && TG) { await Promise.all(box.map((m) => tg('sendMessage', { chat_id: m.chatId, text: m.text }).catch(() => null))); api.state.outbox = []; await store.set(KEY, JSON.stringify(api.state)); }
+    if (box.length && TG) { await Promise.all(box.map((m) => tg('sendMessage', { chat_id: m.chatId, text: m.text, reply_markup: m.reply_markup, disable_web_page_preview: true }).catch(() => null))); api.state.outbox = []; await store.set(KEY, JSON.stringify(api.state)); }
     if (url.pathname === '/api/me/telegram' && req.method === 'GET' && out.status === 200) { let bot = null; try { bot = await botName(); } catch { bot = null; } out.data = { ...out.data, enabled: !!bot, bot }; }
     if (url.pathname === '/api/me/telegram/link' && out.status === 200) {
       if (!TG) return json(503, { error: { code: 'telegram_off', message: 'The Telegram bot is not configured.' } });
-      try { await tg('setWebhook', { url: `${url.origin}/tg-hook`, secret_token: (process.env.TELEGRAM_WEBHOOK_SECRET || TG.split(':')[1].slice(0, 32)).replace(/[^A-Za-z0-9_-]/g, '') }); } catch { /* the link still works once the webhook is set */ }
+      try { await tg('setWebhook', { url: `${url.origin}/tg-hook`, secret_token: (process.env.TELEGRAM_WEBHOOK_SECRET || TG.split(':')[1].slice(0, 32)).replace(/[^A-Za-z0-9_-]/g, ''), allowed_updates: ['message', 'callback_query'] }); for (const set of bot.commandSets()) await tg('setMyCommands', set); } catch { /* the link still works once the webhook is set */ }
       out.data = { url: `https://t.me/${await botName()}?start=${out.data.code}` };
     }
     const headers = {};

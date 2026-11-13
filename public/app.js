@@ -55,17 +55,22 @@
   const NAV = {
     student: [['events', 'nav_events'], ['map', 'nav_map'], ['clubs', 'nav_clubs'], ['tickets', 'nav_tickets'], ['history', 'nav_history'], ['profile', 'nav_profile']],
     organizer: [['events', 'nav_events'], ['map', 'nav_map'], ['myevents', 'nav_myevents'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
-    admin: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['roles', 'nav_users'], ['db', 'nav_db'], ['profile', 'nav_profile']]
+    moderator: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
+    admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['db', 'nav_db'], ['profile', 'nav_profile']]
   };
   const go = (v) => { if (location.hash !== '#/' + v) location.hash = '#/' + v; else render(); };
   const svg = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-  const ICON = { db: svg('<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>'), map: svg('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), out: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>') };
+  const ICON = { db: svg('<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>'), map: svg('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), admin: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), out: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>') };
   function chrome(view) {
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
     const items = S.me ? NAV[S.me.role] : [];
     const link = (icon) => ([v, k]) => `<a href="#/${v}" class="${v === view ? 'on' : ''}" ${v === view ? 'aria-current="page"' : ''}>${icon ? ICON[v] || '' : ''}<span>${esc(t(k))}</span></a>`;
     $('#nav').innerHTML = items.map(link(false)).join(''); $('#bottom').innerHTML = items.map(link(true)).join('');
+    // Day / night switch (theme.js keeps the choice); the label says what the button will do
+    const th = $('#theme'), dark = window.CPTheme && CPTheme.get() === 'dark';
+    th.innerHTML = dark ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>';
+    th.setAttribute('aria-label', t(dark ? 'theme_light' : 'theme_dark')); th.title = t(dark ? 'theme_light' : 'theme_dark'); th.setAttribute('aria-pressed', String(dark));
     const so = $('#signout'); so.hidden = !S.me; so.innerHTML = `<span class="lbl">${esc(t('sign_out'))}</span>${ICON.out}`; so.setAttribute('aria-label', t('sign_out'));
   }
 
@@ -83,19 +88,21 @@
   // Live updates: every 15 s the open screen reloads its data, so changes made by other users appear without a manual refresh
   setInterval(async () => {
     const a = document.activeElement;
-    if (!S.me || document.hidden || document.querySelector('.modal') || pending || location.hash.startsWith('#/map') || (a && ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) return;
+    if (!S.me || document.hidden || document.querySelector('.modal') || pending || /^#\/(map|myevents|admin)/.test(location.hash) || (a && ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) return;
     const y = window.scrollY, key = a && a !== document.body ? (a.id ? '#' + a.id : [...a.attributes].filter((x) => x.name.startsWith('data-')).map((x) => `[${x.name}="${x.value}"]`).join('')) : '';
     await render(true); window.scrollTo(0, y);
     if (key) { const el = document.querySelector(key); if (el) el.focus({ preventScroll: true }); }
   }, 15000);
   $('#lang').addEventListener('change', async (e) => { S.lang = e.target.value; localStorage.setItem('cp.lang', S.lang); if (S.me) api('PUT', '/api/me/lang', { lang: S.lang }).catch(() => {}); render(); });
+  // Theme switch: only the colours change, the open screen and form inputs stay as they are
+  $('#theme').addEventListener('click', () => { if (window.CPTheme) CPTheme.toggle(); chrome((location.hash.replace('#/', '') || '').split('?')[0]); });
   $('#signout').addEventListener('click', async () => { await api('POST', '/api/auth/logout').catch(() => {}); S.me = null; go('signin'); });
 
   // ---------- W01 Sign in (FR-01) ----------
   async function viewSignin() {
     let accounts = [];
     try { accounts = await api('GET', '/api/test-accounts'); } catch { accounts = []; }
-    const groups = [['student', 'group_students'], ['organizer', 'group_organizers'], ['admin', 'group_moderator']];
+    const groups = [['student', 'group_students'], ['organizer', 'group_organizers'], ['moderator', 'group_moderator'], ['admin', 'group_admin']];
     const options = groups.map(([r, k]) => `<optgroup label="${esc(t(k))}">${accounts.filter((x) => x.role === r).map((x) => `<option value="${esc(x.email)}">${esc(x.name)}${x.club ? ' — ' + esc(x.club) : ''} (${esc(x.email)})</option>`).join('')}</optgroup>`).join('');
     app.innerHTML = `<div class="signin-wrap"><section class="hero"><h1>${esc(t('sv_title'))}</h1><ul>${['sv_1', 'sv_2', 'sv_3'].map((k, i) => `<li>${[ICON.events, ICON.tickets, ICON.stats][i]}<span>${esc(t(k))}</span></li>`).join('')}</ul></section><section class="card signin"><h2>${esc(t('signin_title'))}</h2><p class="sub">${esc(t('signin_sub'))}</p>
       <label for="who">${esc(t('sign_in_as'))}</label><select id="who"><option value="">${esc(t('choose_account'))}</option>${options}</select>
@@ -201,12 +208,32 @@
     try { if (navigator.share) { await navigator.share({ title: L(e, 'title'), text, url }); return; } await navigator.clipboard.writeText(text + ' ' + url); toast(t('link_copied')); }
     catch { toast(text + ' ' + url); }
   }
+  // FR-43 Report a problem with an event or a club (every role except the administrator, who handles reports)
+  const canReport = () => S.me && S.me.role !== 'admin';
+  const REASONS = ['wrong_info', 'spam', 'offensive', 'safety', 'other'];
+  function reportBox(targetType, targetId, title) {
+    modal(`<h2>🚩 ${esc(t('report_title'))}</h2><p class="meta">${esc(t('target_' + targetType))} · ${esc(t('report_about', { title }))}</p>
+      <label for="rr-reason">${esc(t('report_reason'))}</label><select id="rr-reason">${REASONS.map((r) => `<option value="${r}">${esc(t('reason_' + r))}</option>`).join('')}</select>
+      <label for="rr-text">${esc(t('report_text'))}</label><textarea id="rr-text" rows="4" maxlength="500" aria-describedby="rr-hint"></textarea>
+      <p class="meta" id="rr-hint">${esc(t('report_hint'))}</p><div id="rr-err"></div><div class="row"><button class="btn" id="rr-send">${esc(t('report_send'))}</button></div>`, (root, close) => {
+      $('#rr-send', root).addEventListener('click', (ev) => act(ev.currentTarget, async () => {
+        const text = $('#rr-text', root).value.trim();
+        if (text.length < 5) { $('#rr-err', root).innerHTML = `<p class="field-err" role="alert">${esc(t('err_invalid_complaint'))}</p>`; $('#rr-text', root).setAttribute('aria-invalid', 'true'); $('#rr-text', root).focus(); return; }
+        try { await api('POST', '/api/complaints', { targetType, targetId, reason: $('#rr-reason', root).value, text }); close(); toast(t('report_sent')); }
+        catch (err) { $('#rr-err', root).innerHTML = `<p class="note bad" role="alert">${esc(err.message)}</p>`; }
+      }));
+    });
+  }
+  // Which languages the texts of an event exist in (FR-39)
+  const langsOf = (e) => { const i = e.i18n || {}; const l = ['en', 'kk', 'ru'].filter((x) => i[x] && i[x].title); if (!i.en && e.title && !l.includes('en') && !/[а-яәіңғүұқөһ]/i.test(e.title)) l.unshift('en'); return l; };
+  const LANGNAME = { en: 'EN', kk: 'ҚАЗ', ru: 'РУС' };
   function openEvent(e) {
     const m = e.my, rem = m && m.reminder;
     const reminders = m && m.status === 'confirmed' ? `<label>${esc(t('reminders'))}</label><div class="seg" role="group">${['off', 'push', 'telegram'].map((c) => `<button data-ch="${c}" aria-pressed="${rem.channel === c}">${esc(t(c === 'off' ? 'rem_off' : c === 'push' ? 'rem_push' : 'rem_tg'))}</button>`).join('')}</div>
       <div><label class="chk"><input type="checkbox" id="rd" ${rem.day ? 'checked' : ''}> ${esc(t('rem_day'))}</label><label class="chk"><input type="checkbox" id="rh" ${rem.hour ? 'checked' : ''}> ${esc(t('rem_hour'))}</label></div><p class="meta">${esc(t('rem_note'))}</p>` : '';
     const rating = m && m.status === 'checked_in' ? (m.rating ? `<p class="note ok">${esc(t('rated', { n: m.rating }))}</p>` : `<label>${esc(t('rate'))}</label><div class="stars">${[1, 2, 3, 4, 5].map((n) => `<button data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`) : '';
-    modal(`<span class="pill">${esc(t('type_' + e.type))}</span><h2 style="margin-top:8px">${esc(L(e, 'title'))}</h2><p class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}–${esc(time(e.endsAt))} · ${esc(clubName(e))}</p>${placeLine(e)}<p>${esc(L(e, 'description'))}</p>${seatsBlock(e)}${actionBlock(e)}${reminders}${m && m.status !== 'waitlisted' ? calendarLinks(e) : ''}<div class="row"><button class="btn ghost small" data-share>↗ ${esc(t('share'))}</button></div>${rating}`, (root, close) => {
+    modal(`<span class="pill">${esc(t('type_' + e.type))}</span><h2 style="margin-top:8px">${esc(L(e, 'title'))}</h2><p class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}–${esc(time(e.endsAt))} · ${esc(clubName(e))}</p>${placeLine(e)}<p>${esc(L(e, 'description'))}</p>${seatsBlock(e)}${actionBlock(e)}${reminders}${m && m.status !== 'waitlisted' ? calendarLinks(e) : ''}<div class="row"><button class="btn ghost small" data-share>↗ ${esc(t('share'))}</button>${canReport() ? `<button class="btn ghost small" data-report>🚩 ${esc(t('report'))}</button>` : ''}</div>${rating}`, (root, close) => {
+      const rp = root.querySelector('[data-report]'); if (rp) rp.addEventListener('click', () => { close(); reportBox('event', e.id, L(e, 'title')); });
       bindEventButtons(root, [e]); root.querySelectorAll('[data-reg],[data-cancel]').forEach((b) => b.addEventListener('click', close));
       const sh = root.querySelector('[data-share]'); if (sh) sh.addEventListener('click', () => shareEvent(e));
       const ib = root.querySelector('[data-indoor]'); if (ib) ib.addEventListener('click', () => indoor(e.place, true));
@@ -238,7 +265,8 @@
       if (!shown.length) { $('#clubs').innerHTML = `<p class="note info" style="grid-column:1/-1">${esc(t('no_clubs'))}</p>`; return; }
       $('#clubs').innerHTML = shown.map((c) => `<article class="card"><div class="spread"><span class="pill">${esc(t('type_' + c.category))}</span><span class="meta">${esc(t('members_n', { n: c.members }))}</span></div>
         <h3 style="margin:8px 0 2px">${esc(L(c, 'name'))}</h3><p class="meta">${esc(L(c, 'room'))}</p><p style="font-size:14px">${esc(L(c, 'description'))}</p>
-        ${c.myStatus === 'accepted' ? `<span class="note ok">${esc(t('st_accepted'))}</span>` : c.myStatus === 'pending' ? `<span class="note warn">${esc(t('st_pending'))}</span>` : S.me.role === 'student' ? `${c.myStatus === 'declined' ? `<p class="meta">${esc(t('st_declined'))}</p>` : ''}<button class="btn small" data-join="${c.id}">${esc(t('join'))}</button>` : ''}</article>`).join('');
+        ${c.myStatus === 'accepted' ? `<span class="note ok">${esc(t('st_accepted'))}</span>` : c.myStatus === 'pending' ? `<span class="note warn">${esc(t('st_pending'))}</span>` : S.me.role === 'student' ? `${c.myStatus === 'declined' ? `<p class="meta">${esc(t('st_declined'))}</p>` : ''}<button class="btn small" data-join="${c.id}">${esc(t('join'))}</button>` : ''}${canReport() ? ` <button class="btn ghost small" data-report-club="${c.id}" aria-label="${esc(t('report'))}: ${esc(L(c, 'name'))}">🚩 ${esc(t('report'))}</button>` : ''}</article>`).join('');
+      app.querySelectorAll('[data-report-club]').forEach((b) => b.addEventListener('click', () => { const c = clubs.find((x) => String(x.id) === b.dataset.reportClub); reportBox('club', c.id, L(c, 'name')); }));
       app.querySelectorAll('[data-join]').forEach((b) => b.addEventListener('click', () => {
         const c = clubs.find((x) => String(x.id) === b.dataset.join);
         modal(`<h2>${esc(t('join'))}: ${esc(L(c, 'name'))}</h2><label for="msg">${esc(t('why_join'))}</label><textarea id="msg" rows="4" maxlength="500"></textarea><div class="row"><button class="btn" id="send">${esc(t('send_request'))}</button></div>`, (root, close) => {
@@ -264,7 +292,7 @@
     bindRating(app);
   };
   VIEWS.profile = async () => {
-    const [me, coins, notes, clubs, regs] = await Promise.all([api('GET', '/api/me'), api('GET', '/api/me/coins'), api('GET', '/api/me/notifications'), api('GET', '/api/clubs'), S.me.role === 'student' ? api('GET', '/api/me/history') : { items: [] }]);
+    const [me, coins, notes, clubs, regs, reports] = await Promise.all([api('GET', '/api/me'), api('GET', '/api/me/coins'), api('GET', '/api/me/notifications'), api('GET', '/api/clubs'), S.me.role === 'student' ? api('GET', '/api/me/history') : { items: [] }, api('GET', '/api/me/complaints').catch(() => [])]);
     const mine = clubs.filter((c) => c.myStatus === 'accepted' || c.myStatus === 'pending');
     const hist = regs.items, rate = regs.attended + regs.missed ? Math.round((regs.attended / (regs.attended + regs.missed)) * 100) : null;
     const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'] };
@@ -272,6 +300,7 @@
       <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div><p class="note info" style="margin:8px 0">${esc(t('coins_info'))}</p><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>+${h.amount}</b></li>`).join('')}</ul></section>
       <section class="card"><h2>${esc(t('notifications'))}</h2><p class="meta">${esc(t('notes_info'))}</p>${notes.length ? `<ul class="list">${notes.map((n) => `<li><span class="pill">${esc(t('ch_' + n.channel))}</span> ${esc(n.text)}<br><span class="meta">${esc(dateLong(n.createdAt))}, ${esc(time(n.createdAt))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('no_notifications'))}</p>`}</section>
       <section class="card"><h2>✈️ Telegram</h2><div id="tgbody"><p class="meta">${esc(t('loading'))}</p></div></section>
+      ${reports.length ? `<section class="card"><h2>🚩 ${esc(t('my_complaints'))}</h2><ul class="list">${reports.map((c) => `<li><div class="spread"><b>${esc(c.targetTitle || '—')}</b>${cstPill(c.status)}</div><span class="meta">${esc(t('target_' + c.targetType))} · ${esc(t('reason_' + c.reason))} · ${esc(dateLong(c.createdAt))}</span><br><span style="font-size:14px">${esc(c.text)}</span>${c.comment ? `<p class="note info" style="margin:6px 0 0">💬 ${esc(c.comment)}</p>` : ''}</li>`).join('')}</ul></section>` : ''}
       ${S.me.role === 'student' ? `<section class="card" style="grid-column:1/-1"><h2>${esc(t('history_title'))}</h2>${rate !== null ? `<p class="meta">${esc(t('hist_summary', { a: regs.attended, t: regs.attended + regs.missed, p: rate }))}</p>` : ''}${hist.length ? `<div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_status'))}</th><th>${esc(t('coins'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>${hist.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(clubName(e))}</span></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_status'))}"><span class="note ${RES[e.result][0]}" style="margin:0;padding:3px 8px;display:inline-block">${esc(t(RES[e.result][1]))}</span></td><td data-label="${esc(t('coins'))}">${e.coinsEarned ? '+' + e.coinsEarned : '—'}</td><td data-label="${esc(t('th_rating'))}">${e.result !== 'attended' ? '—' : e.my && e.my.rating ? '★ ' + e.my.rating + '/5' : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</td></tr>`).join('')}</tbody></table></div><p class="meta">${esc(t('rate_hint'))}</p>` : `<p class="meta">${esc(t('hist_empty'))}</p>`}</section>` : ''}
       <section class="card"><h2>${esc(t('my_clubs'))}</h2><ul class="list">${mine.map((c) => `<li class="spread"><span>${esc(L(c, 'name'))}</span><span class="meta">${esc(t(c.myStatus === 'accepted' ? 'st_accepted' : 'st_pending'))}</span></li>`).join('') || '<li class="meta">—</li>'}</ul>
       <label for="pl">${esc(t('language'))}</label><select id="pl"><option value="en">English</option><option value="kk">Қазақша</option><option value="ru">Русский</option></select></section></div>`;
@@ -280,7 +309,7 @@
     drawTelegram();
   };
 
-  // Database overview for the defense (moderator): tables, columns, links, row counts and a masked sample
+  // Database overview for the defense (administrator): tables, columns, links, row counts and a masked sample
   VIEWS.db = async () => {
     const tables = await api('GET', '/api/admin/db');
     const total = tables.reduce((n, x) => n + x.count, 0);
@@ -313,46 +342,51 @@
   }
 
 
-  // ---------- Map: city map with routes (all roles) and free rooms (organizer, moderator) — F21, F22 ----------
+  // ---------- Free rooms panel (F21): organizer — in "My events" next to the form; moderator — in "Moderation" ----------
+  const toLocal = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  function freeRooms(host, opts = {}) {
+    const d0 = opts.start ? new Date(opts.start) : (() => { const d = new Date(Date.now() + 86400000); d.setHours(18, 0, 0, 0); return d; })();
+    host.innerHTML = `<h2>${esc(t('free_rooms'))}</h2><p class="meta" style="margin-top:0">${esc(t('free_rooms_sub'))}</p>
+      <div class="spread"><div style="flex:2"><label for="rs">${esc(t('f_start'))}</label><input id="rs" type="datetime-local" value="${toLocal(d0)}"></div><div style="flex:1"><label for="rd">${esc(t('f_duration'))}</label><input id="rd" type="number" min="15" max="720" value="${Number(opts.minutes) || 120}"></div></div>
+      <p class="meta" id="rsum" style="margin:8px 0 0"></p><ul class="list" id="rooms" style="margin-top:8px"></ul>`;
+    const why = (r) => (r.reason === 'lecture' ? t('busy_lecture', { from: time(r.from), to: time(r.to) }) : r.reason === 'requested' ? t('busy_requested', { title: r.title }) : t('busy_event', { title: r.title }));
+    async function load() {
+      const st = new Date($('#rs', host).value); if (isNaN(st)) return;
+      let rooms; try { rooms = await api('GET', `/api/rooms/availability?start=${encodeURIComponent(st.toISOString())}&minutes=${Number($('#rd', host).value) || 120}`); } catch (err) { return fail(err); }
+      $('#rsum', host).textContent = t('rooms_free_n', { n: rooms.filter((r) => r.free).length, all: rooms.length });
+      $('#rooms', host).innerHTML = rooms.sort((a, b) => b.free - a.free || a.floor - b.floor).map((r) => `<li class="spread"><span><b>${esc(roomName(r))}</b><br><span class="meta">${esc(t('floor_n', { n: r.floor }))} · ${esc(t('seats_n', { n: r.capacity }))}</span></span><span class="row" style="margin:0"><span class="note ${r.free ? 'ok' : 'bad'}" style="margin:0;padding:3px 8px">${esc(r.free ? t('room_free') : why(r))}</span>${r.free && opts.onPick ? `<button class="btn small" type="button" data-pick="${esc(r.code)}">${esc(t('use_room'))}</button>` : ''}<button class="btn ghost small" type="button" data-plan="${esc(r.code)}" aria-label="${esc(t('show_on_plan'))}">🧭</button></span></li>`).join('');
+      host.querySelectorAll('[data-plan]').forEach((b) => b.addEventListener('click', () => indoor(rooms.find((r) => r.code === b.dataset.plan), false)));
+      host.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => opts.onPick(rooms.find((r) => r.code === b.dataset.pick), $('#rs', host).value, Number($('#rd', host).value) || 120)));
+    }
+    ['#rs', '#rd'].forEach((id) => $(id, host).addEventListener('change', load));
+    load();
+    return { set: (start, minutes) => { if (start) $('#rs', host).value = start; if (minutes) $('#rd', host).value = minutes; load(); } };
+  }
+
+  // ---------- Map: city map with routes (all roles) — F22 ----------
   VIEWS.map = async () => {
-    const staff = S.me.role !== 'student';
     const [list, places] = await Promise.all([api('GET', '/api/events?days=7'), api('GET', '/api/places')]);
     const C = places.campus, campusLL = [C.lat, C.lng], onCampus = list.filter((e) => e.place && e.place.kind === 'room'), inCity = list.filter((e) => e.place && e.place.kind === 'venue');
-    if (!S.mapTab) S.mapTab = 'events'; if (!S.mapMode) S.mapMode = 'foot';
+    if (!S.mapMode) S.mapMode = 'foot';
     const item = (e) => `<li class="mapitem" data-ev="${e.id}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))} · ${esc(e.place.kind === 'room' ? roomName(e.place) + ' · ' + t('floor_n', { n: e.place.floor }) : placeName(e.place))}</span>
       <div class="row" style="margin-top:6px"><button class="btn small" data-route="${e.id}">${esc(t('route_here'))}</button>${e.place.kind === 'room' ? `<button class="btn ghost small" data-in="${e.id}">🧭 ${esc(t('route_inside'))}</button>` : ''}<button class="btn ghost small" data-det="${e.id}">${esc(t('details'))}</button></div></li>`;
-    app.innerHTML = `<h1>${esc(t('map_title'))}</h1><p class="sub">${esc(t(staff ? 'map_sub_staff' : 'map_sub'))}</p>
+    app.innerHTML = `<h1>${esc(t('map_title'))}</h1><p class="sub">${esc(t('map_sub'))}</p>
       <div class="maplayout"><aside class="card mapside">
-        ${staff ? `<div class="seg" role="tablist" style="margin-bottom:10px"><button data-tab="events" aria-pressed="${S.mapTab === 'events'}">${esc(t('nav_events'))}</button><button data-tab="rooms" aria-pressed="${S.mapTab === 'rooms'}">${esc(t('free_rooms'))}</button></div>` : ''}
-        <div id="tab-events" ${S.mapTab === 'events' ? '' : 'hidden'}>
+        <div id="tab-events">
           <div class="row" style="margin-top:0"><button class="btn ghost small" id="me">📍 ${esc(t('my_location'))}</button><div class="seg"><button data-mode="foot" aria-pressed="${S.mapMode === 'foot'}">🚶 ${esc(t('walk'))}</button><button data-mode="car" aria-pressed="${S.mapMode === 'car'}">🚗 ${esc(t('car'))}</button></div></div>
           <p class="note info" id="rinfo" style="margin:8px 0">${esc(t('route_hint'))}</p>
           <h3 class="maph">${esc(t('on_campus'))} · ${esc(C.i18n && C.i18n[S.lang] ? C.i18n[S.lang].address : C.address)} (${onCampus.length})</h3><ul class="list">${onCampus.map(item).join('')}</ul>
           <h3 class="maph">${esc(t('in_city'))} (${inCity.length})</h3><ul class="list">${inCity.map(item).join('') || `<li class="meta">—</li>`}</ul>
         </div>
-        ${staff ? `<div id="tab-rooms" ${S.mapTab === 'rooms' ? '' : 'hidden'}><label for="rs">${esc(t('f_start'))}</label><input id="rs" type="datetime-local"><label for="rd">${esc(t('f_duration'))}</label><input id="rd" type="number" min="15" max="720" value="120"><ul class="list" id="rooms" style="margin-top:8px"></ul></div>` : ''}
       </aside><div class="card mapbox"><div id="map"></div></div></div>`;
-    // tabs
-    app.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { S.mapTab = b.dataset.tab; app.querySelectorAll('[data-tab]').forEach((x) => x.setAttribute('aria-pressed', x === b)); $('#tab-events').hidden = S.mapTab !== 'events'; $('#tab-rooms').hidden = S.mapTab !== 'rooms'; if (S.mapTab === 'rooms') loadFree(); }));
     app.querySelectorAll('[data-det]').forEach((b) => b.addEventListener('click', () => openEvent(list.find((x) => String(x.id) === b.dataset.det))));
     app.querySelectorAll('[data-in]').forEach((b) => b.addEventListener('click', () => indoor(list.find((x) => String(x.id) === b.dataset.in).place, true)));
-    // free rooms (staff)
-    async function loadFree() {
-      const rs = $('#rs'); if (!rs.value) { const d = new Date(Date.now() + 86400000); d.setHours(18, 0, 0, 0); rs.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
-      try {
-        const rooms = await api('GET', `/api/rooms/availability?start=${encodeURIComponent(new Date(rs.value).toISOString())}&minutes=${Number($('#rd').value) || 120}`);
-        const why = (r) => (r.reason === 'lecture' ? t('busy_lecture', { from: time(r.from), to: time(r.to) }) : r.reason === 'requested' ? t('busy_requested', { title: r.title }) : t('busy_event', { title: r.title }));
-        $('#rooms').innerHTML = rooms.sort((a, b) => b.free - a.free || a.floor - b.floor).map((r) => `<li class="spread"><span><b>${esc(roomName(r))}</b><br><span class="meta">${esc(t('floor_n', { n: r.floor }))} · ${esc(t('seats_n', { n: r.capacity }))}</span></span><span class="row" style="margin:0"><span class="note ${r.free ? 'ok' : 'bad'}" style="margin:0;padding:3px 8px">${esc(r.free ? t('room_free') : why(r))}</span><button class="btn ghost small" data-plan="${esc(r.code)}">🧭</button></span></li>`).join('');
-        app.querySelectorAll('[data-plan]').forEach((b) => b.addEventListener('click', () => indoor(rooms.find((r) => r.code === b.dataset.plan), false)));
-      } catch (err) { fail(err); }
-    }
-    if (staff) { ['#rs', '#rd'].forEach((id) => $(id).addEventListener('change', loadFree)); if (S.mapTab === 'rooms') loadFree(); }
     // city map: 2GIS when a key is configured, otherwise OpenStreetMap (F22)
     if (!S.cfg) { try { S.cfg = await api('GET', '/api/config'); } catch { S.cfg = {}; } }
     let map; try { map = await CPMaps.cityMap($('#map'), { key: S.cfg.mapKey, center: campusLL, zoom: 13 }); } catch { $('#map').innerHTML = `<p class="note warn" style="margin:16px">${esc(t('map_offline'))}</p>`; return; }
     const campusName = C.i18n && C.i18n[S.lang] ? C.i18n[S.lang].name : C.name;
     const markers = {};
-    const cm = map.marker({ ll: campusLL, color: '#2f6fed', label: 'C1', html: `<b>${esc(campusName)}</b><br>${esc(t('events_n', { n: onCampus.length }))}` });
+    const cm = map.marker({ ll: campusLL, color: '#2e6b45', label: 'C1', html: `<b>${esc(campusName)}</b><br>${esc(t('events_n', { n: onCampus.length }))}` });
     onCampus.forEach((e) => { markers[e.id] = cm; });
     inCity.forEach((e) => { markers[e.id] = map.marker({ ll: [e.place.lat, e.place.lng], color: '#16a34a', label: '★', html: `<b>${esc(L(e, 'title'))}</b><br>${esc(placeName(e.place))}<br>${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}` }); });
     map.fit([campusLL, ...inCity.map((e) => [e.place.lat, e.place.lng])]);
@@ -382,14 +416,15 @@
     const tomorrow = new Date(Date.now() + 86400000); tomorrow.setMinutes(0, 0, 0);
     const local = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     app.innerHTML = `<h1>${esc(t('submit_title'))}</h1><p class="sub">${esc(S.me.club ? S.me.club.name : '')}</p><div class="grid"><form class="card" id="ef" novalidate>
-      <label for="ft">${esc(t('f_title'))}</label><input id="ft" maxlength="120" required><label for="fy">${esc(t('f_type'))}</label><select id="fy">${['tech', 'sports', 'creative', 'intellectual', 'social'].map((c) => `<option value="${c}">${esc(t('type_' + c))}</option>`).join('')}</select>
+      ${langFields('f', {})}<label for="fy">${esc(t('f_type'))}</label><select id="fy">${['tech', 'sports', 'creative', 'intellectual', 'social'].map((c) => `<option value="${c}">${esc(t('type_' + c))}</option>`).join('')}</select>
       <label for="fs">${esc(t('f_start'))}</label><input id="fs" type="datetime-local" value="${local}" min="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}" required>
       <div class="spread"><div style="flex:1"><label for="fd">${esc(t('f_duration'))}</label><input id="fd" type="number" min="15" max="720" value="120"></div><div style="flex:1"><label for="fc">${esc(t('f_capacity'))}</label><input id="fc" type="number" min="1" max="500" value="40"></div></div>
       <label>${esc(t('f_place'))}</label><div class="seg" role="group"><button type="button" data-pk="room" aria-pressed="true">${esc(t('place_campus'))}</button><button type="button" data-pk="venue" aria-pressed="false">${esc(t('place_city'))}</button></div>
       <div id="pk-room"><select id="fr" aria-label="${esc(t('f_place'))}" style="margin-top:8px"></select><div class="row" style="margin-top:6px"><button class="btn ghost small" type="button" id="frshow">🧭 ${esc(t('show_on_plan'))}</button><span class="meta" id="frinfo"></span></div></div>
       <div id="pk-venue" hidden><select id="fv" aria-label="${esc(t('place_city'))}" style="margin-top:8px"></select></div>
-      <label for="fx">${esc(t('f_desc'))}</label><textarea id="fx" rows="4" maxlength="1000" required></textarea><div id="ferr"></div><button class="btn" style="margin-top:12px">${esc(t('send_moderation'))}</button></form>
-      <section class="card"><h2>${esc(t('my_submissions'))}</h2><ul class="list">${list.map((e) => `<li class="spread"><span><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))} · ${e.taken}/${e.capacity}</span>${e.comment ? `<br><span class="meta">${esc(e.comment)}</span>` : ''}</span>${statusPill(e.status)}</li>`).join('')}</ul></section></div>`;
+      <div id="ferr"></div><button class="btn" style="margin-top:12px">${esc(t('send_moderation'))}</button></form>
+      <section class="card"><h2>${esc(t('my_submissions'))}</h2><ul class="list">${list.map((e) => `<li class="spread"><span><b>${esc(L(e, 'title'))}</b> ${langsOf(e).map((l) => `<span class="pill">${LANGNAME[l]}</span>`).join(' ')}<br><span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))} · ${e.taken}/${e.capacity}</span>${e.comment ? `<br><span class="meta">${esc(e.comment)}</span>` : ''}</span>${statusPill(e.status)}</li>`).join('')}</ul></section>
+      <section class="card" id="freebox"></section></div>`;
     // F21 Place: a free room on campus (availability for the chosen time) or a venue in the city
     let PK = 'room', ROOMS = [];
     const places = await api('GET', '/api/places');
@@ -407,7 +442,14 @@
     app.querySelectorAll('[data-pk]').forEach((b) => b.addEventListener('click', () => { PK = b.dataset.pk; app.querySelectorAll('[data-pk]').forEach((x) => x.setAttribute('aria-pressed', x === b)); $('#pk-room').hidden = PK !== 'room'; $('#pk-venue').hidden = PK !== 'venue'; }));
     $('#frshow').addEventListener('click', () => { const r = ROOMS.find((x) => x.code === $('#fr').value) || ROOMS[0]; if (r) indoor(r, false); });
     await loadRooms();
-    const FIELD = { invalid_title: 'ft', place_required: 'fr', room_busy: 'fr', room_too_small: 'fc', invalid_start: 'fs', start_in_past: 'fs', invalid_duration: 'fd', invalid_capacity: 'fc', invalid_description: 'fx', invalid_type: 'fy' };
+    // Free rooms next to the form: "Use" fills the time and the room in the form
+    const panel = freeRooms($('#freebox'), { start: $('#fs').value, minutes: $('#fd').value, onPick: async (r, start, minutes) => {
+      $('#fs').value = start; $('#fd').value = minutes; app.querySelector('[data-pk="room"]').click(); await loadRooms();
+      $('#fr').value = r.code; if ($('#fr').value !== r.code) toast(t('err_room_too_small')); else { toast(t('room_chosen', { room: roomName(r) })); const ti = app.querySelector('[data-lpane]:not([hidden]) input'); if (ti) ti.focus(); }
+    } });
+    ['#fs', '#fd'].forEach((id) => $(id).addEventListener('change', () => panel.set($('#fs').value, $('#fd').value)));
+    const LF = bindLangFields(app, 'f');
+    const FIELD = { place_required: 'fr', room_busy: 'fr', room_too_small: 'fc', invalid_start: 'fs', start_in_past: 'fs', invalid_duration: 'fd', invalid_capacity: 'fc', invalid_type: 'fy' };
     const clearErr = () => { app.querySelectorAll('.field-err').forEach((x) => x.remove()); app.querySelectorAll('[aria-invalid]').forEach((x) => x.removeAttribute('aria-invalid')); $('#ferr').innerHTML = ''; };
     const showErr = (code, message) => {
       const el = FIELD[code] && $('#' + FIELD[code]);
@@ -418,21 +460,21 @@
     };
     // Client-side checks first (same limits as the server), then the server confirms
     const check = () => {
-      const len = (id) => $('#' + id).value.trim().length, num = (id) => Number($('#' + id).value), start = new Date($('#fs').value);
-      if (len('ft') < 3 || len('ft') > 120) return 'invalid_title';
+      const num = (id) => Number($('#' + id).value), start = new Date($('#fs').value);
+      const lb = LF.check(); if (lb) { FIELD.lang = lb.field; LMSG = lb.msg; return 'lang'; }
       if (PK === 'room' ? !$('#fr').value : !$('#fv').value) return 'place_required';
       if (isNaN(start)) return 'invalid_start';
       if (start <= new Date()) return 'start_in_past';
       if (!(num('fd') >= 15 && num('fd') <= 720)) return 'invalid_duration';
       if (!Number.isInteger(num('fc')) || num('fc') < 1 || num('fc') > 500) return 'invalid_capacity';
-      if (len('fx') < 10) return 'invalid_description';
       return null;
     };
+    let LMSG = '';
     app.querySelectorAll('#ef input,#ef textarea').forEach((x) => x.addEventListener('input', () => { if (x.getAttribute('aria-invalid')) clearErr(); }));
     $('#ef').addEventListener('submit', async (ev) => {
       ev.preventDefault(); clearErr();
-      const bad = check(); if (bad) return showErr(bad, t('err_' + bad));
-      const body = { title: $('#ft').value, type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value), description: $('#fx').value };
+      const bad = check(); if (bad) return showErr(bad, bad === 'lang' ? LMSG : t('err_' + bad));
+      const body = { i18n: LF.read(), type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value) };
       await act(ev.submitter || $('#ef button'), async () => { try { await api('POST', '/api/events', body); toast(t('submitted')); render(); } catch (err) { showErr(err.code, err.message); } });
     });
   };
@@ -502,8 +544,10 @@
   VIEWS.moderation = async () => {
     const [ev, req] = await Promise.all([api('GET', '/api/admin/pending-events'), api('GET', '/api/admin/club-requests')]);
     app.innerHTML = `<h1>${esc(t('moderation_title'))}</h1><section class="card"><div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_club'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_seats'))}</th><th>${esc(t('th_action'))}</th></tr></thead><tbody>
-      ${ev.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(L(e, 'location'))}</span></td><td data-label="${esc(t('th_club'))}">${esc(clubName(e))}</td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))} ${esc(time(e.startsAt))}</td><td data-label="${esc(t('th_seats'))}">${e.capacity}</td><td><div class="row" style="margin:0"><button class="btn small" data-ok="${e.id}">${esc(t('approve'))}</button><button class="btn small danger" data-no="${e.id}">${esc(t('reject'))}</button></div></td></tr>`).join('') || `<tr><td colspan="5" class="meta">${esc(t('nothing_pending'))}</td></tr>`}</tbody></table></div></section>
-      <h2 style="margin-top:22px">${esc(t('club_requests'))}</h2><section class="card"><ul class="list">${req.map((r) => `<li class="spread"><span><b>${esc(r.name)}</b> (ID ${esc(r.studentId)}) → ${esc(clubName(r))}${r.message ? `<br><span class="meta">${esc(r.message)}</span>` : ''}</span><span class="row" style="margin:0"><button class="btn small" data-acc="${r.userId}:${r.clubId}">${esc(t('accept'))}</button><button class="btn small danger" data-dec="${r.userId}:${r.clubId}">${esc(t('decline'))}</button></span></li>`).join('') || `<li class="meta">${esc(t('nothing_pending'))}</li>`}</ul></section>`;
+      ${ev.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><span class="cellbox"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(L(e, 'location'))}</span><br>${langsOf(e).map((l) => `<span class="pill">${LANGNAME[l]}</span>`).join(' ')}</span></td><td data-label="${esc(t('th_club'))}">${esc(clubName(e))}</td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))} ${esc(time(e.startsAt))}</td><td data-label="${esc(t('th_seats'))}">${e.capacity}</td><td><div class="row" style="margin:0"><button class="btn small" data-ok="${e.id}">${esc(t('approve'))}</button><button class="btn small danger" data-no="${e.id}">${esc(t('reject'))}</button></div></td></tr>`).join('') || `<tr><td colspan="5" class="meta">${esc(t('nothing_pending'))}</td></tr>`}</tbody></table></div></section>
+      <h2 style="margin-top:22px">${esc(t('club_requests'))}</h2><section class="card"><ul class="list">${req.map((r) => `<li class="spread"><span><b>${esc(r.name)}</b> (ID ${esc(r.studentId)}) → ${esc(clubName(r))}${r.message ? `<br><span class="meta">${esc(r.message)}</span>` : ''}</span><span class="row" style="margin:0"><button class="btn small" data-acc="${r.userId}:${r.clubId}">${esc(t('accept'))}</button><button class="btn small danger" data-dec="${r.userId}:${r.clubId}">${esc(t('decline'))}</button></span></li>`).join('') || `<li class="meta">${esc(t('nothing_pending'))}</li>`}</ul></section>
+      <section class="card" id="freebox" style="margin-top:22px"></section>`;
+    freeRooms($('#freebox'));
     const decide = (id, decision, comment, btn) => act(btn, async () => { try { await api('POST', `/api/admin/events/${id}/decision`, { decision, comment }); render(); } catch (err) { fail(err); } });
     app.querySelectorAll('[data-ok]').forEach((b) => b.addEventListener('click', () => decide(b.dataset.ok, 'approve', '', b)));
     app.querySelectorAll('[data-no]').forEach((b) => b.addEventListener('click', () => modal(`<h2>${esc(t('reject'))}</h2><label for="rr">${esc(t('reject_reason'))}</label><textarea id="rr" rows="3" maxlength="500" aria-describedby="rr-err"></textarea><p class="field-err" id="rr-err" hidden></p><div class="row"><button class="btn danger" id="rgo">${esc(t('reject'))}</button></div>`, (root, close) => {
@@ -514,21 +558,132 @@
   };
   VIEWS.stats = async () => {
     const s = await api('GET', '/api/admin/stats');
-    app.innerHTML = `<h1>${esc(t('stats_title'))}</h1><div class="kpis">${[['t_clubs', s.totals.clubs], ['t_events', s.totals.approvedEvents], ['t_regs', s.totals.registrations], ['t_pending', s.totals.pending]].map(([k, v]) => `<div class="card kpi"><b>${v}</b><span>${esc(t(k))}</span></div>`).join('')}</div>
+    app.innerHTML = `<h1>${esc(t('stats_title'))}</h1><div class="kpis">${[['t_clubs', s.totals.clubs], ['t_events', s.totals.approvedEvents], ['t_regs', s.totals.registrations], ['t_pending', s.totals.pending], ['t_complaints', s.totals.complaints]].filter((x) => x[1] !== undefined).map(([k, v]) => `<div class="card kpi"><b>${v}</b><span>${esc(t(k))}</span></div>`).join('')}</div>
       <section class="card tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_seats'))}</th><th>${esc(t('th_fill'))}</th><th>${esc(t('th_wait'))}</th><th>${esc(t('th_checked'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>
       ${s.events.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_seats'))}">${e.registered}/${e.capacity}</td><td data-label="${esc(t('th_fill'))}"><div class="bar" style="width:90px;margin:0;display:inline-block;vertical-align:middle"><i style="width:${Math.min(100, e.fillRate)}%"></i></div> ${e.fillRate}%</td><td data-label="${esc(t('th_wait'))}">${e.waitlist}</td><td data-label="${esc(t('th_checked'))}">${e.checkedIn}</td><td data-label="${esc(t('th_rating'))}">${e.avgRating ?? '—'}</td></tr>`).join('')}</tbody></table></section>`;
   };
-  VIEWS.roles = async () => {
-    const [users, clubs] = await Promise.all([api('GET', '/api/admin/users'), api('GET', '/api/clubs')]);
-    const opts = clubs.map((c) => `<option value="${c.id}">${esc(L(c, 'name'))}</option>`).join('');
-    app.innerHTML = `<h1>${esc(t('users_title'))}</h1><section class="card" style="margin-bottom:14px"><div class="spread"><span><b>${esc(t('reset_title'))}</b><br><span class="meta">${esc(t('reset_sub'))}</span></span><button class="btn danger small" id="reset">${esc(t('reset_btn'))}</button></div></section><section class="card tablewrap"><table><thead><tr><th>${esc(t('th_name'))}</th><th>${esc(t('th_role'))}</th><th>${esc(t('th_club'))}</th><th></th></tr></thead><tbody>
-      ${users.map((u) => `<tr data-u="${u.id}"><td>${esc(u.name)}<br><span class="meta">${esc(u.email)}</span></td><td><select class="r">${['student', 'organizer', 'admin'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${esc(t('role_' + r))}</option>`).join('')}</select></td><td><select class="c">${opts}</select></td><td><button class="btn small" ${u.id === S.me.id ? 'disabled' : ''}>${esc(t('save'))}</button></td></tr>`).join('')}</tbody></table></section>`;
-    $('#reset').addEventListener('click', async (ev) => { const btn = ev.currentTarget; if (!(await confirmBox(t('reset_confirm'), t('reset_btn')))) return; await act(btn, async () => { try { await api('POST', '/api/admin/reset', {}); S.me = null; toast(t('reset_done')); go('signin'); } catch (err) { fail(err); } }); });
-    app.querySelectorAll('tr[data-u]').forEach((row) => {
-      const u = users.find((x) => String(x.id) === row.dataset.u), c = clubs.find((x) => x.name === u.club); if (c) row.querySelector('.c').value = c.id;
-      row.querySelector('button').addEventListener('click', (ev) => act(ev.currentTarget, async () => { try { await api('PUT', `/api/admin/users/${u.id}/role`, { role: row.querySelector('.r').value, clubId: Number(row.querySelector('.c').value) }); toast(t('saved')); } catch (err) { fail(err); } }));
-    });
+  // ---------- Administration (administrator only): complaints, events, clubs, users — FR-40 … FR-45 ----------
+  const cstPill = (st) => `<span class="note ${st === 'new' ? 'bad' : st === 'in_review' ? 'warn' : st === 'resolved' ? 'ok' : 'info'}" style="margin:0;padding:3px 8px;display:inline-block;font-size:12px;font-weight:700">${esc(t('cst_' + st))}</span>`;
+  const estPill = (st) => `<span class="note ${st === 'approved' ? 'ok' : st === 'pending' ? 'warn' : st === 'rejected' ? 'bad' : 'info'}" style="margin:0;padding:3px 8px;display:inline-block;font-size:12px;font-weight:700">${esc(t('est_' + st))}</span>`;
+  const TYPESL = ['tech', 'sports', 'creative', 'intellectual', 'social'];
+  VIEWS.admin = async () => {
+    const tab = (/[?&]tab=(\w+)/.exec(location.hash) || [])[1] || S.adminTab || 'complaints'; S.adminTab = tab;
+    const TABS = [['complaints', 'tab_complaints'], ['events', 'tab_events'], ['clubs', 'tab_clubs'], ['users', 'tab_users']];
+    app.innerHTML = `<h1>${esc(t('admin_title'))}</h1><p class="sub">${esc(t('admin_sub'))}</p>
+      <div class="seg" role="tablist" style="margin-bottom:14px;flex-wrap:wrap">${TABS.map(([k, l]) => `<button role="tab" data-atab="${k}" aria-selected="${tab === k}" aria-pressed="${tab === k}">${esc(t(l))}</button>`).join('')}</div><div id="apanel"><p class="meta">${esc(t('loading'))}</p></div>`;
+    app.querySelectorAll('[data-atab]').forEach((b) => b.addEventListener('click', () => { S.adminTab = b.dataset.atab; history.replaceState(null, '', '#/admin?tab=' + b.dataset.atab); render(); }));
+    await ADMIN[tab]($('#apanel'));
   };
+  const ADMIN = {
+    async complaints(box) {
+      const list = await api('GET', '/api/admin/complaints');
+      if (!list.length) { box.innerHTML = `<p class="note ok">${esc(t('no_complaints'))}</p>`; return; }
+      box.innerHTML = `<div class="grid">${list.map((c) => `<section class="card" data-c="${c.id}"><div class="spread"><span class="pill">#${c.id} · ${esc(t('target_' + c.targetType))}</span>${cstPill(c.status)}</div>
+        <h3 style="margin:8px 0 2px">${esc(c.targetTitle || '—')}</h3><p class="meta" style="margin:0">${esc(t('reason_' + c.reason))} · ${esc(dateLong(c.createdAt))}, ${esc(time(c.createdAt))}</p>
+        <p style="font-size:14px">“${esc(c.text)}”</p><p class="meta">${esc(t('c_from'))}: ${esc(c.fromName)} (${esc(c.fromEmail)})${c.handledBy ? ' · ' + esc(t('c_handled', { name: c.handledBy })) : ''}</p>
+        <label for="cs-${c.id}">${esc(t('c_status'))}</label><select id="cs-${c.id}">${['in_review', 'resolved', 'rejected'].map((st) => `<option value="${st}" ${c.status === st ? 'selected' : ''}>${esc(t('cst_' + st))}</option>`).join('')}</select>
+        <label for="cc-${c.id}">${esc(t('c_answer'))}</label><textarea id="cc-${c.id}" rows="2" maxlength="500" aria-describedby="ch-${c.id}">${esc(c.comment || '')}</textarea><p class="meta" id="ch-${c.id}" style="margin:2px 0 0">${esc(t('c_answer_hint'))}</p>
+        <div class="row"><button class="btn small" data-csave="${c.id}">${esc(t('save'))}</button>${c.targetType === 'event' ? `<button class="btn ghost small" data-cedit="${c.targetId}">✏️ ${esc(t('ev_edit'))}</button>` : `<button class="btn ghost small" data-cclub="${c.targetId}">✏️ ${esc(t('club_edit'))}</button>`}</div></section>`).join('')}</div>`;
+      box.querySelectorAll('[data-csave]').forEach((b) => b.addEventListener('click', () => act(b, async () => {
+        const id = b.dataset.csave; try { await api('PUT', `/api/admin/complaints/${id}`, { status: $('#cs-' + id).value, comment: $('#cc-' + id).value }); toast(t('saved')); render(); } catch (err) { fail(err); }
+      })));
+      box.querySelectorAll('[data-cedit]').forEach((b) => b.addEventListener('click', async () => { const all = await api('GET', '/api/admin/events'); const e = all.find((x) => String(x.id) === b.dataset.cedit); if (e) editEvent(e); }));
+      box.querySelectorAll('[data-cclub]').forEach((b) => b.addEventListener('click', async () => { const all = await api('GET', '/api/clubs'); const c = all.find((x) => String(x.id) === b.dataset.cclub); if (c) editClub(c); }));
+    },
+    async events(box) {
+      const list = await api('GET', '/api/admin/events');
+      box.innerHTML = `<input id="aq" type="search" placeholder="${esc(t('search_events'))}" aria-label="${esc(t('search_events'))}" value="${esc(S.adminQ || '')}"><section class="card tablewrap" style="margin-top:10px"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_club'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_seats'))}</th><th>${esc(t('f_status'))}</th><th></th></tr></thead><tbody id="arows"></tbody></table></section>`;
+      const draw = () => { const k = (S.adminQ || '').toLowerCase(); $('#arows').innerHTML = list.filter((e) => !k || (L(e, 'title') + ' ' + e.title + ' ' + e.club).toLowerCase().includes(k)).map((e) => `<tr><td data-label="${esc(t('th_event'))}"><span class="cellbox"><b>${esc(L(e, 'title'))}</b><br>${langsOf(e).map((l) => `<span class="pill">${LANGNAME[l]}</span>`).join(' ')}</span></td><td data-label="${esc(t('th_club'))}">${esc(clubName(e))}</td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}</td><td data-label="${esc(t('th_seats'))}">${e.taken}/${e.capacity}</td><td data-label="${esc(t('f_status'))}">${estPill(e.status)}</td><td><button class="btn small" data-eedit="${e.id}">✏️ ${esc(t('ev_edit'))}</button></td></tr>`).join(''); $('#arows').querySelectorAll('[data-eedit]').forEach((b) => b.addEventListener('click', () => editEvent(list.find((x) => String(x.id) === b.dataset.eedit)))); };
+      $('#aq').addEventListener('input', (ev) => { S.adminQ = ev.target.value; draw(); }); draw();
+    },
+    async clubs(box) {
+      const list = await api('GET', '/api/clubs');
+      box.innerHTML = `<div class="row" style="margin-top:0"><button class="btn" id="cadd">＋ ${esc(t('club_add'))}</button></div><section class="card tablewrap" style="margin-top:10px"><table class="stack"><thead><tr><th>${esc(t('f_name'))}</th><th>${esc(t('f_category'))}</th><th>${esc(t('f_room'))}</th><th></th></tr></thead><tbody>${list.map((c) => `<tr><td data-label="${esc(t('f_name'))}"><b>${esc(L(c, 'name'))}</b><br><span class="meta">${esc(t('members_n', { n: c.members }))}</span></td><td data-label="${esc(t('f_category'))}">${esc(t('type_' + c.category))}</td><td data-label="${esc(t('f_room'))}">${esc(L(c, 'room'))}</td><td><button class="btn small" data-cedit="${c.id}">✏️ ${esc(t('club_edit'))}</button></td></tr>`).join('')}</tbody></table></section>`;
+      $('#cadd').addEventListener('click', () => editClub(null));
+      box.querySelectorAll('[data-cedit]').forEach((b) => b.addEventListener('click', () => editClub(list.find((x) => String(x.id) === b.dataset.cedit))));
+    },
+    async users(box) {
+      const clubs = await api('GET', '/api/clubs');
+      const opts = clubs.map((c) => `<option value="${c.id}">${esc(L(c, 'name'))}</option>`).join('');
+      box.innerHTML = `<section class="card" style="margin-bottom:14px"><div class="spread"><span><b>${esc(t('reset_title'))}</b><br><span class="meta">${esc(t('reset_sub'))}</span></span><button class="btn danger small" id="reset">${esc(t('reset_btn'))}</button></div></section>
+        <input id="uq" type="search" placeholder="${esc(t('users_search'))}" aria-label="${esc(t('users_search'))}" value="${esc(S.userQ || '')}"><p class="meta">${esc(t('users_hint'))}</p>
+        <section class="card tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_name'))}</th><th>${esc(t('th_role'))}</th><th>${esc(t('th_club'))}</th><th></th></tr></thead><tbody id="urows"></tbody></table></section>`;
+      $('#reset').addEventListener('click', async (ev) => { const btn = ev.currentTarget; if (!(await confirmBox(t('reset_confirm'), t('reset_btn')))) return; await act(btn, async () => { try { await api('POST', '/api/admin/reset', {}); S.me = null; toast(t('reset_done')); go('signin'); } catch (err) { fail(err); } }); });
+      const load = async () => {
+        const users = await api('GET', '/api/admin/users' + (S.userQ ? '?q=' + encodeURIComponent(S.userQ) : ''));
+        $('#urows').innerHTML = users.map((u) => `<tr data-u="${u.id}"><td data-label="${esc(t('th_name'))}"><span class="cellbox"><input class="n" value="${esc(u.name)}" aria-label="${esc(t('th_name'))}" maxlength="80"><span class="meta">${esc(u.email)}${u.telegram ? ' · ✈️ ' + esc(t('tg_linked')) : ''}</span></span></td><td data-label="${esc(t('th_role'))}"><select class="r" aria-label="${esc(t('th_role'))}" ${u.id === S.me.id ? 'disabled' : ''}>${['student', 'organizer', 'moderator', 'admin'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${esc(t('role_' + r))}</option>`).join('')}</select></td><td data-label="${esc(t('th_club'))}"><select class="c" aria-label="${esc(t('th_club'))}">${opts}</select></td><td><button class="btn small">${esc(t('save'))}</button></td></tr>`).join('');
+        $('#urows').querySelectorAll('tr[data-u]').forEach((row) => {
+          const u = users.find((x) => String(x.id) === row.dataset.u); if (u.clubId) row.querySelector('.c').value = u.clubId;
+          const sync = () => { row.querySelector('.c').disabled = row.querySelector('.r').value !== 'organizer'; }; sync(); row.querySelector('.r').addEventListener('change', sync);
+          row.querySelector('button').addEventListener('click', (ev) => act(ev.currentTarget, async () => { try { await api('PUT', `/api/admin/users/${u.id}`, { name: row.querySelector('.n').value, role: row.querySelector('.r').value, clubId: Number(row.querySelector('.c').value) }); toast(t('saved')); } catch (err) { fail(err); } }));
+        });
+      };
+      $('#uq').addEventListener('input', (ev) => { S.userQ = ev.target.value; clearTimeout(S.uqT); S.uqT = setTimeout(load, 250); });
+      await load();
+    }
+  };
+  // Language tabs for texts in EN / KK / RU (event form and event editor) — FR-39
+  function langFields(prefix, values, opts = {}) {
+    const first = opts.first || S.lang;
+    return `<fieldset class="langbox"><legend>${esc(t('lang_tabs'))}</legend><div class="seg" role="tablist" aria-label="${esc(t('lang_tabs'))}">${['en', 'kk', 'ru'].map((l) => `<button type="button" role="tab" data-ltab="${l}" aria-pressed="${l === first}" aria-selected="${l === first}">${LANGNAME[l]} <span class="lmark" data-lmark="${l}"></span></button>`).join('')}</div>
+      ${['en', 'kk', 'ru'].map((l) => `<div data-lpane="${l}" ${l === first ? '' : 'hidden'}><label for="${prefix}t-${l}">${esc(t('f_title'))} (${LANGNAME[l]})</label><input id="${prefix}t-${l}" maxlength="120" lang="${l}" value="${esc((values[l] || {}).title || '')}">
+        <label for="${prefix}d-${l}">${esc(t('f_desc'))} (${LANGNAME[l]})</label><textarea id="${prefix}d-${l}" rows="4" maxlength="1000" lang="${l}">${esc((values[l] || {}).description || '')}</textarea>
+        <div class="row" style="margin-top:4px">${['en', 'kk', 'ru'].filter((x) => x !== l).map((x) => `<button type="button" class="btn ghost small" data-copy="${x}>${l}">⧉ ${esc(t('copy_from', { lang: LANGNAME[x] }))}</button>`).join('')}</div></div>`).join('')}
+      <p class="meta" style="margin:6px 0 0">${esc(t('lang_hint'))}</p></fieldset>`;
+  }
+  function bindLangFields(root, prefix) {
+    const mark = () => ['en', 'kk', 'ru'].forEach((l) => { const full = $('#' + prefix + 't-' + l, root).value.trim() && $('#' + prefix + 'd-' + l, root).value.trim(); $(`[data-lmark="${l}"]`, root).textContent = full ? '✓' : ''; $(`[data-lmark="${l}"]`, root).setAttribute('aria-label', full ? t('lang_filled') : ''); });
+    const show = (l) => { root.querySelectorAll('[data-ltab]').forEach((b) => { b.setAttribute('aria-pressed', b.dataset.ltab === l); b.setAttribute('aria-selected', b.dataset.ltab === l); }); root.querySelectorAll('[data-lpane]').forEach((p) => { p.hidden = p.dataset.lpane !== l; }); };
+    root.querySelectorAll('[data-ltab]').forEach((b) => b.addEventListener('click', () => show(b.dataset.ltab)));
+    root.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => { const [from, to] = b.dataset.copy.split('>'); ['t', 'd'].forEach((k) => { const src = $('#' + prefix + k + '-' + from, root).value; if (src) $('#' + prefix + k + '-' + to, root).value = src; }); mark(); }));
+    root.querySelectorAll('[data-lpane] input, [data-lpane] textarea').forEach((x) => x.addEventListener('input', mark)); mark();
+    // Collect and check: every started language must be complete; at least one language
+    return {
+      show,
+      read: () => Object.fromEntries(['en', 'kk', 'ru'].map((l) => [l, { title: $('#' + prefix + 't-' + l, root).value.trim(), description: $('#' + prefix + 'd-' + l, root).value.trim() }]).filter(([, v]) => v.title || v.description)),
+      check() {
+        const v = this.read(), ls = Object.keys(v);
+        if (!ls.length) return { field: prefix + 't-' + (root.querySelector('[data-ltab][aria-pressed="true"]') || { dataset: { ltab: 'en' } }).dataset.ltab, msg: t('err_no_language') };
+        for (const l of ls) {
+          if (v[l].title.length < 3 || v[l].title.length > 120) { show(l); return { field: prefix + 't-' + l, msg: t('err_title_lang', { lang: LANGNAME[l] }) }; }
+          if (v[l].description.length < 10) { show(l); return { field: prefix + 'd-' + l, msg: t('err_desc_lang', { lang: LANGNAME[l] }) }; }
+        }
+        return null;
+      }
+    };
+  }
+  const toLocalInput = (iso) => { const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
+  function eventLangValues(e) { const v = {}, i = e.i18n || {}; for (const l of ['en', 'kk', 'ru']) if (i[l] && (i[l].title || i[l].description)) v[l] = { title: i[l].title || '', description: i[l].description || '' }; if (!v.en && !Object.values(i).some((x) => x && x.title === e.title)) v[langsOf(e)[0] || 'en'] = v[langsOf(e)[0] || 'en'] || { title: e.title, description: e.description }; if (!Object.keys(v).length) v.en = { title: e.title, description: e.description }; return v; }
+  function editEvent(e) {
+    const mins = Math.round((new Date(e.endsAt) - new Date(e.startsAt)) / 60000);
+    modal(`<h2>✏️ ${esc(t('ev_edit'))}</h2><p class="meta">#${e.id} · ${esc(clubName(e))} · ${esc(L(e, 'location'))}</p>${langFields('ee', eventLangValues(e))}
+      <div class="spread"><div style="flex:1"><label for="ee-type">${esc(t('f_type'))}</label><select id="ee-type">${TYPESL.map((c) => `<option value="${c}" ${e.type === c ? 'selected' : ''}>${esc(t('type_' + c))}</option>`).join('')}</select></div><div style="flex:1"><label for="ee-st">${esc(t('f_status'))}</label><select id="ee-st">${['pending', 'approved', 'rejected', 'cancelled'].map((st) => `<option value="${st}" ${e.status === st ? 'selected' : ''}>${esc(t('est_' + st))}</option>`).join('')}</select></div></div>
+      <label for="ee-start">${esc(t('f_start'))}</label><input id="ee-start" type="datetime-local" value="${toLocalInput(e.startsAt)}">
+      <div class="spread"><div style="flex:1"><label for="ee-dur">${esc(t('f_duration'))}</label><input id="ee-dur" type="number" min="15" max="720" value="${mins}"></div><div style="flex:1"><label for="ee-cap">${esc(t('f_capacity'))}</label><input id="ee-cap" type="number" min="1" max="500" value="${e.capacity}"></div><div style="flex:1"><label for="ee-coins">${esc(t('f_coins'))}</label><input id="ee-coins" type="number" min="0" max="100" value="${e.coins}"></div></div>
+      <div id="ee-err"></div><div class="row"><button class="btn" id="ee-save">${esc(t('save'))}</button><button class="btn danger" id="ee-del">🗑 ${esc(t('ev_delete'))}</button></div>`, (root, close) => {
+      const lf = bindLangFields(root, 'ee');
+      $('#ee-save', root).addEventListener('click', (ev) => act(ev.currentTarget, async () => {
+        const bad = lf.check(); if (bad) { $('#ee-err', root).innerHTML = `<p class="note bad" role="alert">${esc(bad.msg)}</p>`; $('#' + bad.field, root).focus(); return; }
+        try { await api('PUT', `/api/admin/events/${e.id}`, { i18n: lf.read(), type: $('#ee-type', root).value, status: $('#ee-st', root).value, startsAt: new Date($('#ee-start', root).value).toISOString(), durationMinutes: Number($('#ee-dur', root).value), capacity: Number($('#ee-cap', root).value), coins: Number($('#ee-coins', root).value) }); close(); toast(t('saved')); render(); }
+        catch (err) { $('#ee-err', root).innerHTML = `<p class="note bad" role="alert">${esc(err.message)}</p>`; }
+      }));
+      $('#ee-del', root).addEventListener('click', async () => { close(); if (!(await confirmBox(t('ev_delete_confirm'), t('ev_delete')))) return; try { await api('DELETE', `/api/admin/events/${e.id}`); toast(t('deleted')); render(); } catch (err) { fail(err); } });
+    });
+  }
+  function editClub(c) {
+    const i = (c && c.i18n) || {};
+    const tr = (l) => `<details style="margin-top:8px"><summary>${LANGNAME[l]}</summary><label for="cl-${l}-name">${esc(t('f_name'))} (${LANGNAME[l]})</label><input id="cl-${l}-name" lang="${l}" value="${esc((i[l] || {}).name || '')}"><label for="cl-${l}-room">${esc(t('f_room'))} (${LANGNAME[l]})</label><input id="cl-${l}-room" lang="${l}" value="${esc((i[l] || {}).room || '')}"><label for="cl-${l}-desc">${esc(t('f_desc_club'))} (${LANGNAME[l]})</label><textarea id="cl-${l}-desc" lang="${l}" rows="3">${esc((i[l] || {}).description || '')}</textarea></details>`;
+    modal(`<h2>${esc(t(c ? 'club_edit' : 'club_add'))}</h2><label for="cl-name">${esc(t('f_name'))} (EN)</label><input id="cl-name" maxlength="80" value="${esc(c ? c.name : '')}">
+      <label for="cl-cat">${esc(t('f_category'))}</label><select id="cl-cat">${TYPESL.map((x) => `<option value="${x}" ${c && c.category === x ? 'selected' : ''}>${esc(t('type_' + x))}</option>`).join('')}</select>
+      <label for="cl-room">${esc(t('f_room'))} (EN)</label><input id="cl-room" maxlength="120" value="${esc(c ? c.room : '')}"><label for="cl-desc">${esc(t('f_desc_club'))} (EN)</label><textarea id="cl-desc" rows="3" maxlength="1000">${esc(c ? c.description : '')}</textarea>
+      <h3 style="margin:14px 0 0;font-size:15px">${esc(t('translations'))}</h3>${tr('kk')}${tr('ru')}<div id="cl-err"></div><div class="row"><button class="btn" id="cl-save">${esc(t('save'))}</button></div>`, (root, close) => {
+      $('#cl-save', root).addEventListener('click', (ev) => act(ev.currentTarget, async () => {
+        const body = { name: $('#cl-name', root).value, category: $('#cl-cat', root).value, room: $('#cl-room', root).value, description: $('#cl-desc', root).value, i18n: Object.fromEntries(['kk', 'ru'].map((l) => [l, { name: $(`#cl-${l}-name`, root).value, room: $(`#cl-${l}-room`, root).value, description: $(`#cl-${l}-desc`, root).value }])) };
+        try { await api(c ? 'PUT' : 'POST', c ? `/api/admin/clubs/${c.id}` : '/api/admin/clubs', body); close(); toast(t('saved')); render(); }
+        catch (err) { $('#cl-err', root).innerHTML = `<p class="note bad" role="alert">${esc(err.message)}</p>`; }
+      }));
+    });
+  }
 
   render();
 })();

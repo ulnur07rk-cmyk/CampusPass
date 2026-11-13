@@ -10,6 +10,7 @@ const PUBLIC = path.join(__dirname, '..', 'public');
 const SEED = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8'));
 const ACCOUNTS = SEED.accounts, ROOMS = SEED.rooms, VENUES = SEED.venues, CAMPUS = SEED.campus;
 const { availability } = require('./rooms');
+const bot = require('./bot');
 // Place of an event: a room on the campus floor plans or a venue in the city (F3, F22)
 function placeOf(e) {
   const r = e.room_code && ROOMS.find((x) => x.code === e.room_code);
@@ -20,6 +21,12 @@ function placeOf(e) {
 }
 const parse = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
 const TYPES = ['sports', 'creative', 'tech', 'intellectual', 'social'];
+const LANGS = ['en', 'kk', 'ru'];
+// Roles: student, organizer (one club), moderator (Student Affairs: moderation, statistics), admin (everything, complaints)
+const ROLES = ['student', 'organizer', 'moderator', 'admin'];
+const STAFF = ['moderator', 'admin'];
+const REASONS = ['wrong_info', 'spam', 'offensive', 'safety', 'other'];
+const C_STATUS = ['new', 'in_review', 'resolved', 'rejected'];
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json' };
 
 class HttpError extends Error { constructor(status, code, message) { super(message); this.status = status; this.code = code; } }
@@ -31,10 +38,18 @@ function createApp(db, opts = {}) {
   const q = (sql) => db.prepare(sql);
   const tg = opts.telegram || { enabled: false, send: async () => false, botName: async () => null };
   // Every notification goes to the in-app inbox; reminders with the Telegram channel are also sent to the real Telegram chat
-  const notify = (userId, channel, text) => {
+  const siteUrl = () => process.env.SITE_URL || '';
+  const notify = (userId, channel, text, tgMsg) => {
     q('INSERT INTO notifications (user_id, channel, text, created_at) VALUES (?,?,?,?)').run(userId, channel, text, iso(now()));
-    if (channel === 'telegram' && tg.enabled) { const u = q('SELECT telegram_chat_id FROM users WHERE id = ?').get(userId); if (u && u.telegram_chat_id) tg.send(u.telegram_chat_id, '🔔 CampusPass: ' + text); }
+    if (channel === 'telegram' && tg.enabled) { const u = q('SELECT telegram_chat_id FROM users WHERE id = ?').get(userId); if (u && u.telegram_chat_id) tg.send(u.telegram_chat_id, tgMsg ? tgMsg.text : '🔔 CampusPass: ' + text, tgMsg && tgMsg.reply_markup); }
   };
+  // In-app message and, if the person linked Telegram, the same alert in Telegram (used for complaints)
+  const alert = (userId, text, tgMsgFor) => {
+    q('INSERT INTO notifications (user_id, channel, text, created_at) VALUES (?,?,?,?)').run(userId, 'app', text, iso(now()));
+    const u = q('SELECT telegram_chat_id, lang FROM users WHERE id = ?').get(userId);
+    if (tg.enabled && u && u.telegram_chat_id && tgMsgFor) { const m = tgMsgFor(chatLang(u.telegram_chat_id) || u.lang); tg.send(u.telegram_chat_id, m.text, m.reply_markup); }
+  };
+  const chatLang = (chatId) => { const r = q('SELECT lang FROM telegram_chats WHERE chat_id = ?').get(String(chatId)); return r ? r.lang : null; };
   const newTicket = () => 'CP-' + crypto.randomBytes(5).toString('hex').toUpperCase();
 
   // ---------- helpers ----------
@@ -52,7 +67,7 @@ function createApp(db, opts = {}) {
   const str = (v, name, min, max) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < min || s.length > max) fail(400, 'invalid_' + name, `${name[0].toUpperCase() + name.slice(1)} must be ${min}–${max} characters.`); return s; };
   const eventRow = (id) => { const e = q('SELECT * FROM events WHERE id = ?').get(id); if (!e) fail(404, 'event_not_found', 'Event not found.'); return e; };
   const taken = (eid) => q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status IN ('confirmed','checked_in')").get(eid).n;
-  const canManage = (u, e) => u.role === 'admin' || (u.role === 'organizer' && u.club_id === e.club_id);
+  const canManage = (u, e) => STAFF.includes(u.role) || (u.role === 'organizer' && u.club_id === e.club_id);
   const balance = (uid) => q('SELECT COALESCE(SUM(amount),0) AS b FROM coin_transactions WHERE user_id = ?').get(uid).b;
 
   function eventView(e, u) {
@@ -72,6 +87,24 @@ function createApp(db, opts = {}) {
       }
     }
     return out;
+  }
+
+  // FR-39 Texts of an event in EN / KK / RU. At least one language with a title (3–120) and a description (10–1000);
+  // every language that is started must be complete. The first filled language (EN, then KK, then RU) is the base text.
+  function eventTexts(body, room, venue) {
+    const src = body.i18n && typeof body.i18n === 'object' ? body.i18n : { en: { title: body.title, description: body.description } };
+    const i18n = {}, languages = [];
+    for (const l of LANGS) {
+      const x = src[l] || {}, title = typeof x.title === 'string' ? x.title.trim() : '', description = typeof x.description === 'string' ? x.description.trim() : '';
+      if (!title && !description) continue;
+      if (title.length < 3 || title.length > 120) fail(400, 'invalid_title', `Title (${l.toUpperCase()}) must be 3–120 characters.`);
+      if (description.length < 10 || description.length > 1000) fail(400, 'invalid_description', `Description (${l.toUpperCase()}) must be 10–1000 characters.`);
+      const place = room || venue, placeName = place ? (l !== 'en' && place.i18n && place.i18n[l] && place.i18n[l].name) || place.name : '';
+      i18n[l] = { title, description, location: placeName }; languages.push(l);
+    }
+    if (!languages.length) fail(400, 'invalid_title', 'Write the title and the description in at least one language.');
+    const base = i18n[languages[0]];
+    return { title: base.title, description: base.description, location: (room || venue).name, i18n, languages };
   }
 
   // ---------- routes ----------
@@ -124,10 +157,10 @@ function createApp(db, opts = {}) {
   });
 
   // FR-04 Register (confirmed + ticket) / FR-05 waitlist when full / FR-07 no duplicates
-  route('POST', '/api/events/:id/register', ({ user, params }) => {
-    need(user, 'student');
+  route('POST', '/api/events/:id/register', ({ user, params }) => { need(user, 'student'); return registerStudent(user, int(params.id)); });
+  function registerStudent(user, eventId) {
     return tx(db, () => {
-      const e = eventRow(int(params.id));
+      const e = eventRow(eventId);
       if (e.status !== 'approved') fail(409, 'not_open', 'Registration is not open for this event.');
       if (e.starts_at <= iso(now())) fail(409, 'already_started', 'The event has already started.');
       const r = q('SELECT * FROM registrations WHERE event_id = ? AND user_id = ?').get(e.id, user.id);
@@ -139,7 +172,7 @@ function createApp(db, opts = {}) {
       notify(user.id, 'email', status === 'confirmed' ? `Registration confirmed: ${e.title}. Ticket ${code}.` : `You joined the waitlist for ${e.title}.`);
       return eventView(e, user);
     });
-  });
+  }
 
   // FR-06 Cancel before start; the first waitlisted student gets the seat
   route('DELETE', '/api/events/:id/registration', ({ user, params }) => {
@@ -243,18 +276,18 @@ function createApp(db, opts = {}) {
   // F21, F22 Campus, rooms and city venues for the map; free rooms for organizers and the moderator
   route('GET', '/api/places', ({ user }) => { need(user); return { campus: CAMPUS, rooms: ROOMS, venues: VENUES }; });
   route('GET', '/api/rooms/availability', ({ user, query }) => {
-    need(user, 'organizer', 'admin');
+    need(user, 'organizer', ...STAFF);
     const start = new Date(query.start); if (isNaN(start)) fail(400, 'invalid_start', 'Enter a valid date and time.');
     const minutes = Math.min(720, Math.max(15, Number(query.minutes) || 120)), end = new Date(start.getTime() + minutes * 60000);
     const evs = q("SELECT id, title, room_code, status, starts_at, ends_at FROM events WHERE room_code IS NOT NULL").all();
     return ROOMS.map((r) => ({ ...r, ...availability(r, ROOMS, start, end, evs) }));
   });
+  // FR-11, FR-39 Organizer submits an event in one, two or three languages (EN / KK / RU); the moderator reviews it
   route('POST', '/api/events', ({ user, body }) => {
     need(user, 'organizer', 'admin');
-    const title = str(body.title, 'title', 3, 120), description = str(body.description, 'description', 10, 1000);
     const room = body.roomCode ? ROOMS.find((x) => x.code === body.roomCode) : null, venue = body.venueId ? VENUES.find((x) => x.id === body.venueId) : null;
     if (!room && !venue) fail(400, 'place_required', 'Choose a free room on campus or a place in the city.');
-    const location = room ? room.name : venue.name;
+    const texts = eventTexts(body, room, venue);
     if (!TYPES.includes(body.type)) fail(400, 'invalid_type', 'Choose an event type.');
     const start = new Date(body.startsAt); if (isNaN(start)) fail(400, 'invalid_start', 'Enter a valid date and time.');
     if (start <= now()) fail(400, 'start_in_past', 'The event must start in the future.');
@@ -263,24 +296,25 @@ function createApp(db, opts = {}) {
     if (room && capacity > room.capacity) fail(400, 'room_too_small', `This room has ${room.capacity} seats.`);
     if (room) { const a = availability(room, ROOMS, start, new Date(start.getTime() + minutes * 60000), q("SELECT id, title, room_code, status, starts_at, ends_at FROM events WHERE room_code IS NOT NULL").all()); if (!a.free) fail(409, 'room_busy', 'The room is not free at this time.'); }
     const clubId = user.role === 'admin' ? int(body.clubId) : user.club_id;
-    const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, room_code, venue) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?, ?, ?)`)
-      .run(title, description, clubId, location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, 20, user.id, iso(now()), room ? room.code : null, venue ? venue.id : null).lastInsertRowid;
-    for (const a of q("SELECT id FROM users WHERE role = 'admin'").all()) notify(a.id, 'app', `New event waiting for review: ${title}.`);
-    return { id, status: 'pending' };
+    if (user.role === 'admin' && !q('SELECT 1 FROM clubs WHERE id = ?').get(clubId)) fail(404, 'club_not_found', 'Club not found.');
+    const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, room_code, venue, i18n) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?, ?, ?, ?)`)
+      .run(texts.title, texts.description, clubId, texts.location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, 20, user.id, iso(now()), room ? room.code : null, venue ? venue.id : null, JSON.stringify(texts.i18n)).lastInsertRowid;
+    for (const a of q("SELECT id FROM users WHERE role IN ('moderator','admin')").all()) notify(a.id, 'app', `New event waiting for review: ${texts.title}.`);
+    return { id, status: 'pending', languages: texts.languages };
   });
   route('GET', '/api/organizer/events', ({ user }) => {
-    need(user, 'organizer', 'admin');
-    const rows = user.role === 'admin' ? q('SELECT * FROM events ORDER BY starts_at').all() : q('SELECT * FROM events WHERE club_id = ? ORDER BY starts_at').all(user.club_id);
+    need(user, 'organizer', ...STAFF);
+    const rows = STAFF.includes(user.role) ? q('SELECT * FROM events ORDER BY starts_at').all() : q('SELECT * FROM events WHERE club_id = ? ORDER BY starts_at').all(user.club_id);
     return rows.map((e) => ({ ...eventView(e, null), comment: e.moderation_comment }));
   });
 
-  // FR-14, FR-15 Participants and check-in (organizer of the club or admin)
+  // FR-14, FR-15 Participants and check-in (organizer of the club, moderator or admin)
   route('GET', '/api/events/:id/participants', ({ user, params }) => {
-    need(user, 'organizer', 'admin'); const e = eventRow(int(params.id)); if (!canManage(user, e)) fail(403, 'forbidden', 'You can manage only your club\'s events.');
+    need(user, 'organizer', ...STAFF); const e = eventRow(int(params.id)); if (!canManage(user, e)) fail(403, 'forbidden', 'You can manage only your club\'s events.');
     return q("SELECT r.id, r.status, r.checkin_method AS method, u.name, u.student_id AS studentId FROM registrations r JOIN users u ON u.id = r.user_id WHERE r.event_id = ? AND r.status IN ('confirmed','checked_in') ORDER BY u.name").all(e.id);
   });
   route('POST', '/api/checkin', ({ user, body }) => {
-    need(user, 'organizer', 'admin');
+    need(user, 'organizer', ...STAFF);
     return tx(db, () => {
       const e = eventRow(int(body.eventId)); if (!canManage(user, e)) fail(403, 'forbidden', 'You can check in only at your club\'s events.');
       const t = now();
@@ -298,10 +332,10 @@ function createApp(db, opts = {}) {
     });
   });
 
-  // FR-12 Moderation of events (admin = Student Affairs moderator)
-  route('GET', '/api/admin/pending-events', ({ user }) => { need(user, 'admin'); return q("SELECT * FROM events WHERE status = 'pending' ORDER BY starts_at").all().map((e) => eventView(e, null)); });
+  // FR-12 Moderation of events (moderator = Student Affairs; the administrator can do it too)
+  route('GET', '/api/admin/pending-events', ({ user }) => { need(user, ...STAFF); return q("SELECT * FROM events WHERE status = 'pending' ORDER BY starts_at").all().map((e) => eventView(e, null)); });
   route('POST', '/api/admin/events/:id/decision', ({ user, params, body }) => {
-    need(user, 'admin'); const e = eventRow(int(params.id));
+    need(user, ...STAFF); const e = eventRow(int(params.id));
     if (e.status !== 'pending') fail(409, 'not_pending', 'This event is not waiting for review.');
     if (!['approve', 'reject'].includes(body.decision)) fail(400, 'invalid_decision', 'Decision must be approve or reject.');
     const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
@@ -315,9 +349,9 @@ function createApp(db, opts = {}) {
     return { id: e.id, status };
   });
   // FR-13 Club join requests
-  route('GET', '/api/admin/club-requests', ({ user }) => { need(user, 'admin'); return q("SELECT m.user_id AS userId, m.club_id AS clubId, m.message, m.created_at AS createdAt, u.name, u.student_id AS studentId, c.name AS club, c.i18n AS clubI18n FROM memberships m JOIN users u ON u.id = m.user_id JOIN clubs c ON c.id = m.club_id WHERE m.status = 'pending' ORDER BY m.created_at").all().map((r) => ({ ...r, clubI18n: parse(r.clubI18n) })); });
+  route('GET', '/api/admin/club-requests', ({ user }) => { need(user, ...STAFF); return q("SELECT m.user_id AS userId, m.club_id AS clubId, m.message, m.created_at AS createdAt, u.name, u.student_id AS studentId, c.name AS club, c.i18n AS clubI18n FROM memberships m JOIN users u ON u.id = m.user_id JOIN clubs c ON c.id = m.club_id WHERE m.status = 'pending' ORDER BY m.created_at").all().map((r) => ({ ...r, clubI18n: parse(r.clubI18n) })); });
   route('POST', '/api/admin/club-requests/decision', ({ user, body }) => {
-    need(user, 'admin'); const uid = int(body.userId), cid = int(body.clubId);
+    need(user, ...STAFF); const uid = int(body.userId), cid = int(body.clubId);
     if (!['accept', 'decline'].includes(body.decision)) fail(400, 'invalid_decision', 'Decision must be accept or decline.');
     const m = q("SELECT 1 FROM memberships WHERE user_id = ? AND club_id = ? AND status = 'pending'").get(uid, cid); if (!m) fail(404, 'request_not_found', 'Request not found.');
     const status = body.decision === 'accept' ? 'accepted' : 'declined';
@@ -328,7 +362,7 @@ function createApp(db, opts = {}) {
   });
   // FR-18 Statistics
   route('GET', '/api/admin/stats', ({ user }) => {
-    need(user, 'admin');
+    need(user, ...STAFF);
     const events = q("SELECT * FROM events WHERE status = 'approved' ORDER BY starts_at").all().map((e) => {
       const v = eventView(e, null);
       const checked = q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'checked_in'").get(e.id).n;
@@ -337,18 +371,108 @@ function createApp(db, opts = {}) {
     });
     const clubs = q('SELECT category, COUNT(*) AS n FROM clubs GROUP BY category').all();
     const pending = q("SELECT COUNT(*) AS n FROM events WHERE status = 'pending'").get().n + q("SELECT COUNT(*) AS n FROM memberships WHERE status = 'pending'").get().n;
-    return { totals: { clubs: clubs.reduce((a, c) => a + c.n, 0), approvedEvents: events.length, registrations: events.reduce((a, e) => a + e.registered, 0), pending }, clubsByCategory: clubs, events };
+    const complaints = q("SELECT COUNT(*) AS n FROM complaints WHERE status IN ('new','in_review')").get().n;
+    return { totals: { clubs: clubs.reduce((a, c) => a + c.n, 0), approvedEvents: events.length, registrations: events.reduce((a, e) => a + e.registered, 0), pending, complaints }, clubsByCategory: clubs, events };
   });
-  // FR-20 Role management
-  route('GET', '/api/admin/users', ({ user }) => { need(user, 'admin'); return q("SELECT u.id, u.name, u.email, u.role, c.name AS club FROM users u LEFT JOIN clubs c ON c.id = u.club_id WHERE u.email NOT GLOB 's[0-9][0-9][0-9]@test.local' ORDER BY u.role, u.name").all(); });
-  route('PUT', '/api/admin/users/:id/role', ({ user, params, body }) => {
-    need(user, 'admin'); const id = int(params.id);
-    if (id === user.id) fail(409, 'own_role', 'You cannot change your own role.');
-    if (!['student', 'organizer', 'admin'].includes(body.role)) fail(400, 'invalid_role', 'Role must be student, organizer or admin.');
-    const clubId = body.role === 'organizer' ? int(body.clubId) : null;
-    const r = q('UPDATE users SET role = ?, club_id = ? WHERE id = ?').run(body.role, clubId, id); if (!r.changes) fail(404, 'user_not_found', 'User not found.');
-    q('DELETE FROM sessions WHERE user_id = ?').run(id); // new rights apply at next sign-in
-    return { id, role: body.role, clubId };
+  // FR-20, FR-42 Administrator: users and roles (search over all accounts; the 120 seat-filling students are hidden unless searched)
+  route('GET', '/api/admin/users', ({ user, query }) => {
+    need(user, 'admin'); const k = String(query.q || '').trim().toLowerCase();
+    const rows = q("SELECT u.id, u.name, u.email, u.role, u.club_id AS clubId, u.student_id AS studentId, u.group_name AS grp, c.name AS club, (u.telegram_chat_id IS NOT NULL) AS telegram FROM users u LEFT JOIN clubs c ON c.id = u.club_id ORDER BY CASE u.role WHEN 'admin' THEN 0 WHEN 'moderator' THEN 1 WHEN 'organizer' THEN 2 ELSE 3 END, u.name").all();
+    return (k ? rows.filter((u) => (u.name + ' ' + u.email + ' ' + (u.studentId || '')).toLowerCase().includes(k)).slice(0, 50) : rows.filter((u) => !/^s\d{3}@test\.local$/.test(u.email))).map((u) => ({ ...u, telegram: !!u.telegram }));
+  });
+  function setUser(user, id, body) {
+    const x = q('SELECT * FROM users WHERE id = ?').get(id); if (!x) fail(404, 'user_not_found', 'User not found.');
+    const role = body.role === undefined ? x.role : body.role;
+    if (!ROLES.includes(role)) fail(400, 'invalid_role', 'Role must be student, organizer, moderator or admin.');
+    if (id === user.id && role !== x.role) fail(409, 'own_role', 'You cannot change your own role.');
+    const name = body.name === undefined ? x.name : str(body.name, 'name', 2, 80);
+    const clubId = role === 'organizer' ? int(body.clubId === undefined ? x.club_id : body.clubId) : null;
+    if (clubId && !q('SELECT 1 FROM clubs WHERE id = ?').get(clubId)) fail(404, 'club_not_found', 'Club not found.');
+    q('UPDATE users SET role = ?, club_id = ?, name = ? WHERE id = ?').run(role, clubId, name, id);
+    if (role !== x.role || clubId !== x.club_id) q('DELETE FROM sessions WHERE user_id = ?').run(id); // new rights apply at next sign-in
+    return { id, role, clubId, name };
+  }
+  route('PUT', '/api/admin/users/:id/role', ({ user, params, body }) => { need(user, 'admin'); return setUser(user, int(params.id), { role: body.role, clubId: body.clubId }); });
+  route('PUT', '/api/admin/users/:id', ({ user, params, body }) => { need(user, 'admin'); return setUser(user, int(params.id), body); });
+
+  // FR-41 Administrator edits any event: texts in three languages, type, time, seats, coins, status
+  route('GET', '/api/admin/events', ({ user }) => { need(user, 'admin'); return q('SELECT * FROM events ORDER BY starts_at DESC').all().map((e) => ({ ...eventView(e, null), comment: e.moderation_comment, roomCode: e.room_code, venueId: e.venue })); });
+  route('PUT', '/api/admin/events/:id', ({ user, params, body }) => {
+    need(user, 'admin');
+    return tx(db, () => {
+      const e = eventRow(int(params.id));
+      const room = e.room_code ? ROOMS.find((x) => x.code === e.room_code) : null, venue = e.venue ? VENUES.find((x) => x.id === e.venue) : null;
+      const texts = body.i18n ? eventTexts(body, room, venue) : null;
+      const type = body.type === undefined ? e.type : body.type; if (!TYPES.includes(type)) fail(400, 'invalid_type', 'Choose an event type.');
+      const start = body.startsAt === undefined ? new Date(e.starts_at) : new Date(body.startsAt); if (isNaN(start)) fail(400, 'invalid_start', 'Enter a valid date and time.');
+      const minutes = body.durationMinutes === undefined ? (new Date(e.ends_at) - new Date(e.starts_at)) / 60000 : Number(body.durationMinutes);
+      if (!(minutes >= 15 && minutes <= 720)) fail(400, 'invalid_duration', 'Duration must be 15–720 minutes.');
+      const capacity = body.capacity === undefined ? e.capacity : Number(body.capacity); if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) fail(400, 'invalid_capacity', 'Seats must be 1–500.');
+      const coins = body.coins === undefined ? e.coins : Number(body.coins); if (!Number.isInteger(coins) || coins < 0 || coins > 100) fail(400, 'invalid_coins', 'Coins must be 0–100.');
+      const status = body.status === undefined ? e.status : body.status; if (!['pending', 'approved', 'rejected', 'cancelled'].includes(status)) fail(400, 'invalid_status', 'Unknown status.');
+      q('UPDATE events SET title = ?, description = ?, i18n = ?, type = ?, starts_at = ?, ends_at = ?, capacity = ?, coins = ?, status = ? WHERE id = ?')
+        .run(texts ? texts.title : e.title, texts ? texts.description : e.description, texts ? JSON.stringify(texts.i18n) : e.i18n, type, iso(start), iso(start.getTime() + minutes * 60000), capacity, coins, status, e.id);
+      if (status === 'cancelled' && e.status !== 'cancelled') for (const r of q("SELECT user_id FROM registrations WHERE event_id = ? AND status IN ('confirmed','waitlisted')").all(e.id)) notify(r.user_id, 'app', `The event "${e.title}" was cancelled.`);
+      return { ...eventView(eventRow(e.id), null), comment: e.moderation_comment };
+    });
+  });
+  route('DELETE', '/api/admin/events/:id', ({ user, params }) => {
+    need(user, 'admin'); const e = eventRow(int(params.id));
+    tx(db, () => { q('DELETE FROM feedback WHERE event_id = ?').run(e.id); q('UPDATE coin_transactions SET event_id = NULL WHERE event_id = ?').run(e.id); q('DELETE FROM registrations WHERE event_id = ?').run(e.id); q("DELETE FROM complaints WHERE target_type = 'event' AND target_id = ?").run(e.id); q('DELETE FROM events WHERE id = ?').run(e.id); });
+    return { deleted: e.id };
+  });
+  // FR-42 Administrator edits clubs (name, category, room, description; texts in KK / RU are optional)
+  function clubFields(body, old) {
+    const name = str(body.name === undefined ? old.name : body.name, 'name', 2, 80);
+    const category = body.category === undefined ? old.category : body.category; if (!TYPES.includes(category)) fail(400, 'invalid_type', 'Choose a category.');
+    const room = str(body.room === undefined ? old.room : body.room, 'room', 2, 120), description = str(body.description === undefined ? old.description : body.description, 'description', 10, 1000);
+    let i18n = old.i18n ? parse(old.i18n) || {} : {};
+    if (body.i18n && typeof body.i18n === 'object') { i18n = {}; for (const l of ['kk', 'ru']) { const x = body.i18n[l] || {}; const v = Object.fromEntries(['name', 'room', 'description'].map((f) => [f, typeof x[f] === 'string' ? x[f].trim().slice(0, 1000) : '']).filter(([, val]) => val)); if (Object.keys(v).length) i18n[l] = v; } }
+    return { name, category, room, description, i18n: JSON.stringify(i18n) };
+  }
+  route('POST', '/api/admin/clubs', ({ user, body }) => {
+    need(user, 'admin'); const f = clubFields(body, {});
+    if (q('SELECT 1 FROM clubs WHERE name = ?').get(f.name)) fail(409, 'club_exists', 'A club with this name already exists.');
+    const id = q('INSERT INTO clubs (name, category, room, icon, description, i18n) VALUES (?,?,?,?,?,?)').run(f.name, f.category, f.room, null, f.description, f.i18n).lastInsertRowid;
+    return { id, ...f, i18n: parse(f.i18n) };
+  });
+  route('PUT', '/api/admin/clubs/:id', ({ user, params, body }) => {
+    need(user, 'admin'); const id = int(params.id), old = q('SELECT * FROM clubs WHERE id = ?').get(id); if (!old) fail(404, 'club_not_found', 'Club not found.');
+    const f = clubFields(body, old);
+    if (f.name !== old.name && q('SELECT 1 FROM clubs WHERE name = ?').get(f.name)) fail(409, 'club_exists', 'A club with this name already exists.');
+    q('UPDATE clubs SET name = ?, category = ?, room = ?, description = ?, i18n = ? WHERE id = ?').run(f.name, f.category, f.room, f.description, f.i18n, id);
+    return { id, ...f, i18n: parse(f.i18n) };
+  });
+
+  // FR-43 … FR-45 Complaints: any signed-in user reports an event or a club; administrators get it in the inbox and in Telegram
+  const targetTitle = (type, id) => { const r = type === 'event' ? q('SELECT title AS t FROM events WHERE id = ?').get(id) : q('SELECT name AS t FROM clubs WHERE id = ?').get(id); return r ? r.t : null; };
+  route('POST', '/api/complaints', ({ user, body }) => {
+    need(user);
+    if (!['event', 'club'].includes(body.targetType)) fail(400, 'invalid_target', 'Choose an event or a club.');
+    const targetId = int(body.targetId), title = targetTitle(body.targetType, targetId); if (!title) fail(404, body.targetType === 'event' ? 'event_not_found' : 'club_not_found', 'Not found.');
+    if (!REASONS.includes(body.reason)) fail(400, 'invalid_reason', 'Choose a reason.');
+    const text = str(body.text, 'complaint', 5, 500);
+    if (q("SELECT 1 FROM complaints WHERE user_id = ? AND target_type = ? AND target_id = ? AND status IN ('new','in_review')").get(user.id, body.targetType, targetId)) fail(409, 'already_complained', 'You already reported this. The administrator is looking at it.');
+    const t = iso(now());
+    const id = q("INSERT INTO complaints (user_id, target_type, target_id, reason, text, status, created_at, updated_at) VALUES (?,?,?,?,?, 'new', ?, ?)").run(user.id, body.targetType, targetId, body.reason, text, t, t).lastInsertRowid;
+    const c = { id, targetType: body.targetType, targetTitle: title, reason: body.reason, fromName: user.name, text };
+    for (const a of q("SELECT id FROM users WHERE role = 'admin'").all()) alert(a.id, `New complaint #${id} about ${body.targetType} "${title}": ${text}`, (lang) => bot.complaintAlert(lang, c, siteUrl()));
+    return { id, status: 'new' };
+  });
+  route('GET', '/api/me/complaints', ({ user }) => { need(user); return q('SELECT id, target_type AS targetType, target_id AS targetId, reason, text, status, admin_comment AS comment, created_at AS createdAt, updated_at AS updatedAt FROM complaints WHERE user_id = ? ORDER BY id DESC').all(user.id).map((c) => ({ ...c, targetTitle: targetTitle(c.targetType, c.targetId) })); });
+  route('GET', '/api/admin/complaints', ({ user }) => {
+    need(user, 'admin');
+    return q("SELECT c.id, c.target_type AS targetType, c.target_id AS targetId, c.reason, c.text, c.status, c.admin_comment AS comment, c.created_at AS createdAt, c.updated_at AS updatedAt, u.name AS fromName, u.email AS fromEmail, h.name AS handledBy FROM complaints c JOIN users u ON u.id = c.user_id LEFT JOIN users h ON h.id = c.handled_by ORDER BY CASE c.status WHEN 'new' THEN 0 WHEN 'in_review' THEN 1 ELSE 2 END, c.id DESC").all()
+      .map((c) => ({ ...c, targetTitle: targetTitle(c.targetType, c.targetId) }));
+  });
+  route('PUT', '/api/admin/complaints/:id', ({ user, params, body }) => {
+    need(user, 'admin'); const c = q('SELECT * FROM complaints WHERE id = ?').get(int(params.id)); if (!c) fail(404, 'complaint_not_found', 'Complaint not found.');
+    if (!C_STATUS.includes(body.status) || body.status === 'new') fail(400, 'invalid_status', 'Status must be in_review, resolved or rejected.');
+    const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
+    if (['resolved', 'rejected'].includes(body.status) && comment.length < 5) fail(400, 'answer_required', 'Write a short answer to the person (at least 5 characters).');
+    q('UPDATE complaints SET status = ?, admin_comment = ?, handled_by = ?, updated_at = ? WHERE id = ?').run(body.status, comment || c.admin_comment, user.id, iso(now()), c.id);
+    notify(c.user_id, 'app', `Your complaint #${c.id} is now: ${body.status.replace('_', ' ')}.${comment ? ' Answer: ' + comment : ''}`);
+    return { id: c.id, status: body.status };
   });
 
   // Reset all data to the fictional test data (moderator only; used between usability-test sessions)
@@ -378,6 +502,7 @@ function createApp(db, opts = {}) {
   // Called by the bot when a student presses Start with the one-time code
   const linkTelegram = (code, chatId) => {
     const u = q('SELECT id, name FROM users WHERE telegram_code = ?').get(code); if (!u) return null;
+    q('UPDATE users SET telegram_chat_id = NULL WHERE telegram_chat_id = ?').run(chatId); // one chat — one account
     q('UPDATE users SET telegram_chat_id = ?, telegram_code = NULL WHERE id = ?').run(chatId, u.id); return u.name;
   };
   // Database overview for the moderator (shown at the defense): tables, columns, links and row counts; secrets are masked
@@ -403,8 +528,10 @@ function createApp(db, opts = {}) {
     let sent = 0;
     for (const r of rows) {
       const mins = (new Date(r.starts_at) - t) / 60000;
-      if (r.remind_day && !r.day_sent && mins <= 24 * 60) { notify(r.user_id, r.reminder_channel, `Reminder: ${r.title} starts in less than a day.`); q('UPDATE registrations SET day_sent = 1 WHERE id = ?').run(r.id); sent++; }
-      if (r.remind_hour && !r.hour_sent && mins <= 60) { notify(r.user_id, r.reminder_channel, `Reminder: ${r.title} starts in less than an hour.`); q('UPDATE registrations SET hour_sent = 1 WHERE id = ?').run(r.id); sent++; }
+      const tgMsg = (kind) => { if (r.reminder_channel !== 'telegram') return undefined; const u = q('SELECT lang, telegram_chat_id FROM users WHERE id = ?').get(r.user_id); return bot.reminder((u && chatLang(u.telegram_chat_id)) || (u && u.lang), eventView(eventRow(r.event_id), null), kind, siteUrl()); };
+      const hourDue = r.remind_hour && !r.hour_sent && mins <= 60;
+      if (r.remind_day && !r.day_sent && mins <= 24 * 60) { if (!hourDue) { notify(r.user_id, r.reminder_channel, `Reminder: ${r.title} starts in less than a day.`, tgMsg('day')); sent++; } q('UPDATE registrations SET day_sent = 1 WHERE id = ?').run(r.id); } // close to the start only the 1-hour reminder is sent
+      if (hourDue) { notify(r.user_id, r.reminder_channel, `Reminder: ${r.title} starts in less than an hour.`, tgMsg('hour')); q('UPDATE registrations SET hour_sent = 1 WHERE id = ?').run(r.id); sent++; }
     }
     return sent;
   }
@@ -448,8 +575,22 @@ function createApp(db, opts = {}) {
       res.end(JSON.stringify({ error: { code: e.code || 'server_error', message: status === 500 ? 'Something went wrong. Please try again.' : e.message } }));
     }
   }
+  // Data adapter for the Telegram bot (server/bot.js): the same rules as the website
+  const regUser = (id) => q('SELECT id, name, role, lang, club_id FROM users WHERE id = ?').get(id);
+  const botApi = {
+    chatInfo: (chatId) => { const u = q('SELECT id, name, role, lang FROM users WHERE telegram_chat_id = ?').get(String(chatId)); return { lang: chatLang(chatId), user: u || null }; },
+    setChatLang: (chatId, lang) => { if (!LANGS.includes(lang)) return; q('INSERT INTO telegram_chats (chat_id, lang, updated_at) VALUES (?,?,?) ON CONFLICT(chat_id) DO UPDATE SET lang = excluded.lang, updated_at = excluded.updated_at').run(String(chatId), lang, iso(now())); },
+    link: (code, chatId) => linkTelegram(code, String(chatId)),
+    unlink: (chatId) => { q('UPDATE users SET telegram_chat_id = NULL WHERE telegram_chat_id = ?').run(String(chatId)); return true; },
+    events: (from, to, userId) => q("SELECT * FROM events WHERE status = 'approved' AND ends_at > ? AND starts_at < ? ORDER BY starts_at").all(iso(from), iso(to)).map((e) => eventView(e, userId ? regUser(userId) : null)),
+    event: (id, userId) => { const e = q("SELECT * FROM events WHERE id = ? AND status = 'approved'").get(id); return e ? eventView(e, userId ? regUser(userId) : null) : null; },
+    myEvents: (userId) => q("SELECT e.* FROM registrations r JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.status <> 'cancelled' ORDER BY e.starts_at").all(userId).map((e) => eventView(e, regUser(userId))),
+    register: (userId, eventId) => registerStudent(regUser(userId), eventId)
+  };
   handler.sendDueReminders = sendDueReminders;
   handler.linkTelegram = linkTelegram;
+  handler.botApi = botApi;
+  handler.siteUrl = siteUrl;
   return handler;
 }
 

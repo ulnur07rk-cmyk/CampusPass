@@ -12,7 +12,7 @@ const maps = R('public/maps.js').replace('href="/floors/floor${floor}.png"', 'hr
 if (maps === R('public/maps.js')) throw new Error('floor image path not found in maps.js');
 const app = R('public/app.js').replace('<a class="btn ghost small" href="/api/events/${e.id}/ics">', '<a class="btn ghost small" href="data:text/calendar;charset=utf-8,${encodeURIComponent(window.__ICS(e.id))}" download="event-${e.id}.ics">');
 const shell = R('public/index.html');
-const body = shell.slice(shell.indexOf('<body>') + 6, shell.indexOf('<script')).split('src="/favicon.svg"').join('src="' + favicon + '"');
+const body = shell.slice(shell.indexOf('<body>') + 6, shell.indexOf('<script', shell.indexOf('<body>'))).split('src="/favicon.svg"').join('src="' + favicon + '"');
 const esc = (s) => s.replace(/<\/script/gi, '<\\/script');
 const backend = `
 (function () {
@@ -21,13 +21,18 @@ const backend = `
   window.__rooms = module.exports;
 })();
 (function () {
-  var module = { exports: {} }; var require = function () { return window.__rooms; };
+  var module = { exports: {} };
+  ${R('server/bot.js')}
+  window.__bot = module.exports;
+})();
+(function () {
+  var module = { exports: {} }; var require = function (p) { return /bot/.test(p) ? window.__bot : window.__rooms; };
   ${R('netlify/core.js')}
   window.__core = module.exports;
 })();
 (function () {
   var SEED = ${seed};
-  var KEY = 'cp.demo.state.v1', TOK = 'cp.demo.token';
+  var KEY = 'cp.demo.state.v2', TOK = 'cp.demo.token';
   var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (e) { saved = null; }
   var core = window.__core.createCore(SEED, saved);
   function save() { try { localStorage.setItem(KEY, JSON.stringify(core.state)); } catch (e) {} }
@@ -59,6 +64,7 @@ const html = `<!DOCTYPE html>
 <title>CampusPass — demo (educational prototype)</title>
 <link rel="icon" href="${favicon}">
 <style>${R('public/styles.css')}</style>
+<script>${esc(R('public/theme.js'))}</script>
 </head>
 <body>${body}
 <script>${esc(R('public/vendor/qrcode.js'))}</script>

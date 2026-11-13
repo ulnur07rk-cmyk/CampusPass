@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   student_id TEXT,
   group_name TEXT,
-  role TEXT NOT NULL CHECK (role IN ('student','organizer','admin')),
+  role TEXT NOT NULL CHECK (role IN ('student','organizer','moderator','admin')),
   club_id INTEGER REFERENCES clubs(id),
   lang TEXT NOT NULL DEFAULT 'en' CHECK (lang IN ('en','kk','ru')),
   telegram_chat_id TEXT,
@@ -103,6 +103,27 @@ CREATE TABLE IF NOT EXISTS notifications (
   text TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+-- FR-43 … FR-45 Complaints about an event or a club; handled by an administrator
+CREATE TABLE IF NOT EXISTS complaints (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_type TEXT NOT NULL CHECK (target_type IN ('event','club')),
+  target_id INTEGER NOT NULL,
+  reason TEXT NOT NULL CHECK (reason IN ('wrong_info','spam','offensive','safety','other')),
+  text TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','in_review','resolved','rejected')),
+  admin_comment TEXT,
+  handled_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+-- FR-37 Language of each Telegram chat (also for chats that are not linked to an account)
+CREATE TABLE IF NOT EXISTS telegram_chats (
+  chat_id TEXT PRIMARY KEY,
+  lang TEXT NOT NULL DEFAULT 'en' CHECK (lang IN ('en','kk','ru')),
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints(status);
 CREATE INDEX IF NOT EXISTS idx_reg_event ON registrations(event_id, status);
 CREATE INDEX IF NOT EXISTS idx_events_start ON events(status, starts_at);
 `;
@@ -110,6 +131,13 @@ CREATE INDEX IF NOT EXISTS idx_events_start ON events(status, starts_at);
 function open(dbPath) {
   if (dbPath !== ':memory:') fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
+  // A database made by an older version (no 'moderator' role) is rebuilt: it holds only fictional test data
+  const old = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").get();
+  if (old && !old.sql.includes("'moderator'")) {
+    db.exec('PRAGMA foreign_keys = OFF');
+    for (const tb of ['notifications', 'coin_transactions', 'feedback', 'memberships', 'registrations', 'events', 'sessions', 'complaints', 'telegram_chats', 'users', 'clubs']) db.exec(`DROP TABLE IF EXISTS ${tb}`);
+    console.log('Old database format: rebuilt with fresh fictional test data.');
+  }
   db.exec(SCHEMA);
   // Older local databases: add the Telegram columns if they are missing
   const cols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
@@ -131,7 +159,7 @@ const SEED_DATA = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.jso
 const FIRST = SEED_DATA.first, LAST = SEED_DATA.last;
 
 function reset(db) {
-  tx(db, () => { for (const tb of ['notifications', 'coin_transactions', 'feedback', 'memberships', 'registrations', 'events', 'sessions', 'users', 'clubs']) db.exec(`DELETE FROM ${tb}`); });
+  tx(db, () => { for (const tb of ['notifications', 'coin_transactions', 'feedback', 'complaints', 'telegram_chats', 'memberships', 'registrations', 'events', 'sessions', 'users', 'clubs']) db.exec(`DELETE FROM ${tb}`); });
   return seed(db);
 }
 
@@ -145,7 +173,7 @@ function seed(db, now = new Date()) {
     const clubId = (name) => db.prepare('SELECT id FROM clubs WHERE name = ?').get(name).id;
 
     const addUser = db.prepare('INSERT INTO users (email, password_hash, name, student_id, group_name, role, club_id, created_at) VALUES (?,?,?,?,?,?,?,?)');
-    // Test accounts (fictional): 10 students, 3 organizers, 1 moderator — listed in seed-data.json
+    // Test accounts (fictional): 10 students, 3 organizers, 1 moderator, 1 administrator — listed in seed-data.json
     const hashes = {}, ids = {};
     for (const a of data.accounts) {
       hashes[a.password] = hashes[a.password] || hashPassword(a.password);
@@ -199,6 +227,11 @@ function seed(db, now = new Date()) {
     const addMember = db.prepare("INSERT OR IGNORE INTO memberships (user_id, club_id, status, created_at, decided_at) VALUES (?,?, 'accepted', ?, ?)");
     data.clubs.forEach((c, k) => { const cid = clubId(c.name), n = 6 + ((k * 13) % 35); for (let j = 0; j < n; j++) addMember.run(crowd[(k * 17 + j) % crowd.length], cid, t, t); });
     db.prepare("INSERT INTO memberships (user_id, club_id, status, message, created_at) VALUES (?,?, 'pending', ?, ?)").run(crowd[0], clubId('Music Club'), 'I play guitar and would like to join the acoustic nights.', t);
+    // Two fictional complaints, so the administrator's inbox is not empty at the demo
+    for (const c of data.complaints || []) {
+      const target = c.targetType === 'event' ? db.prepare('SELECT id FROM events WHERE title = ?').get(c.target) : db.prepare('SELECT id FROM clubs WHERE name = ?').get(c.target);
+      if (target) db.prepare('INSERT INTO complaints (user_id, target_type, target_id, reason, text, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)').run(ids[c.from], c.targetType, target.id, c.reason, c.text, c.status, t, t);
+    }
     return true;
   });
 }

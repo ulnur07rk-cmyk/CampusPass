@@ -3,7 +3,7 @@ Educational project for the course Business Analysis, Astana IT University. Not 
 # CampusPass — campus events and clubs (prototype)
 
 CampusPass is the working prototype for the Software Requirements Specification of Team 06 (Business Analysis, 2026–2027).
-Students find events and clubs, register in one tap, get a QR ticket and earn Campus Coins; organizers submit events and check participants in; the moderator (Student Affairs) approves events and club requests and sees statistics.
+Students find events and clubs, register in one tap, get a QR ticket and earn Campus Coins; organizers submit events (in English, Kazakh and Russian) and check participants in; the moderator (Student Affairs) approves events and club requests and sees statistics; the administrator (IT office) edits everything and handles complaints. A Telegram bot shows events, registers students and sends reminders.
 
 - **Demo video:** _add the OneDrive link here_
 - **SRS:** Team06_FP_Report.pdf (Moodle)
@@ -12,6 +12,8 @@ Students find events and clubs, register in one tap, get a QR ticket and earn Ca
 1. A **student** opens the events poster, registers for an event and receives a QR ticket (or joins the waitlist if the event is full).
 2. The **organizer** of the club opens *Check-in*, scans the QR ticket or enters the code (or finds the student in the participant list).
 3. The registration becomes *checked in*, the student receives Campus Coins, and the **moderator** sees the attendance in *Statistics*.
+
+Second scenario (Final release): a student presses **Report a problem** on an event → the **administrator** gets it in the inbox and in Telegram → sets *In review* / *Resolved* with an answer → the student sees the answer in the Profile.
 
 What one user does is saved in the database and is immediately visible to the others.
 
@@ -37,10 +39,28 @@ What one user does is saved in the database and is immediately visible to the ot
 | FR-17 | One rating (1–5) per attended event | `POST /api/events/:id/feedback` |
 | FR-18 | Statistics: fill rate, waitlist, check-ins, rating | `GET /api/admin/stats` |
 | FR-19 | Interface in English, Kazakh and Russian | language switch |
-| FR-20 | Moderator assigns roles | `PUT /api/admin/users/:id/role`, Roles |
-| F21 | Free rooms for organizers and the moderator (fictional lecture timetable); booking a room with the event, confirmed by the moderator; conflicts are blocked | `GET /api/rooms/availability`, `POST /api/events` |
+| FR-20 | Administrator assigns roles | `PUT /api/admin/users/:id`, Administration → Users |
+| F21 | Free rooms (fictional lecture timetable): for the organizer in **My events** next to the form (*Use* fills the form), for the moderator in **Moderation**; booking is confirmed by the moderator; conflicts are blocked | `GET /api/rooms/availability`, `POST /api/events` |
 | F22 | Map: events on the **2GIS** city map (OpenStreetMap if no key), street route from the student's location, route inside the building on the floor plans | Map tab, `GET /api/places`, `public/maps.js` |
 | FR-21 | Notification inbox (simulated e-mail / push / Telegram) | `GET /api/me/notifications`, Profile |
+
+**Final release (after the Endterm defense).** FR-28 … FR-33 (Coin redemption in the merch shop) are planned for Release 2.0 and are not in the prototype.
+
+| ID | Requirement (short) | Where |
+|---|---|---|
+| FR-34 | Telegram bot commands `/today`, `/events`, `/my`, `/help`, `/lang`, `/stop`; command menu in EN/KK/RU | `server/bot.js` |
+| FR-35 | Inline buttons: menu, event list → event card, back | `server/bot.js` |
+| FR-36 | A linked student registers for an event from the bot and gets the ticket code; same rules as the website | `botApi.register` in `server/app.js`, `netlify/core.js` |
+| FR-37 | Bot language: chosen in the bot, else the language of the Telegram app; saved per chat | table `telegram_chats` |
+| FR-38 | Reminders in Telegram in the chat language with buttons; close to the start only the 1-hour reminder; on Netlify a scheduled function sends them every 10 minutes | `sendDueReminders`, `netlify/functions/reminders.mjs` |
+| FR-39 | Organizer writes the title and description in EN, KK and/or RU (at least one complete language); users see their language, otherwise the original | `POST /api/events` (`i18n`), My events |
+| FR-40 | Separate roles: moderator (moderation, statistics, check-in, free rooms) and administrator (everything) | `ROLES` in `server/app.js` |
+| FR-41 | Administrator edits any event (texts in 3 languages, time, seats, coins, status), cancels or deletes it; registered students are told | `PUT/DELETE /api/admin/events/:id` |
+| FR-42 | Administrator adds and edits clubs and users (name, role, club); search over all users | `/api/admin/clubs`, `/api/admin/users` |
+| FR-43 | Any user (not the administrator) reports an event or a club with a reason and text; one open report per target | `POST /api/complaints` |
+| FR-44 | New report → administrator's inbox and Telegram (if linked) | `alert()` in `server/app.js` |
+| FR-45 | Report statuses new → in review → resolved / rejected; closing needs an answer; the author sees status and answer in the Profile | `PUT /api/admin/complaints/:id`, `GET /api/me/complaints` |
+| NFR-UI | Green–beige design, day/night theme (choice saved in the browser), text contrast WCAG AA ≥ 4.5:1 | `public/theme.js`, `npm run contrast` |
 
 ## Technology stack and why
 - **Node.js 22 with no external packages:** HTTP server (`node:http`), database (`node:sqlite`), password hashing and tokens (`node:crypto`), tests (`node:test`).
@@ -59,8 +79,10 @@ cp .env.example .env        # Windows: copy .env.example .env
 npm start                   # opens http://localhost:3000
 ```
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
-- `npm test` — run the 15 automated acceptance tests (AT-01 … AT-15).
-- Moderator → **Database**: all tables, columns, keys and row counts of the live database (passwords and Telegram data are hidden). ER diagram: `public/diagrams/fig_er_diagram.png`.
+- `npm test` — run the 21 automated acceptance tests (AT-01 … AT-20; AT-20 checks that the Netlify version has the same rules).
+- `npm run demo` — build `CampusPass_demo.html`, one file that works without a server (data in the browser).
+- `npm run contrast` — check the colour contrast of both themes (WCAG AA).
+- Administrator → **Database**: all tables, columns, keys and row counts of the live database (passwords and Telegram data are hidden). ER diagram: `public/diagrams/fig_er_diagram.png`.
 
 ## Settings in `.env` (never committed)
 
@@ -69,8 +91,9 @@ npm start                   # opens http://localhost:3000
 | `MAPGL_KEY` | 2GIS city map; without it the map uses OpenStreetMap | free demo key at platform.2gis.ru (MapGL JS API), restricted to `localhost` and the Netlify domain |
 | `TELEGRAM_BOT_TOKEN` | Real reminders in Telegram; without it reminders stay in the in-app inbox | @BotFather → `/newbot` |
 | `TELEGRAM_POLLING` | `1` = localhost receives bot messages (long polling) | — |
+| `SITE_URL` | Optional. An `https://` address adds “Open in CampusPass” buttons to bot messages (Netlify fills it automatically) | — |
 
-**Telegram on localhost:** put the token in `.env`, run `npm start` (the console shows *Telegram bot @… is listening*). Sign in as a student → **Profile → Connect Telegram** → press **Start** in the bot → **Send a test message**. Only the numeric chat id is stored, never a name or phone number; use only the team's own Telegram accounts in demos. **Reset test data** removes every link.
+**Telegram on localhost:** put the token in `.env`, run `npm start` (the console shows *Telegram bot @… is listening*). Sign in as a student → **Profile → Connect Telegram** → press **Start** in the bot → **Send a test message**. Then try `/today`, `/events`, `/my`, `/lang` and the buttons; register for an event from the bot and see it in *Tickets* on the website. Sign in as `admin@test.local`, connect Telegram, and report an event as a student: the alert arrives in the administrator's chat. Only the numeric chat id is stored, never a name or phone number; use only the team's own Telegram accounts in demos. **Reset test data** removes every link.
 
 **Telegram and the map on Netlify:** Site configuration → Environment variables → add `MAPGL_KEY` and `TELEGRAM_BOT_TOKEN` → redeploy. The website receives bot messages through the function `netlify/functions/telegram.mjs` (path `/tg-hook`); pressing *Connect Telegram* on the website switches the bot to the website, and starting `npm start` switches it back to localhost — use one at a time.
 
@@ -78,6 +101,7 @@ npm start                   # opens http://localhost:3000
 Netlify cannot run a permanent Node.js server, so the Netlify version uses:
 - **static files** from `public/` (the same screens);
 - a **Netlify Function** `netlify/functions/api.mjs` for all `/api/*` requests, with the same business rules (`netlify/core.js`);
+- a **scheduled function** `netlify/functions/reminders.mjs` (every 10 minutes) that sends due Telegram reminders;
 - **Netlify Blobs** (built into Netlify, free) as shared storage: what one user does is visible to all other users. Parallel changes are protected by optimistic locking (ETag check and retry).
 
 Settings are in `netlify.toml` (build command `npm install`, publish directory `public`, functions `netlify/functions`). The data are created with fictional test data on the first request. The open screen reloads its data every 15 seconds, so changes from other users appear automatically.
@@ -93,9 +117,10 @@ All accounts are fictional. On the sign-in screen, choose an account in the list
 | Organizer, Chess Club | organizer2@test.local | Organizer123! |
 | Organizer, Music Club | organizer3@test.local | Organizer123! |
 | Moderator (Student Affairs) | moderator@test.local | Moderator123! |
+| Administrator (IT office) | admin@test.local | Admin123! |
 
 `student1` (Aruzhan Bekova) already has some history (an attended event, coins, a club); `student2` … `student10` start clean, so each usability tester can get an own account.
-Before each round of usability testing, the moderator can press **Roles → Reset test data** to restore the starting data (everyone is signed out). Self-registration is intentionally not offered: the prototype must not collect data from real people.
+Before each round of usability testing, the administrator can press **Administration → Users → Reset test data** to restore the starting data (everyone is signed out). Self-registration is intentionally not offered: the prototype must not collect data from real people.
 
 ## Security and data
 - Passwords are stored as scrypt hashes; sessions use random tokens in an HttpOnly, SameSite cookie; access rights are checked on the server for every API call.
@@ -105,9 +130,11 @@ Before each round of usability testing, the moderator can press **Roles → Rese
 
 ## Project structure
 ```
-server/   index.js (start), app.js (API and rules), db.js (schema and seed), auth.js, seed-data.json
-netlify/  core.js (API rules for Netlify), functions/api.mjs (Netlify Function)
-public/   index.html, app.js (screens), i18n.js (EN/KZ/RU), styles.css, vendor/qrcode.js
+server/   index.js (start), app.js (API and rules), db.js (11 tables, seed), auth.js, rooms.js,
+          bot.js (Telegram bot logic, shared), telegram.js (long polling), seed-data.json
+netlify/  core.js (API rules for Netlify), functions/api.mjs, telegram.mjs (webhook), reminders.mjs (schedule)
+public/   index.html, app.js (screens), i18n.js (EN/KZ/RU), theme.js (day/night), styles.css, maps.js, vendor/qrcode.js
+scripts/  build-demo.js, contrast.js
 tests/    acceptance.test.js
 ```
 
