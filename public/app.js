@@ -86,6 +86,7 @@
     if (!S.me.consentAt) { chrome('consent'); return viewConsent(); }
     const allowed = NAV[S.me.role].map((x) => x[0]).concat(S.me.role === 'student' ? ['shop'] : ['profile']);
     const v = allowed.includes(view) ? view : NAV[S.me.role][0][0];
+    S.view = v; // the screen that is open (the address can be empty on the start screen of a role)
     chrome(v);
     if (quiet !== true) app.innerHTML = `<p class="sub" style="margin-top:24px">${esc(t('loading'))}</p>`;
     try { await VIEWS[v](); } catch (e) { fail(e); }
@@ -94,7 +95,7 @@
   // Live updates: every 15 s the open screen reloads its data, so changes made by other users appear without a manual refresh
   setInterval(async () => {
     const a = document.activeElement;
-    if (!S.me || document.hidden || document.querySelector('.modal') || pending || /^#\/(map|myevents|admin)/.test(location.hash) || (a && ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) return;
+    if (!S.me || document.hidden || document.querySelector('.modal') || pending || ['map', 'myevents', 'admin', 'checkin', 'checkout', 'shop'].includes(S.view) || (a && ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) return;
     const y = window.scrollY, key = a && a !== document.body ? (a.id ? '#' + a.id : [...a.attributes].filter((x) => x.name.startsWith('data-')).map((x) => `[${x.name}="${x.value}"]`).join('')) : '';
     await render(true); window.scrollTo(0, y);
     if (key) { const el = document.querySelector(key); if (el) el.focus({ preventScroll: true }); }

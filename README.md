@@ -147,7 +147,7 @@ server/   index.js (start), app.js (API and rules), db.js (11 tables, seed), aut
           bot.js (Telegram bot logic, shared), telegram.js (long polling), seed-data.json
 netlify/  core.js (API rules for Netlify), functions/api.mjs, telegram.mjs (webhook), reminders.mjs (schedule)
 public/   index.html, app.js (screens), i18n.js (EN/KZ/RU), theme.js (day/night), styles.css, maps.js, vendor/qrcode.js
-scripts/  build-demo.js, contrast.js
+scripts/  build-demo.js, contrast.js, record-demo.py (records the demo video with captions)
 tests/    acceptance.test.js
 ```
 
