@@ -81,5 +81,58 @@ window.CPMaps = (function () {
       return { line: x.geometry.coordinates.map(([lng, lat]) => [lat, lng]), km: x.distance / 1000, min: Math.round(x.duration / 60), exact: true };
     } catch { const d = km(from, to); return { line: [from, to], km: d, min: Math.round((d / (mode === 'car' ? 30 : 4.5)) * 60), exact: false }; }
   }
-  return { route, openIndoor, loadLeaflet, pin, cityRoute };
+  // ---------- one interface for two map engines: 2GIS MapGL (with a key) or Leaflet (fallback) ----------
+  function loadScript(src, timeoutMs) {
+    return new Promise((ok, no) => {
+      const sc = document.createElement('script'); sc.src = src; sc.async = true;
+      const timer = setTimeout(() => no(new Error('timeout')), timeoutMs);
+      sc.onload = () => { clearTimeout(timer); ok(); }; sc.onerror = () => { clearTimeout(timer); no(new Error('load')); };
+      document.head.appendChild(sc);
+    });
+  }
+  const pinHtml = (color, label) => `<div class="cp-pin"><span style="background:${color}">${label || ''}</span></div>`;
+
+  async function cityMap(el, { key, center, zoom }) {
+    if (key) {
+      try {
+        if (!window.mapgl) await loadScript('https://mapgl.2gis.com/api/js/v1', 10000);
+        const G = window.mapgl;
+        const map = new G.Map(el, { center: [center[1], center[0]], zoom, key, zoomControl: 'topRight', floorControl: 'topRight', lang: document.documentElement.lang || 'en' });
+        let popup = null, line = null;
+        const toLngLat = (ll) => [ll[1], ll[0]];
+        const api = {
+          kind: '2gis',
+          marker({ ll, color, label, html }) {
+            const m = new G.HtmlMarker(map, { coordinates: toLngLat(ll), html: pinHtml(color, label), anchor: [17, 34], zIndex: 5 });
+            const open = () => { if (popup) popup.destroy(); popup = new G.HtmlMarker(map, { coordinates: toLngLat(ll), html: `<div class="gis-pop">${html}</div>`, anchor: [0, 0], zIndex: 10 }); };
+            const node = m.getContent && m.getContent(); if (node) { node.style.cursor = 'pointer'; node.addEventListener('click', (ev) => { ev.stopPropagation(); open(); }); }
+            return { open, move: (p) => m.setCoordinates(toLngLat(p)) };
+          },
+          line(coords) { if (line) line.destroy(); line = new G.Polyline(map, { coordinates: coords.map(toLngLat), width: 6, color: '#2f6fed' }); },
+          fit(lls) {
+            const lat = lls.map((x) => x[0]), lng = lls.map((x) => x[1]);
+            map.fitBounds({ southWest: [Math.min(...lng), Math.min(...lat)], northEast: [Math.max(...lng), Math.max(...lat)] }, { padding: { top: 70, right: 70, bottom: 70, left: 70 } });
+          },
+          view(ll, z) { map.setCenter(toLngLat(ll)); map.setZoom(z); },
+          onClick(cb) { map.on('click', (e) => { if (popup) { popup.destroy(); popup = null; } cb([e.lngLat[1], e.lngLat[0]]); }); },
+          destroy() { map.destroy(); },
+        };
+        return api;
+      } catch (err) { console.warn('2GIS map is not available, using OpenStreetMap instead:', err.message); }
+    }
+    await loadLeaflet();
+    const Lf = window.L, map = Lf.map(el, { zoomControl: true }).setView(center, zoom);
+    Lf.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors' }).addTo(map);
+    let line = null;
+    return {
+      kind: 'leaflet',
+      marker({ ll, color, label, html }) { const m = Lf.marker(ll, { icon: pin(color, label) }).addTo(map).bindPopup(html); return { open: () => m.openPopup(), move: (p) => m.setLatLng(p) }; },
+      line(coords) { if (line) map.removeLayer(line); line = Lf.polyline(coords, { color: '#2f6fed', weight: 6, opacity: 0.85 }).addTo(map); },
+      fit(lls) { map.fitBounds(Lf.latLngBounds(lls).pad(0.2)); },
+      view(ll, z) { map.setView(ll, z); },
+      onClick(cb) { map.on('click', (ev) => cb([ev.latlng.lat, ev.latlng.lng])); },
+      destroy() { map.remove(); },
+    };
+  }
+  return { route, openIndoor, loadLeaflet, pin, cityRoute, cityMap };
 })();

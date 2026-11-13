@@ -25,7 +25,7 @@ What one user does is saved in the database and is immediately visible to the ot
 | FR-05 | Waitlist with position when the event is full | same endpoint |
 | FR-06 | Cancellation; the first waitlisted student gets the seat | `DELETE /api/events/:id/registration` |
 | FR-07 | No duplicate registrations | same as FR-04 |
-| FR-08 | Opt-in reminders (push / Telegram, 1 day / 1 hour) — **delivery simulated** | `PUT /api/registrations/:id/reminders` |
+| FR-08 | Opt-in reminders (1 day / 1 hour). **Telegram: real messages through the CampusPass bot** (connect in Profile); push is simulated in the in-app inbox | `PUT /api/registrations/:id/reminders`, `POST /api/me/telegram/link` |
 | FR-09 | Calendar export: Google, Outlook, .ics | `GET /api/events/:id/ics` |
 | FR-10 | Club catalogue, search, join requests | `GET /api/clubs`, `POST /api/clubs/:id/join` |
 | FR-11 | Organizer submits an event for moderation | `POST /api/events`, My events |
@@ -39,7 +39,7 @@ What one user does is saved in the database and is immediately visible to the ot
 | FR-19 | Interface in English, Kazakh and Russian | language switch |
 | FR-20 | Moderator assigns roles | `PUT /api/admin/users/:id/role`, Roles |
 | F21 | Free rooms for organizers and the moderator (fictional lecture timetable); booking a room with the event, confirmed by the moderator; conflicts are blocked | `GET /api/rooms/availability`, `POST /api/events` |
-| F22 | Map: events on an OpenStreetMap city map, street route from the student's location, route inside the building on the floor plans | Map tab, `GET /api/places`, `public/maps.js` |
+| F22 | Map: events on the **2GIS** city map (OpenStreetMap if no key), street route from the student's location, route inside the building on the floor plans | Map tab, `GET /api/places`, `public/maps.js` |
 | FR-21 | Notification inbox (simulated e-mail / push / Telegram) | `GET /api/me/notifications`, Profile |
 
 ## Technology stack and why
@@ -47,7 +47,7 @@ What one user does is saved in the database and is immediately visible to the ot
 - **SQLite** database in one local file (`data/campuspass.db`).
 - **Plain HTML, CSS and JavaScript** frontend, no build step.
 
-This fits the constraints in SRS section 2.5: the prototype runs only on localhost and keeps all (fictional) personal data on the local machine; it needs no payment card, cloud account or API key; it supports three interface languages; and any team member can install it in one minute. External services from the SRS (university SSO, Telegram Bot API, push services) are **simulated**: sign-in uses test accounts and reminders are written to the notification inbox.
+This fits the constraints in SRS section 2.5: the prototype runs on localhost and keeps all (fictional) data on the local machine; it needs no payment card or paid plan; it supports three interface languages; and any team member can install it in one minute. Two external services are real and **optional** (free keys in `.env`): the **2GIS map** (MapGL JS API) and the **Telegram Bot API** for reminders. University SSO and push notifications are simulated: sign-in uses test accounts and push messages go to the in-app inbox.
 
 ## Install and run on localhost
 Requirements: **Node.js 22.13 or newer** (`node -v`). No `npm install` is needed for localhost (the only dependency, `@netlify/blobs`, is used by the Netlify version).
@@ -59,7 +59,20 @@ cp .env.example .env        # Windows: copy .env.example .env
 npm start                   # opens http://localhost:3000
 ```
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
-- `npm test` — run the 14 automated acceptance tests (AT-01 … AT-14).
+- `npm test` — run the 15 automated acceptance tests (AT-01 … AT-15).
+- Moderator → **Database**: all tables, columns, keys and row counts of the live database (passwords and Telegram data are hidden). ER diagram: `public/diagrams/fig_er_diagram.png`.
+
+## Settings in `.env` (never committed)
+
+| Variable | What it does | Where to get it |
+|---|---|---|
+| `MAPGL_KEY` | 2GIS city map; without it the map uses OpenStreetMap | free demo key at platform.2gis.ru (MapGL JS API), restricted to `localhost` and the Netlify domain |
+| `TELEGRAM_BOT_TOKEN` | Real reminders in Telegram; without it reminders stay in the in-app inbox | @BotFather → `/newbot` |
+| `TELEGRAM_POLLING` | `1` = localhost receives bot messages (long polling) | — |
+
+**Telegram on localhost:** put the token in `.env`, run `npm start` (the console shows *Telegram bot @… is listening*). Sign in as a student → **Profile → Connect Telegram** → press **Start** in the bot → **Send a test message**. Only the numeric chat id is stored, never a name or phone number; use only the team's own Telegram accounts in demos. **Reset test data** removes every link.
+
+**Telegram and the map on Netlify:** Site configuration → Environment variables → add `MAPGL_KEY` and `TELEGRAM_BOT_TOKEN` → redeploy. The website receives bot messages through the function `netlify/functions/telegram.mjs` (path `/tg-hook`); pressing *Connect Telegram* on the website switches the bot to the website, and starting `npm start` switches it back to localhost — use one at a time.
 
 ## Netlify version (optional)
 Netlify cannot run a permanent Node.js server, so the Netlify version uses:
@@ -102,6 +115,9 @@ tests/    acceptance.test.js
 - QR code generation: `vendor/qrcode.js` is a browser bundle of the QR encoder from [qrcode-terminal](https://github.com/gtanner/qrcode-terminal) (Apache-2.0), which is based on *QRCode for JavaScript* by Kazuhiko Arase (MIT).
 - QR scanning in browsers without the built-in BarcodeDetector: [jsQR](https://github.com/cozmo/jsQR) 1.4.0 (Apache-2.0), loaded from the jsDelivr CDN only when the organizer presses *Scan with camera* (needs internet and HTTPS or localhost).
 - City map: base map tiles from Esri World Street Map (© Esri, HERE, Garmin, © OpenStreetMap contributors), shown with Leaflet 1.9.4 (BSD-2-Clause) loaded from cdnjs; street routes from the public routing service of routing.openstreetmap.de (no key, demo use only).
+- 2GIS city map: MapGL JS API (© 2GIS), free demo key; the key is stored in `.env` and in Netlify environment variables, not in the repository.
+- Telegram reminders: Telegram Bot API (bot created by the team with @BotFather).
+- ER diagram drawn with Graphviz from `public/diagrams/fig_er_diagram.dot`.
 - Floor plans (`public/floors/`): screenshots made by the team from the student-made campus map https://yuujiso.github.io/aitumap/; rooms, capacities and the lecture timetable in the prototype are fictional.
 - Club names and descriptions are based on public information; events, people and numbers are invented.
 

@@ -55,11 +55,11 @@
   const NAV = {
     student: [['events', 'nav_events'], ['map', 'nav_map'], ['clubs', 'nav_clubs'], ['tickets', 'nav_tickets'], ['history', 'nav_history'], ['profile', 'nav_profile']],
     organizer: [['events', 'nav_events'], ['map', 'nav_map'], ['myevents', 'nav_myevents'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
-    admin: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['roles', 'nav_users'], ['profile', 'nav_profile']]
+    admin: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['roles', 'nav_users'], ['db', 'nav_db'], ['profile', 'nav_profile']]
   };
   const go = (v) => { if (location.hash !== '#/' + v) location.hash = '#/' + v; else render(); };
   const svg = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-  const ICON = { map: svg('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), out: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>') };
+  const ICON = { db: svg('<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>'), map: svg('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), events: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'), clubs: svg('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c.3-2.5 2-4 4-4 2.2 0 3 1.5 3 4"/>'), tickets: svg('<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12" stroke-dasharray="2 2"/>'), profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'), myevents: svg('<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="3"/>'), checkin: svg('<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M8 12l3 3 5-6"/>'), moderation: svg('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'), stats: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), roles: svg('<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6 1.5 0 2.8.5 3.9 1.4"/><circle cx="18" cy="16" r="3"/><path d="M18 11v2M18 19v2M13 16h2M21 16h2"/>'), out: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>') };
   function chrome(view) {
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
@@ -271,12 +271,46 @@
     app.innerHTML = `<h1>${esc(me.name)}</h1><p class="sub">${esc(me.email)}${me.studentId ? ' · ID ' + esc(me.studentId) : ''}${me.group ? ' · ' + esc(me.group) : ''}${me.club ? ' · ' + esc(me.club.name) : ''}</p>
       <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div><p class="note info" style="margin:8px 0">${esc(t('coins_info'))}</p><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>+${h.amount}</b></li>`).join('')}</ul></section>
       <section class="card"><h2>${esc(t('notifications'))}</h2><p class="meta">${esc(t('notes_info'))}</p>${notes.length ? `<ul class="list">${notes.map((n) => `<li><span class="pill">${esc(t('ch_' + n.channel))}</span> ${esc(n.text)}<br><span class="meta">${esc(dateLong(n.createdAt))}, ${esc(time(n.createdAt))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('no_notifications'))}</p>`}</section>
+      <section class="card"><h2>✈️ Telegram</h2><div id="tgbody"><p class="meta">${esc(t('loading'))}</p></div></section>
       ${S.me.role === 'student' ? `<section class="card" style="grid-column:1/-1"><h2>${esc(t('history_title'))}</h2>${rate !== null ? `<p class="meta">${esc(t('hist_summary', { a: regs.attended, t: regs.attended + regs.missed, p: rate }))}</p>` : ''}${hist.length ? `<div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_status'))}</th><th>${esc(t('coins'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>${hist.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(clubName(e))}</span></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_status'))}"><span class="note ${RES[e.result][0]}" style="margin:0;padding:3px 8px;display:inline-block">${esc(t(RES[e.result][1]))}</span></td><td data-label="${esc(t('coins'))}">${e.coinsEarned ? '+' + e.coinsEarned : '—'}</td><td data-label="${esc(t('th_rating'))}">${e.result !== 'attended' ? '—' : e.my && e.my.rating ? '★ ' + e.my.rating + '/5' : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</td></tr>`).join('')}</tbody></table></div><p class="meta">${esc(t('rate_hint'))}</p>` : `<p class="meta">${esc(t('hist_empty'))}</p>`}</section>` : ''}
       <section class="card"><h2>${esc(t('my_clubs'))}</h2><ul class="list">${mine.map((c) => `<li class="spread"><span>${esc(L(c, 'name'))}</span><span class="meta">${esc(t(c.myStatus === 'accepted' ? 'st_accepted' : 'st_pending'))}</span></li>`).join('') || '<li class="meta">—</li>'}</ul>
       <label for="pl">${esc(t('language'))}</label><select id="pl"><option value="en">English</option><option value="kk">Қазақша</option><option value="ru">Русский</option></select></section></div>`;
     app.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', async () => { try { await api('POST', `/api/events/${b.dataset.rate}/feedback`, { rating: Number(b.dataset.star) }); toast(t('rated', { n: b.dataset.star })); render(); } catch (err) { fail(err); } }));
     $('#pl').value = S.lang; $('#pl').addEventListener('change', (e) => { $('#lang').value = e.target.value; $('#lang').dispatchEvent(new Event('change')); });
+    drawTelegram();
   };
+
+  // Database overview for the defense (moderator): tables, columns, links, row counts and a masked sample
+  VIEWS.db = async () => {
+    const tables = await api('GET', '/api/admin/db');
+    const total = tables.reduce((n, x) => n + x.count, 0);
+    app.innerHTML = `<h1>${esc(t('db_title'))}</h1><p class="sub">${esc(t('db_sub', { n: tables.length, rows: total }))}</p>
+      <p><a class="btn ghost small" href="/diagrams/fig_er_diagram.png" target="_blank" rel="noopener">${esc(t('db_er'))}</a></p>
+      <div class="grid">${tables.map((x) => `<section class="card"><div class="spread"><h2 style="margin:0">${esc(x.table)}</h2><span class="pill">${x.count} ${esc(t('db_rows'))}</span></div>
+        <div class="tablewrap"><table><thead><tr><th>${esc(t('db_col'))}</th><th>${esc(t('db_type'))}</th><th>${esc(t('db_key'))}</th></tr></thead><tbody>${x.columns.map((c) => `<tr><td>${esc(c.name)}</td><td class="meta">${esc(c.type)}</td><td>${c.pk ? '<span class="pill">PK</span>' : ''}${c.ref ? `<span class="pill">FK → ${esc(c.ref)}</span>` : ''}</td></tr>`).join('')}</tbody></table></div>
+        ${x.sample.length ? `<details style="margin-top:8px"><summary class="meta">${esc(t('db_sample'))}</summary><pre style="white-space:pre-wrap;font-size:12px;margin:6px 0 0">${esc(JSON.stringify(x.sample, null, 1))}</pre></details>` : ''}</section>`).join('')}</div>`;
+  };
+
+  // FR-08 / SW02 Telegram reminders: connect with a one-time link, send a test message, disconnect
+  async function drawTelegram() {
+    const box = $('#tgbody'); if (!box) return;
+    let st; try { st = await api('GET', '/api/me/telegram'); } catch { st = { enabled: false }; }
+    if (!box.isConnected) return;
+    if (!st.enabled) { box.innerHTML = `<p class="note info" style="margin:0">${esc(t('tg_off'))}</p>`; return; }
+    box.innerHTML = st.connected
+      ? `<p class="note ok" style="margin:0 0 8px">✓ ${esc(t('tg_connected', { bot: '@' + st.bot }))}</p><div class="row"><button class="btn small" id="tgtest">${esc(t('tg_test'))}</button><button class="btn ghost small" id="tgoff">${esc(t('tg_disconnect'))}</button></div>`
+      : `<p class="meta">${esc(t('tg_info'))}</p><div class="row"><button class="btn small" id="tglink">${esc(t('tg_connect'))}</button></div><p class="meta" style="margin-top:6px">${esc(t('tg_privacy'))}</p>`;
+    const go = (id, fn) => { const b = $(id); if (b) b.addEventListener('click', () => act(b, fn)); };
+    go('#tglink', async () => {
+      const w = window.open('about:blank', '_blank');
+      const { url } = await api('POST', '/api/me/telegram/link', {});
+      if (w) w.location.href = url; else location.href = url;
+      toast(t('tg_wait'));
+      for (let i = 0; i < 40; i++) { await new Promise((r) => setTimeout(r, 3000)); const s2 = await api('GET', '/api/me/telegram'); if (s2.connected) { toast(t('tg_done')); return drawTelegram(); } }
+    });
+    go('#tgtest', async () => { await api('POST', '/api/me/telegram/test', {}); toast(t('tg_sent')); });
+    go('#tgoff', async () => { await api('DELETE', '/api/me/telegram', {}); drawTelegram(); });
+  }
 
 
   // ---------- Map: city map with routes (all roles) and free rooms (organizer, moderator) — F21, F22 ----------
@@ -313,34 +347,32 @@
       } catch (err) { fail(err); }
     }
     if (staff) { ['#rs', '#rd'].forEach((id) => $(id).addEventListener('change', loadFree)); if (S.mapTab === 'rooms') loadFree(); }
-    // city map
-    try { await CPMaps.loadLeaflet(); } catch { $('#map').innerHTML = `<p class="note warn" style="margin:16px">${esc(t('map_offline'))}</p>`; return; }
-    const Lf = window.L, map = Lf.map('map', { zoomControl: true }).setView(campusLL, 13);
-    Lf.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors' }).addTo(map);
+    // city map: 2GIS when a key is configured, otherwise OpenStreetMap (F22)
+    if (!S.cfg) { try { S.cfg = await api('GET', '/api/config'); } catch { S.cfg = {}; } }
+    let map; try { map = await CPMaps.cityMap($('#map'), { key: S.cfg.mapKey, center: campusLL, zoom: 13 }); } catch { $('#map').innerHTML = `<p class="note warn" style="margin:16px">${esc(t('map_offline'))}</p>`; return; }
     const campusName = C.i18n && C.i18n[S.lang] ? C.i18n[S.lang].name : C.name;
     const markers = {};
-    const cm = Lf.marker(campusLL, { icon: CPMaps.pin('#2563eb', 'C1') }).addTo(map).bindPopup(`<b>${esc(campusName)}</b><br>${esc(t('events_n', { n: onCampus.length }))}`);
+    const cm = map.marker({ ll: campusLL, color: '#2f6fed', label: 'C1', html: `<b>${esc(campusName)}</b><br>${esc(t('events_n', { n: onCampus.length }))}` });
     onCampus.forEach((e) => { markers[e.id] = cm; });
-    inCity.forEach((e) => { markers[e.id] = Lf.marker([e.place.lat, e.place.lng], { icon: CPMaps.pin('#16a34a', '★') }).addTo(map).bindPopup(`<b>${esc(L(e, 'title'))}</b><br>${esc(placeName(e.place))}<br>${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}`); });
-    map.fitBounds(Lf.latLngBounds([campusLL, ...inCity.map((e) => [e.place.lat, e.place.lng])]).pad(0.2));
-    let me = null, meMarker = null, line = null;
-    const setMe = (ll) => { me = ll; if (meMarker) meMarker.setLatLng(ll); else meMarker = Lf.marker(ll, { icon: CPMaps.pin('#0f172a', '●') }).addTo(map).bindPopup(t('you_here')); };
+    inCity.forEach((e) => { markers[e.id] = map.marker({ ll: [e.place.lat, e.place.lng], color: '#16a34a', label: '★', html: `<b>${esc(L(e, 'title'))}</b><br>${esc(placeName(e.place))}<br>${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}` }); });
+    map.fit([campusLL, ...inCity.map((e) => [e.place.lat, e.place.lng])]);
+    let me = null, meMarker = null;
+    const setMe = (ll) => { me = ll; if (meMarker) meMarker.move(ll); else meMarker = map.marker({ ll, color: '#1e293b', label: '●', html: esc(t('you_here')) }); };
     const locate = () => new Promise((ok) => { if (!navigator.geolocation) return ok(false); navigator.geolocation.getCurrentPosition((p) => { setMe([p.coords.latitude, p.coords.longitude]); ok(true); }, () => ok(false), { enableHighAccuracy: true, timeout: 8000 }); });
-    map.on('click', (ev) => { setMe([ev.latlng.lat, ev.latlng.lng]); $('#rinfo').textContent = t('start_set'); });
-    $('#me').addEventListener('click', async () => { if (await locate()) map.setView(me, 14); else $('#rinfo').textContent = t('loc_denied'); });
+    map.onClick((ll) => { setMe(ll); $('#rinfo').textContent = t('start_set'); });
+    $('#me').addEventListener('click', async () => { if (await locate()) map.view(me, 14); else $('#rinfo').textContent = t('loc_denied'); });
     app.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => { S.mapMode = b.dataset.mode; app.querySelectorAll('[data-mode]').forEach((x) => x.setAttribute('aria-pressed', x === b)); }));
     async function routeTo(e) {
       if (!me && !(await locate())) { $('#rinfo').textContent = t('loc_denied'); return; }
       const to = [e.place.lat, e.place.lng]; $('#rinfo').textContent = t('loading');
       const r = await CPMaps.cityRoute(me, to, S.mapMode);
-      if (line) map.removeLayer(line);
-      line = Lf.polyline(r.line, { color: '#2563eb', weight: 6, opacity: 0.85 }).addTo(map); map.fitBounds(line.getBounds().pad(0.2)); markers[e.id].openPopup();
+      map.line(r.line); map.fit(r.line); markers[e.id].open();
       $('#rinfo').innerHTML = `${esc(t('route_to', { place: e.place.kind === 'room' ? campusName : placeName(e.place) }))}: <b>${r.km.toFixed(1)} km · ${r.min} ${esc(t('min'))}</b>${r.exact ? '' : ' (' + esc(t('route_approx')) + ')'}${e.place.kind === 'room' ? `<br><button class="btn ghost small" id="cont" style="margin-top:6px">🧭 ${esc(t('continue_inside'))}</button>` : ''}`;
       const c = $('#cont'); if (c) c.addEventListener('click', () => indoor(e.place, true));
     }
     app.querySelectorAll('[data-route]').forEach((b) => b.addEventListener('click', () => routeTo(list.find((x) => String(x.id) === b.dataset.route))));
-    app.querySelectorAll('.mapitem').forEach((li) => li.addEventListener('mouseenter', () => { const mk = markers[li.dataset.ev]; if (mk) mk.openPopup(); }));
-    const linked = /[?&]e=(\d+)/.exec(location.hash); if (linked) { const ev = list.find((x) => String(x.id) === linked[1]); if (ev && ev.place) { map.setView([ev.place.lat, ev.place.lng], 15); markers[ev.id].openPopup(); } }
+    app.querySelectorAll('.mapitem').forEach((li) => li.addEventListener('mouseenter', () => { const mk = markers[li.dataset.ev]; if (mk) mk.open(); }));
+    const linked = /[?&]e=(\d+)/.exec(location.hash); if (linked) { const ev = list.find((x) => String(x.id) === linked[1]); if (ev && ev.place) { map.view([ev.place.lat, ev.place.lng], 15); markers[ev.id].open(); } }
   };
 
   // ---------- W07 Organizer: submit event and own events (FR-11) ----------

@@ -181,3 +181,34 @@ test('AT-12 (FR-17, FR-18) only attendees can rate once; statistics show the ave
   const s = await call('GET', '/api/admin/stats', null, adm);
   assert.equal(s.body.events.find((e) => e.id === fair).avgRating, 5);
 });
+
+test('AT-15 (FR-08, SW02) a student links Telegram with a one-time code; reminders and test messages go to that chat only', async () => {
+  // Second app with a fake Telegram service, so the test needs no real bot or internet
+  const sent = [], fakeTg = { enabled: true, botName: async () => 'campuspass_test_bot', send: async (chat, text) => { sent.push({ chat, text }); return true; } };
+  const NOW = new Date(); NOW.setHours(8, 0, 0, 0);
+  const db2 = open(':memory:'); seed(db2, NOW);
+  const app2 = createApp(db2, { clock: () => new Date(NOW), telegram: fakeTg });
+  const srv = http.createServer(app2); await new Promise((r) => srv.listen(0, r));
+  const b2 = `http://localhost:${srv.address().port}`;
+  const c2 = async (m, p, body, ck) => { const r = await fetch(b2 + p, { method: m, headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(ck ? { Cookie: ck } : {}) }, body: body ? JSON.stringify(body) : undefined }); return { status: r.status, body: await r.json(), cookie: (r.headers.get('set-cookie') || '').split(';')[0] }; };
+  try {
+    const st = (await c2('POST', '/api/auth/login', { email: 'student4@test.local', password: 'Student123!' })).cookie;
+    assert.equal((await c2('GET', '/api/me/telegram', null, st)).body.connected, false);
+    const link = (await c2('POST', '/api/me/telegram/link', {}, st)).body.url;
+    assert.match(link, /^https:\/\/t\.me\/campuspass_test_bot\?start=[a-f0-9]{24}$/);
+    const code = link.split('start=')[1];
+    assert.equal(app2.linkTelegram('wrongcode123', '111'), null);                       // a wrong code links nobody
+    assert.ok(app2.linkTelegram(code, '555'));                                          // Start with the right code
+    assert.equal(app2.linkTelegram(code, '666'), null);                                 // the code works only once
+    assert.equal((await c2('GET', '/api/me/telegram', null, st)).body.connected, true);
+    assert.equal((await c2('POST', '/api/me/telegram/test', {}, st)).status, 200);
+    assert.equal(sent.at(-1).chat, '555');
+    // Moderator database overview masks the chat id
+    const mod = (await c2('POST', '/api/auth/login', { email: 'moderator@test.local', password: 'Moderator123!' })).cookie;
+    const users = (await c2('GET', '/api/admin/db', null, mod)).body.find((t) => t.table === 'users');
+    assert.ok(users.columns.some((c) => c.name === 'telegram_chat_id'));
+    assert.ok(users.sample.every((r) => r.password_hash === '•••'));
+    assert.equal((await c2('GET', '/api/admin/db', null, st)).status, 403);
+    assert.equal((await c2('DELETE', '/api/me/telegram', {}, st)).body.connected, false);
+  } finally { srv.close(); }
+});

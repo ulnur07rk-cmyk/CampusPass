@@ -29,7 +29,12 @@ function createApp(db, opts = {}) {
   const ttlHours = opts.sessionTtlHours || 12;
   const now = () => (opts.clock ? opts.clock() : new Date());
   const q = (sql) => db.prepare(sql);
-  const notify = (userId, channel, text) => q('INSERT INTO notifications (user_id, channel, text, created_at) VALUES (?,?,?,?)').run(userId, channel, text, iso(now()));
+  const tg = opts.telegram || { enabled: false, send: async () => false, botName: async () => null };
+  // Every notification goes to the in-app inbox; reminders with the Telegram channel are also sent to the real Telegram chat
+  const notify = (userId, channel, text) => {
+    q('INSERT INTO notifications (user_id, channel, text, created_at) VALUES (?,?,?,?)').run(userId, channel, text, iso(now()));
+    if (channel === 'telegram' && tg.enabled) { const u = q('SELECT telegram_chat_id FROM users WHERE id = ?').get(userId); if (u && u.telegram_chat_id) tg.send(u.telegram_chat_id, '🔔 CampusPass: ' + text); }
+  };
   const newTicket = () => 'CP-' + crypto.randomBytes(5).toString('hex').toUpperCase();
 
   // ---------- helpers ----------
@@ -347,6 +352,45 @@ function createApp(db, opts = {}) {
   });
 
   // Reset all data to the fictional test data (moderator only; used between usability-test sessions)
+  // Public settings for the frontend: the 2GIS map key (a browser key restricted to our domains) and whether the bot works
+  route('GET', '/api/config', () => ({ mapKey: process.env.MAPGL_KEY || '', telegram: tg.enabled }));
+  // FR-08 / SW02 Telegram: link the account with a one-time code, send a test message, disconnect
+  route('GET', '/api/me/telegram', async ({ user }) => {
+    need(user); const u = q('SELECT telegram_chat_id FROM users WHERE id = ?').get(user.id);
+    let bot = null; try { bot = await tg.botName(); } catch { bot = null; }
+    return { enabled: tg.enabled && !!bot, bot, connected: !!(u && u.telegram_chat_id) };
+  });
+  route('POST', '/api/me/telegram/link', async ({ user }) => {
+    need(user); if (!tg.enabled) fail(503, 'telegram_off', 'The Telegram bot is not configured.');
+    let bot; try { bot = await tg.botName(); } catch { fail(503, 'telegram_off', 'The Telegram bot is not reachable.'); }
+    const code = crypto.randomBytes(12).toString('hex');
+    q('UPDATE users SET telegram_code = ? WHERE id = ?').run(code, user.id);
+    return { url: `https://t.me/${bot}?start=${code}` };
+  });
+  route('POST', '/api/me/telegram/test', async ({ user }) => {
+    need(user); const u = q('SELECT telegram_chat_id FROM users WHERE id = ?').get(user.id);
+    if (!u || !u.telegram_chat_id) fail(400, 'telegram_not_connected', 'Connect Telegram first.');
+    const ok = await tg.send(u.telegram_chat_id, '🔔 CampusPass: this is a test message. Reminders for your events will arrive here.');
+    if (!ok) fail(502, 'telegram_failed', 'Telegram did not accept the message. Try again later.');
+    return { sent: true };
+  });
+  route('DELETE', '/api/me/telegram', ({ user }) => { need(user); q('UPDATE users SET telegram_chat_id = NULL, telegram_code = NULL WHERE id = ?').run(user.id); return { connected: false }; });
+  // Called by the bot when a student presses Start with the one-time code
+  const linkTelegram = (code, chatId) => {
+    const u = q('SELECT id, name FROM users WHERE telegram_code = ?').get(code); if (!u) return null;
+    q('UPDATE users SET telegram_chat_id = ?, telegram_code = NULL WHERE id = ?').run(chatId, u.id); return u.name;
+  };
+  // Database overview for the moderator (shown at the defense): tables, columns, links and row counts; secrets are masked
+  route('GET', '/api/admin/db', ({ user }) => {
+    need(user, 'admin');
+    const SECRET = /password|token|telegram_/;
+    return q("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all().map(({ name }) => {
+      const cols = q(`PRAGMA table_info(${name})`).all(), fks = q(`PRAGMA foreign_key_list(${name})`).all();
+      const rows = q(`SELECT * FROM ${name} ORDER BY rowid LIMIT 3`).all().map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, SECRET.test(k) && v != null ? '•••' : v])));
+      return { table: name, count: q(`SELECT COUNT(*) AS n FROM ${name}`).get().n,
+        columns: cols.map((c) => ({ name: c.name, type: c.type, pk: !!c.pk, notNull: !!c.notnull, ref: (fks.find((f) => f.from === c.name) || {}).table || null })), sample: rows };
+    });
+  });
   route('POST', '/api/admin/reset', ({ user, res }) => {
     need(user, 'admin'); reset(db);
     res.setHeader('Set-Cookie', 'cp_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
@@ -388,7 +432,7 @@ function createApp(db, opts = {}) {
   async function handler(req, res) {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'same-origin');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https://routing.openstreetmap.de; img-src 'self' data: https://server.arcgisonline.com; media-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://mapgl.2gis.com https://*.2gis.com; worker-src 'self' blob:; child-src blob:; connect-src 'self' https://routing.openstreetmap.de https://*.2gis.com https://*.2gis.ru; img-src 'self' data: blob: https://server.arcgisonline.com https://*.2gis.com https://*.2gis.ru; font-src 'self' data: https://*.2gis.com; media-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://*.2gis.com; frame-ancestors 'none'");
     const url = new URL(req.url, 'http://localhost');
     if (!url.pathname.startsWith('/api/')) return serveStatic(url.pathname, res);
     try {
@@ -405,6 +449,7 @@ function createApp(db, opts = {}) {
     }
   }
   handler.sendDueReminders = sendDueReminders;
+  handler.linkTelegram = linkTelegram;
   return handler;
 }
 

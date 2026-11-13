@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT NOT NULL CHECK (role IN ('student','organizer','admin')),
   club_id INTEGER REFERENCES clubs(id),
   lang TEXT NOT NULL DEFAULT 'en' CHECK (lang IN ('en','kk','ru')),
+  telegram_chat_id TEXT,
+  telegram_code TEXT,
   created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS sessions (
@@ -109,6 +111,9 @@ function open(dbPath) {
   if (dbPath !== ':memory:') fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec(SCHEMA);
+  // Older local databases: add the Telegram columns if they are missing
+  const cols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
+  for (const c of ['telegram_chat_id', 'telegram_code']) if (!cols.includes(c)) db.exec(`ALTER TABLE users ADD COLUMN ${c} TEXT`);
   return db;
 }
 

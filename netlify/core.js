@@ -57,7 +57,11 @@ function createCore(SEED, state) {
 
   // ---------- helpers mirroring server/app.js ----------
   const now = () => new Date();
-  const notify = (uid, channel, text) => D.notes.unshift({ user_id: uid, channel, text, createdAt: iso(now()) });
+  const notify = (uid, channel, text) => {
+    D.notes.unshift({ user_id: uid, channel, text, createdAt: iso(now()) });
+    // Telegram reminders: queued here and sent by the Netlify Function after the data are saved
+    const usr = D.users.find((x) => x.id === uid); if (channel === 'telegram' && usr && usr.telegram_chat_id) (D.outbox || (D.outbox = [])).push({ chatId: usr.telegram_chat_id, text: '🔔 CampusPass: ' + text });
+  };
   const user = () => { const s = TOKEN && D.sessions[TOKEN]; if (!s || s.exp < Date.now()) return null; return D.users.find((u) => u.id === s.uid) || null; };
   const need = (u, ...roles) => { if (!u) fail(401, 'auth_required', 'Please sign in.'); if (roles.length && !roles.includes(u.role)) fail(403, 'forbidden', 'You do not have access to this action.'); };
   const ev = (id) => { const e = D.events.find((x) => x.id === Number(id)); if (!e) fail(404, 'event_not_found', 'Event not found.'); return e; };
@@ -89,6 +93,19 @@ function createCore(SEED, state) {
   const R = [];
   const on = (m, p, h) => R.push({ m, re: new RegExp('^' + p.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), h });
   on('GET', '/api/test-accounts', () => SEED.accounts.map((a) => ({ email: a.email, password: a.password, name: a.name, role: a.role, club: a.club })));
+  // FR-08 / SW02 Telegram: link with a one-time code, test message, disconnect
+  const hex = (n) => Array.from(globalThis.crypto.getRandomValues(new Uint8Array(n)), (b) => b.toString(16).padStart(2, '0')).join('');
+  on('GET', '/api/me/telegram', (b, u) => { need(u); return { connected: !!u.telegram_chat_id }; });
+  on('POST', '/api/me/telegram/link', (b, u) => { need(u); u.telegram_code = hex(12); return { code: u.telegram_code }; });
+  on('POST', '/api/me/telegram/test', (b, u) => { need(u); if (!u.telegram_chat_id) fail(400, 'telegram_not_connected', 'Connect Telegram first.'); (D.outbox || (D.outbox = [])).push({ chatId: u.telegram_chat_id, text: '🔔 CampusPass: this is a test message. Reminders for your events will arrive here.' }); return { sent: true }; });
+  on('DELETE', '/api/me/telegram', (b, u) => { need(u); u.telegram_chat_id = null; u.telegram_code = null; return { connected: false }; });
+  // Database overview for the moderator: the collections of the shared store, with secrets masked
+  on('GET', '/api/admin/db', (b, u) => {
+    need(u, 'admin'); const SECRET = /pw|password|token|telegram_/;
+    return Object.entries(D).filter(([, v]) => Array.isArray(v)).map(([k, v]) => ({ table: k, count: v.length,
+      columns: [...new Set(v.slice(0, 20).flatMap((r) => Object.keys(r)))].map((c) => ({ name: c, type: typeof (v.find((r) => r[c] != null) || {})[c], pk: c === 'id', ref: /_id$/.test(c) && c !== 'student_id' ? c.replace(/_id$/, 's') : null })),
+      sample: v.slice(0, 3).map((r) => Object.fromEntries(Object.entries(r).map(([c, x]) => [c, SECRET.test(c) && x != null ? '•••' : x]))) }));
+  });
   on('POST', '/api/admin/reset', (b, u) => { need(u, 'admin'); D = seed(); NEW_TOKEN = ''; return { ok: true }; });
   on('POST', '/api/auth/login', (b) => { const u = D.users.find((x) => x.email === String(b.email || '').trim().toLowerCase()); if (!u || u.pw !== b.password) fail(401, 'invalid_credentials', 'Wrong e-mail or password.'); const tk = Array.from(globalThis.crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join(''); D.sessions[tk] = { uid: u.id, exp: Date.now() + 12 * 3600000 }; NEW_TOKEN = tk; return { user: { id: u.id, name: u.name, email: u.email, role: u.role } }; });
   on('POST', '/api/auth/logout', () => { if (TOKEN) delete D.sessions[TOKEN]; NEW_TOKEN = ''; return { ok: true }; });
@@ -209,6 +226,7 @@ function createCore(SEED, state) {
       return { status: 200, data, token: NEW_TOKEN };
     } catch (e) { return e instanceof E ? { status: e.s, data: { error: { code: e.c, message: e.message } } } : { status: 500, data: { error: { code: 'server_error', message: 'Something went wrong.' } } }; }
   }
-  return { handle, get state() { return D; } };
+  const linkTelegram = (code, chatId) => { const u = D.users.find((x) => x.telegram_code && x.telegram_code === code); if (!u) return null; u.telegram_chat_id = chatId; u.telegram_code = null; return u.name; };
+  return { handle, linkTelegram, get state() { return D; } };
 }
 module.exports = { createCore };

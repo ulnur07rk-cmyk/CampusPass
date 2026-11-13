@@ -22,7 +22,11 @@ if (process.argv.includes('--reset') && fs.existsSync(DB_PATH)) fs.rmSync(DB_PAT
 
 const db = open(DB_PATH);
 if (seed(db)) console.log('Database created with fictional test data:', DB_PATH);
-const app = createApp(db, { sessionTtlHours: Number(process.env.SESSION_TTL_HOURS) || 12 });
+const { createTelegram } = require('./telegram');
+// Telegram bot (optional): works when TELEGRAM_BOT_TOKEN is set in .env; otherwise reminders stay in the in-app inbox
+const telegram = createTelegram(process.env.TELEGRAM_BOT_TOKEN, { onStart: async (code, chatId) => app.linkTelegram(code, chatId) });
+const app = createApp(db, { sessionTtlHours: Number(process.env.SESSION_TTL_HOURS) || 12, telegram });
+if (telegram.enabled && process.env.TELEGRAM_POLLING !== '0') telegram.startPolling();
 setInterval(() => app.sendDueReminders(), 60000).unref();
 
 http.createServer(app).listen(PORT, () => {
