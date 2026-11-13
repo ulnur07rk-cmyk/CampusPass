@@ -985,7 +985,7 @@
    "type": "creative",
    "capacity": 80,
    "taken": 41,
-   "coins": 20,
+   "coins": 0,
    "description": "A cosy evening with guitars, favourite student songs and hot tea.",
    "status": "approved",
    "waitlist": 0,
@@ -1001,7 +1001,8 @@
      "description": "Уютный вечер с гитарами, любимыми студенческими песнями и горячим чаем."
     }
    },
-   "room": "C1.1.AH"
+   "room": "C1.1.AH",
+   "open": true
   },
   {
    "key": "s8",

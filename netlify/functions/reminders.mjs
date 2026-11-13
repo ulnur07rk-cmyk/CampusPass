@@ -5,7 +5,7 @@ import { getStore } from '@netlify/blobs';
 import core from '../core.js';
 import seedData from '../../server/seed-data.json' with { type: 'json' };
 
-const KEY = 'state-v8';
+const KEY = 'state-v9';
 const TG = process.env.TELEGRAM_BOT_TOKEN || '';
 
 export default async () => {

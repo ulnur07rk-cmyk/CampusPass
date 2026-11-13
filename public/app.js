@@ -56,7 +56,7 @@
     student: [['events', 'nav_events'], ['map', 'nav_map'], ['clubs', 'nav_clubs'], ['tickets', 'nav_tickets'], ['history', 'nav_history'], ['profile', 'nav_profile']],
     organizer: [['events', 'nav_events'], ['map', 'nav_map'], ['myevents', 'nav_myevents'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
     moderator: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
-    admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['db', 'nav_db'], ['profile', 'nav_profile']]
+    admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['profile', 'nav_profile']] // UI01: at most six sections
   };
   const go = (v) => { if (location.hash !== '#/' + v) location.hash = '#/' + v; else render(); };
   const svg = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
@@ -64,7 +64,7 @@
   function chrome(view) {
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
-    const items = S.me ? NAV[S.me.role] : [];
+    const items = S.me && S.me.consentAt ? NAV[S.me.role] : []; // no menu until the consent is given (C08)
     const link = (icon) => ([v, k]) => `<a href="#/${v}" class="${v === view ? 'on' : ''}" ${v === view ? 'aria-current="page"' : ''}>${icon ? ICON[v] || '' : ''}<span>${esc(t(k))}</span></a>`;
     $('#nav').innerHTML = items.map(link(false)).join(''); $('#bottom').innerHTML = items.map(link(true)).join('');
     // Day / night switch (theme.js keeps the choice); the label says what the button will do
@@ -78,6 +78,7 @@
     const view = (location.hash.replace('#/', '') || '').split('?')[0];
     if (!S.me) { try { S.me = await api('GET', '/api/me'); if (S.me.lang && !localStorage.getItem('cp.lang')) S.lang = S.me.lang; } catch { S.me = null; } }
     if (!S.me) { chrome('signin'); return viewSignin(); }
+    if (!S.me.consentAt) { chrome('consent'); return viewConsent(); }
     const allowed = NAV[S.me.role].map((x) => x[0]).concat(S.me.role === 'student' ? [] : ['profile']);
     const v = allowed.includes(view) ? view : NAV[S.me.role][0][0];
     chrome(v);
@@ -120,8 +121,21 @@
     });
   }
 
+  // ---------- C08 Consent to the processing of personal data (first sign-in) ----------
+  function viewConsent() {
+    app.innerHTML = `<section class="card signin" style="max-width:640px"><h1 style="margin-top:0">🔒 ${esc(t('consent_title'))}</h1><p class="sub">${esc(t('consent_sub'))}</p>
+      <ul class="list">${['consent_what', 'consent_why', 'consent_who', 'consent_long', 'consent_where', 'consent_rights'].map((k) => `<li>${esc(t(k))}</li>`).join('')}</ul>
+      <p class="note info">${esc(t('consent_demo'))}</p>
+      <label class="chk"><input type="checkbox" id="cagree"> ${esc(t('consent_check'))}</label>
+      <div class="row"><button class="btn" id="cok" disabled>${esc(t('consent_accept'))}</button><button class="btn ghost" id="cno">${esc(t('sign_out'))}</button></div></section>`;
+    $('#cagree').addEventListener('change', (e) => { $('#cok').disabled = !e.target.checked; });
+    $('#cok').addEventListener('click', (ev) => act(ev.currentTarget, async () => { try { const r = await api('POST', '/api/me/consent', {}); S.me.consentAt = r.consentAt; location.hash = ''; render(); } catch (err) { fail(err); } }));
+    $('#cno').addEventListener('click', async () => { await api('POST', '/api/auth/logout').catch(() => {}); S.me = null; go('signin'); });
+  }
+
   // ---------- W02/W03 Events poster and details (FR-02 … FR-09, FR-17) ----------
   function seatsBlock(e) {
+    if (e.open) return `<div class="spread meta" style="margin-top:10px"><span>🙋 ${esc(t('planned_n', { n: e.planned }))}</span><span class="pill">${esc(t('open_event'))}</span></div>`;
     const pct = Math.min(100, Math.round((e.taken / e.capacity) * 100));
     return `<div class="bar ${e.free ? '' : 'full'}"><i style="width:${pct}%"></i></div><div class="spread meta"><span>${e.free ? esc(t('seats_free', { n: e.free, c: e.capacity })) : `<b style="color:var(--bad)">${esc(t('full'))}</b> · ${esc(t('waitlist_n', { n: e.waitlist }))}`}</span><span>${esc(t('coins_n', { n: e.coins }))}</span></div>`;
   }
@@ -129,15 +143,16 @@
     if (S.me.role !== 'student') return '';
     const m = e.my, started = new Date(e.startsAt) <= new Date();
     if (started && (!m || m.status === 'waitlisted')) return `<p class="note info">${esc(t('live_now'))}</p>`;
-    if (!m) return `<div class="row"><button class="btn" data-reg="${e.id}">${esc(t(e.free ? 'register' : 'join_waitlist'))}</button><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
+    if (!m) return `<div class="row"><button class="btn" data-reg="${e.id}">${esc(t(e.open ? 'plan_to_come' : e.free ? 'register' : 'join_waitlist'))}</button><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
     if (m.status === 'confirmed') return `<p class="note ok">${esc(t('registered'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button><button class="btn danger" data-cancel="${e.id}">${esc(t('cant_come'))}</button></div>`;
+    if (m.status === 'planned') return `<p class="note ok">🙋 ${esc(t('you_plan'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button><button class="btn danger" data-cancel="${e.id}">${esc(t('wont_come'))}</button></div>`;
     if (m.status === 'waitlisted') return `<p class="note warn">${esc(t('waitlisted', { n: m.position }))}</p><div class="row"><button class="btn danger" data-cancel="${e.id}">${esc(t('leave_waitlist'))}</button></div>`;
     return `<p class="note ok">✓ ${esc(t('status_checked'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
   }
   const eventCard = (e) => `<article class="card ev"><div class="spread"><span class="pill">${esc(t('type_' + e.type))}</span>${new Date(e.startsAt) <= new Date() ? `<span class="pill live">● ${esc(t('live'))}</span>` : ''}<span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}</span></div>
     <h3>${esc(L(e, 'title'))}</h3><div class="meta">${esc(clubName(e))} · ${esc(L(e, 'location'))}</div>${seatsBlock(e)}${actionBlock(e)}</article>`;
 
-  async function register(id, btn) { return act(btn, async () => { try { const e = await api('POST', `/api/events/${id}/register`); toast(e.my.status === 'confirmed' ? t('registered') : t('waitlisted', { n: e.my.position })); render(); } catch (err) { fail(err); } }); }
+  async function register(id, btn) { return act(btn, async () => { try { const e = await api('POST', `/api/events/${id}/register`); toast(e.my.status === 'confirmed' ? t('registered') : e.my.status === 'planned' ? t('you_plan') : t('waitlisted', { n: e.my.position })); render(); } catch (err) { fail(err); } }); }
   async function cancel(id, btn, waitlisted) {
     if (!(await confirmBox(t(waitlisted ? 'confirm_leave' : 'confirm_cancel'), t('yes_cancel')))) return;
     return act(btn, async () => { try { await api('DELETE', `/api/events/${id}/registration`); render(); } catch (err) { fail(err); } });
@@ -229,7 +244,7 @@
   const LANGNAME = { en: 'EN', kk: 'ҚАЗ', ru: 'РУС' };
   function openEvent(e) {
     const m = e.my, rem = m && m.reminder;
-    const reminders = m && m.status === 'confirmed' ? `<label>${esc(t('reminders'))}</label><div class="seg" role="group">${['off', 'push', 'telegram'].map((c) => `<button data-ch="${c}" aria-pressed="${rem.channel === c}">${esc(t(c === 'off' ? 'rem_off' : c === 'push' ? 'rem_push' : 'rem_tg'))}</button>`).join('')}</div>
+    const reminders = m && ['confirmed', 'planned'].includes(m.status) ? `<label>${esc(t('reminders'))}</label><div class="seg" role="group">${['off', 'push', 'telegram'].map((c) => `<button data-ch="${c}" aria-pressed="${rem.channel === c}">${esc(t(c === 'off' ? 'rem_off' : c === 'push' ? 'rem_push' : 'rem_tg'))}</button>`).join('')}</div>
       <div><label class="chk"><input type="checkbox" id="rd" ${rem.day ? 'checked' : ''}> ${esc(t('rem_day'))}</label><label class="chk"><input type="checkbox" id="rh" ${rem.hour ? 'checked' : ''}> ${esc(t('rem_hour'))}</label></div><p class="meta">${esc(t('rem_note'))}</p>` : '';
     const rating = m && m.status === 'checked_in' ? (m.rating ? `<p class="note ok">${esc(t('rated', { n: m.rating }))}</p>` : `<label>${esc(t('rate'))}</label><div class="stars">${[1, 2, 3, 4, 5].map((n) => `<button data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`) : '';
     modal(`<span class="pill">${esc(t('type_' + e.type))}</span><h2 style="margin-top:8px">${esc(L(e, 'title'))}</h2><p class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}–${esc(time(e.endsAt))} · ${esc(clubName(e))}</p>${placeLine(e)}<p>${esc(L(e, 'description'))}</p>${seatsBlock(e)}${actionBlock(e)}${reminders}${m && m.status !== 'waitlisted' ? calendarLinks(e) : ''}<div class="row"><button class="btn ghost small" data-share>↗ ${esc(t('share'))}</button>${canReport() ? `<button class="btn ghost small" data-report>🚩 ${esc(t('report'))}</button>` : ''}</div>${rating}`, (root, close) => {
@@ -283,7 +298,7 @@
 
   // ---------- W06 Profile (FR-16, FR-19, FR-21) ----------
   // Attendance history (shared by the History tab and the Profile)
-  const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'] };
+  const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'], planned: ['info', 'hist_planned'] };
   function historyHTML(regs) { const hist = regs.items, rate = regs.attended + regs.missed ? Math.round((regs.attended / (regs.attended + regs.missed)) * 100) : null; return `<section class="card" style="grid-column:1/-1"><h2>${esc(t('history_title'))}</h2>${rate !== null ? `<p class="meta">${esc(t('hist_summary', { a: regs.attended, t: regs.attended + regs.missed, p: rate }))}</p>` : ''}${hist.length ? `<div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_status'))}</th><th>${esc(t('coins'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>${hist.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(clubName(e))}</span></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_status'))}"><span class="note ${RES[e.result][0]}" style="margin:0;padding:3px 8px;display:inline-block">${esc(t(RES[e.result][1]))}</span></td><td data-label="${esc(t('coins'))}">${e.coinsEarned ? '+' + e.coinsEarned : '—'}</td><td data-label="${esc(t('th_rating'))}">${e.result !== 'attended' ? '—' : e.my && e.my.rating ? '★ ' + e.my.rating + '/5' : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</td></tr>`).join('')}</tbody></table></div><p class="meta">${esc(t('rate_hint'))}</p>` : `<p class="meta">${esc(t('hist_empty'))}</p>`}</section>`; }
   function bindRating(root) { root.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', async () => { try { await api('POST', `/api/events/${b.dataset.rate}/feedback`, { rating: Number(b.dataset.star) }); toast(t('rated', { n: b.dataset.star })); render(); } catch (err) { fail(err); } })); }
   VIEWS.history = async () => {
@@ -295,7 +310,6 @@
     const [me, coins, notes, clubs, regs, reports] = await Promise.all([api('GET', '/api/me'), api('GET', '/api/me/coins'), api('GET', '/api/me/notifications'), api('GET', '/api/clubs'), S.me.role === 'student' ? api('GET', '/api/me/history') : { items: [] }, api('GET', '/api/me/complaints').catch(() => [])]);
     const mine = clubs.filter((c) => c.myStatus === 'accepted' || c.myStatus === 'pending');
     const hist = regs.items, rate = regs.attended + regs.missed ? Math.round((regs.attended / (regs.attended + regs.missed)) * 100) : null;
-    const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'] };
     app.innerHTML = `<h1>${esc(me.name)}</h1><p class="sub">${esc(me.email)}${me.studentId ? ' · ID ' + esc(me.studentId) : ''}${me.group ? ' · ' + esc(me.group) : ''}${me.club ? ' · ' + esc(me.club.name) : ''}</p>
       <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div><p class="note info" style="margin:8px 0">${esc(t('coins_info'))}</p><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>+${h.amount}</b></li>`).join('')}</ul></section>
       <section class="card"><h2>${esc(t('notifications'))}</h2><p class="meta">${esc(t('notes_info'))}</p>${notes.length ? `<ul class="list">${notes.map((n) => `<li><span class="pill">${esc(t('ch_' + n.channel))}</span> ${esc(n.text)}<br><span class="meta">${esc(dateLong(n.createdAt))}, ${esc(time(n.createdAt))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('no_notifications'))}</p>`}</section>
@@ -303,17 +317,19 @@
       ${reports.length ? `<section class="card"><h2>🚩 ${esc(t('my_complaints'))}</h2><ul class="list">${reports.map((c) => `<li><div class="spread"><b>${esc(c.targetTitle || '—')}</b>${cstPill(c.status)}</div><span class="meta">${esc(t('target_' + c.targetType))} · ${esc(t('reason_' + c.reason))} · ${esc(dateLong(c.createdAt))}</span><br><span style="font-size:14px">${esc(c.text)}</span>${c.comment ? `<p class="note info" style="margin:6px 0 0">💬 ${esc(c.comment)}</p>` : ''}</li>`).join('')}</ul></section>` : ''}
       ${S.me.role === 'student' ? `<section class="card" style="grid-column:1/-1"><h2>${esc(t('history_title'))}</h2>${rate !== null ? `<p class="meta">${esc(t('hist_summary', { a: regs.attended, t: regs.attended + regs.missed, p: rate }))}</p>` : ''}${hist.length ? `<div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_status'))}</th><th>${esc(t('coins'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>${hist.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(clubName(e))}</span></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_status'))}"><span class="note ${RES[e.result][0]}" style="margin:0;padding:3px 8px;display:inline-block">${esc(t(RES[e.result][1]))}</span></td><td data-label="${esc(t('coins'))}">${e.coinsEarned ? '+' + e.coinsEarned : '—'}</td><td data-label="${esc(t('th_rating'))}">${e.result !== 'attended' ? '—' : e.my && e.my.rating ? '★ ' + e.my.rating + '/5' : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</td></tr>`).join('')}</tbody></table></div><p class="meta">${esc(t('rate_hint'))}</p>` : `<p class="meta">${esc(t('hist_empty'))}</p>`}</section>` : ''}
       <section class="card"><h2>${esc(t('my_clubs'))}</h2><ul class="list">${mine.map((c) => `<li class="spread"><span>${esc(L(c, 'name'))}</span><span class="meta">${esc(t(c.myStatus === 'accepted' ? 'st_accepted' : 'st_pending'))}</span></li>`).join('') || '<li class="meta">—</li>'}</ul>
-      <label for="pl">${esc(t('language'))}</label><select id="pl"><option value="en">English</option><option value="kk">Қазақша</option><option value="ru">Русский</option></select></section></div>`;
+      <label for="pl">${esc(t('language'))}</label><select id="pl"><option value="en">English</option><option value="kk">Қазақша</option><option value="ru">Русский</option></select></section>
+      <section class="card"><h2>🔒 ${esc(t('consent_title'))}</h2><p class="meta">${esc(t('consent_given', { date: me.consentAt ? dateLong(me.consentAt) : '—' }))}</p><p class="meta">${esc(t('consent_withdraw_hint'))}</p><button class="btn danger small" id="cwd">${esc(t('consent_withdraw'))}</button></section></div>`;
+    $('#cwd').addEventListener('click', async (ev) => { const b = ev.currentTarget; if (!(await confirmBox(t('consent_withdraw_confirm'), t('consent_withdraw')))) return; await act(b, async () => { try { await api('DELETE', '/api/me/consent'); S.me.consentAt = null; render(); } catch (err) { fail(err); } }); });
     app.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', async () => { try { await api('POST', `/api/events/${b.dataset.rate}/feedback`, { rating: Number(b.dataset.star) }); toast(t('rated', { n: b.dataset.star })); render(); } catch (err) { fail(err); } }));
     $('#pl').value = S.lang; $('#pl').addEventListener('change', (e) => { $('#lang').value = e.target.value; $('#lang').dispatchEvent(new Event('change')); });
     drawTelegram();
   };
 
   // Database overview for the defense (administrator): tables, columns, links, row counts and a masked sample
-  VIEWS.db = async () => {
+  VIEWS.db = async (host = app) => {
     const tables = await api('GET', '/api/admin/db');
     const total = tables.reduce((n, x) => n + x.count, 0);
-    app.innerHTML = `<h1>${esc(t('db_title'))}</h1><p class="sub">${esc(t('db_sub', { n: tables.length, rows: total }))}</p>
+    host.innerHTML = `${host === app ? `<h1>${esc(t('db_title'))}</h1>` : ''}<p class="sub">${esc(t('db_sub', { n: tables.length, rows: total }))}</p>
       <p><a class="btn ghost small" href="/diagrams/fig_er_diagram.png" target="_blank" rel="noopener">${esc(t('db_er'))}</a></p>
       <div class="grid">${tables.map((x) => `<section class="card"><div class="spread"><h2 style="margin:0">${esc(x.table)}</h2><span class="pill">${x.count} ${esc(t('db_rows'))}</span></div>
         <div class="tablewrap"><table><thead><tr><th>${esc(t('db_col'))}</th><th>${esc(t('db_type'))}</th><th>${esc(t('db_key'))}</th></tr></thead><tbody>${x.columns.map((c) => `<tr><td>${esc(c.name)}</td><td class="meta">${esc(c.type)}</td><td>${c.pk ? '<span class="pill">PK</span>' : ''}${c.ref ? `<span class="pill">FK → ${esc(c.ref)}</span>` : ''}</td></tr>`).join('')}</tbody></table></div>
@@ -419,6 +435,7 @@
       ${langFields('f', {})}<label for="fy">${esc(t('f_type'))}</label><select id="fy">${['tech', 'sports', 'creative', 'intellectual', 'social'].map((c) => `<option value="${c}">${esc(t('type_' + c))}</option>`).join('')}</select>
       <label for="fs">${esc(t('f_start'))}</label><input id="fs" type="datetime-local" value="${local}" min="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}" required>
       <div class="spread"><div style="flex:1"><label for="fd">${esc(t('f_duration'))}</label><input id="fd" type="number" min="15" max="720" value="120"></div><div style="flex:1"><label for="fc">${esc(t('f_capacity'))}</label><input id="fc" type="number" min="1" max="500" value="40"></div></div>
+      <label class="chk" style="margin-top:12px"><input type="checkbox" id="fopen"> ${esc(t('f_open'))}</label><p class="meta" style="margin:2px 0 0">${esc(t('f_open_hint'))}</p>
       <label>${esc(t('f_place'))}</label><div class="seg" role="group"><button type="button" data-pk="room" aria-pressed="true">${esc(t('place_campus'))}</button><button type="button" data-pk="venue" aria-pressed="false">${esc(t('place_city'))}</button></div>
       <div id="pk-room"><select id="fr" aria-label="${esc(t('f_place'))}" style="margin-top:8px"></select><div class="row" style="margin-top:6px"><button class="btn ghost small" type="button" id="frshow">🧭 ${esc(t('show_on_plan'))}</button><span class="meta" id="frinfo"></span></div></div>
       <div id="pk-venue" hidden><select id="fv" aria-label="${esc(t('place_city'))}" style="margin-top:8px"></select></div>
@@ -474,7 +491,7 @@
     $('#ef').addEventListener('submit', async (ev) => {
       ev.preventDefault(); clearErr();
       const bad = check(); if (bad) return showErr(bad, bad === 'lang' ? LMSG : t('err_' + bad));
-      const body = { i18n: LF.read(), type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value) };
+      const body = { i18n: LF.read(), type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value), open: $('#fopen').checked };
       await act(ev.submitter || $('#ef button'), async () => { try { await api('POST', '/api/events', body); toast(t('submitted')); render(); } catch (err) { showErr(err.code, err.message); } });
     });
   };
@@ -482,7 +499,7 @@
   // ---------- W08 Check-in: QR code or manual list (FR-14, FR-15) ----------
   VIEWS.checkin = async () => {
     const all = await api('GET', '/api/organizer/events');
-    const list = all.filter((e) => e.status === 'approved' && new Date(e.endsAt) > new Date(Date.now() - 86400000));
+    const list = all.filter((e) => e.status === 'approved' && !e.open && new Date(e.endsAt) > new Date(Date.now() - 86400000));
     if (!S.ci || !list.find((e) => e.id === S.ci)) S.ci = (list.find((e) => new Date(e.endsAt) > new Date()) || list[0] || {}).id;
     app.innerHTML = `<h1>${esc(t('checkin_title'))}</h1><p class="sub">${esc(t('checkin_sub'))}</p><div class="grid"><section class="card">
       <label for="ce">${esc(t('choose_event'))}</label><select id="ce">${list.map((e) => `<option value="${e.id}" ${e.id === S.ci ? 'selected' : ''}>${esc(L(e, 'title'))} · ${esc(dateLong(e.startsAt))} ${esc(time(e.startsAt))}</option>`).join('')}</select>
@@ -568,13 +585,14 @@
   const TYPESL = ['tech', 'sports', 'creative', 'intellectual', 'social'];
   VIEWS.admin = async () => {
     const tab = (/[?&]tab=(\w+)/.exec(location.hash) || [])[1] || S.adminTab || 'complaints'; S.adminTab = tab;
-    const TABS = [['complaints', 'tab_complaints'], ['events', 'tab_events'], ['clubs', 'tab_clubs'], ['users', 'tab_users']];
+    const TABS = [['complaints', 'tab_complaints'], ['events', 'tab_events'], ['clubs', 'tab_clubs'], ['users', 'tab_users'], ['db', 'nav_db']];
     app.innerHTML = `<h1>${esc(t('admin_title'))}</h1><p class="sub">${esc(t('admin_sub'))}</p>
       <div class="seg" role="tablist" style="margin-bottom:14px;flex-wrap:wrap">${TABS.map(([k, l]) => `<button role="tab" data-atab="${k}" aria-selected="${tab === k}" aria-pressed="${tab === k}">${esc(t(l))}</button>`).join('')}</div><div id="apanel"><p class="meta">${esc(t('loading'))}</p></div>`;
     app.querySelectorAll('[data-atab]').forEach((b) => b.addEventListener('click', () => { S.adminTab = b.dataset.atab; history.replaceState(null, '', '#/admin?tab=' + b.dataset.atab); render(); }));
     await ADMIN[tab]($('#apanel'));
   };
   const ADMIN = {
+    db: (box) => VIEWS.db(box),
     async complaints(box) {
       const list = await api('GET', '/api/admin/complaints');
       if (!list.length) { box.innerHTML = `<p class="note ok">${esc(t('no_complaints'))}</p>`; return; }

@@ -64,6 +64,18 @@ window.I18N = {
 
 // ---------- Final release: administrator, complaints, events in three languages, theme (FR-39 … FR-45) ----------
 Object.assign(window.I18N.en, {
+  consent_title: 'Your data in CampusPass', consent_sub: 'Before you start, please read what CampusPass keeps about you (Law of the Republic of Kazakhstan “On Personal Data”, constraint C08).',
+  consent_what: 'What: your name, university e-mail, student ID, role, registrations, check-ins, ratings and coins. No IIN, phone or photos.',
+  consent_why: 'Why: to register you for events, check you in and show your history and coins.',
+  consent_who: 'Who sees it: you; the organizer of an event sees its participant list; Student Affairs sees statistics.',
+  consent_long: 'How long: registrations and check-ins are anonymised after 12 months.',
+  consent_where: 'Where: on university servers in Kazakhstan. Telegram gets messages only if you connect it.',
+  consent_rights: 'Your rights: see your data in the Profile, withdraw this consent or ask for deletion at any time.',
+  consent_demo: 'Prototype: all accounts and data here are fictional.', consent_check: 'I have read this and agree to the processing of my data for these purposes.', consent_accept: 'Agree and continue',
+  consent_given: 'Consent given: {date}.', consent_withdraw_hint: 'If you withdraw consent, you cannot register for new events, and Telegram is disconnected. Your past history stays (C11).', consent_withdraw: 'Withdraw consent', consent_withdraw_confirm: 'Withdraw your consent? You will not be able to register for events until you agree again.',
+  err_consent_required: 'Accept the data processing terms first.',
+  open_event: 'Open event', planned_n: '{n} plan to come', plan_to_come: 'I plan to come', you_plan: 'You plan to come. No ticket is needed — the event is open.', wont_come: 'I won’t come', hist_planned: 'Planned (open event)',
+  f_open: 'Open event — no registration and no seat limit', f_open_hint: 'For concerts, fairs and shows: students only press “I plan to come”, so you know how many people to expect. No tickets and no check-in.',
   tg_role_student: 'In the bot: events today and this week, register with one button, your tickets (cancel), coins, reminders 1 day and 1 hour before.',
   tg_role_organizer: 'In the bot: events of your club with seats and participants, check-in by sending the ticket code, a message when your event is approved or rejected.',
   tg_role_moderator: 'In the bot: new events for review arrive with Approve / Reject buttons, club requests, statistics.',
@@ -89,6 +101,18 @@ Object.assign(window.I18N.en, {
   err_title_lang: 'Title ({lang}): 3–120 characters.', err_desc_lang: 'Description ({lang}): 10–1000 characters.', err_no_language: 'Write the title and the description in at least one language.'
 });
 Object.assign(window.I18N.kk, {
+  consent_title: 'CampusPass-тағы деректеріңіз', consent_sub: 'Бастамас бұрын CampusPass сіз туралы не сақтайтынын оқыңыз (ҚР «Дербес деректер туралы» Заңы, C08 шектеуі).',
+  consent_what: 'Не: аты-жөніңіз, университет поштасы, студенттік ID, рөл, тіркелулер, қатысу белгілері, бағалар мен монеталар. ЖСН, телефон, фото сақталмайды.',
+  consent_why: 'Не үшін: іс-шараға тіркеу, қатысуды белгілеу, тарих пен монеталарды көрсету.',
+  consent_who: 'Кім көреді: өзіңіз; іс-шара ұйымдастырушысы қатысушылар тізімін; студенттер ісі бөлімі статистиканы.',
+  consent_long: 'Қанша уақыт: тіркелулер мен белгілер 12 айдан кейін иесіздендіріледі.',
+  consent_where: 'Қайда: Қазақстандағы университет серверлерінде. Telegram хабарды тек сіз қосқанда алады.',
+  consent_rights: 'Құқықтарыңыз: деректерді Профильден көру, келісімді кері қайтару немесе кез келген уақытта жоюды сұрау.',
+  consent_demo: 'Прототип: мұндағы барлық аккаунттар мен деректер ойдан шығарылған.', consent_check: 'Оқыдым және деректерімнің осы мақсаттарда өңделуіне келісемін.', consent_accept: 'Келісемін және жалғастыру',
+  consent_given: 'Келісім берілді: {date}.', consent_withdraw_hint: 'Келісімді кері қайтарсаңыз, жаңа іс-шараларға тіркеле алмайсыз, Telegram ажыратылады. Бұрынғы тарих сақталады (C11).', consent_withdraw: 'Келісімді кері қайтару', consent_withdraw_confirm: 'Келісімді кері қайтарасыз ба? Қайта келіскенше іс-шараға тіркеле алмайсыз.',
+  err_consent_required: 'Алдымен деректерді өңдеу шарттарын қабылдаңыз.',
+  open_event: 'Ашық іс-шара', planned_n: '{n} адам барады', plan_to_come: 'Барамын', you_plan: 'Сіз барамын деп белгіледіңіз. Билет керек емес — іс-шара ашық.', wont_come: 'Бармаймын', hist_planned: 'Жоспарланды (ашық іс-шара)',
+  f_open: 'Ашық іс-шара — тіркеусіз және орын шектеусіз', f_open_hint: 'Концерт, жәрмеңке, шоу үшін: студенттер тек «Барамын» басады, сіз қанша адам келетінін білесіз. Билет пен белгілеу жоқ.',
   tg_role_student: 'Ботта: бүгінгі және апталық іс-шаралар, бір батырмамен тіркелу, билеттер (бас тарту), монеталар, 1 күн және 1 сағат бұрын еске салу.',
   tg_role_organizer: 'Ботта: клубыңыздың іс-шаралары, орындар мен қатысушылар, билет кодын жіберіп тіркеу, іс-шара мақұлданғанда не қабылданбағанда хабар.',
   tg_role_moderator: 'Ботта: жаңа іс-шаралар «Мақұлдау / Қабылдамау» батырмаларымен келеді, клубқа өтінімдер, статистика.',
@@ -114,6 +138,18 @@ Object.assign(window.I18N.kk, {
   err_title_lang: 'Атауы ({lang}): 3–120 таңба.', err_desc_lang: 'Сипаттама ({lang}): 10–1000 таңба.', err_no_language: 'Атауы мен сипаттамасын кемінде бір тілде жазыңыз.'
 });
 Object.assign(window.I18N.ru, {
+  consent_title: 'Ваши данные в CampusPass', consent_sub: 'Перед началом прочитайте, что CampusPass хранит о вас (Закон РК «О персональных данных», ограничение C08).',
+  consent_what: 'Что: имя, университетская почта, ID студента, роль, записи, отметки, оценки и монеты. Без ИИН, телефона и фото.',
+  consent_why: 'Зачем: чтобы записывать на мероприятия, отмечать присутствие и показывать историю и монеты.',
+  consent_who: 'Кто видит: вы; организатор мероприятия видит список его участников; Student Affairs видит статистику.',
+  consent_long: 'Как долго: записи и отметки обезличиваются через 12 месяцев.',
+  consent_where: 'Где: на серверах университета в Казахстане. Telegram получает сообщения, только если вы его подключите.',
+  consent_rights: 'Ваши права: смотреть свои данные в Профиле, отозвать согласие или попросить удалить данные в любой момент.',
+  consent_demo: 'Прототип: все аккаунты и данные здесь вымышлены.', consent_check: 'Я прочитал(а) и согласен(на) на обработку моих данных для этих целей.', consent_accept: 'Согласиться и продолжить',
+  consent_given: 'Согласие дано: {date}.', consent_withdraw_hint: 'Если отозвать согласие, нельзя будет записываться на новые мероприятия, а Telegram отключится. Прошлая история сохранится (C11).', consent_withdraw: 'Отозвать согласие', consent_withdraw_confirm: 'Отозвать согласие? Записываться на мероприятия можно будет только после нового согласия.',
+  err_consent_required: 'Сначала примите условия обработки данных.',
+  open_event: 'Открытое мероприятие', planned_n: 'Планируют прийти: {n}', plan_to_come: 'Я планирую прийти', you_plan: 'Вы планируете прийти. Билет не нужен — мероприятие открытое.', wont_come: 'Не приду', hist_planned: 'Планировал(а) (открытое)',
+  f_open: 'Открытое мероприятие — без записи и лимита мест', f_open_hint: 'Для концертов, ярмарок и шоу: студенты только нажимают «Я планирую прийти», и вы знаете, сколько людей ждать. Без билетов и отметки.',
   tg_role_student: 'В боте: мероприятия на сегодня и неделю, запись одной кнопкой, ваши билеты (можно отменить), монеты, напоминания за 1 день и за 1 час.',
   tg_role_organizer: 'В боте: мероприятия вашего клуба, места и участники, отметка по коду билета, сообщение, когда мероприятие одобрено или отклонено.',
   tg_role_moderator: 'В боте: новые мероприятия приходят с кнопками «Одобрить / Отклонить», заявки в клубы, статистика.',

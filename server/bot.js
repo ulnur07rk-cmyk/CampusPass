@@ -13,7 +13,7 @@
 const LANGS = ['en', 'kk', 'ru'];
 const T = {
   en: {
-    welcome: '👋 Hi! I am the CampusPass bot.\nChoose what you need:', welcome_role: '👋 Hi, {name}! You are signed in as: {role}.\nChoose what you need:',
+    plan: '🙋 I plan to come', planned_n: '🙋 {n} plan to come · open event, no seat limit', st_planned: 'You plan to come', planned_ok: '🙋 Noted: you plan to come.', consent: 'First accept the data processing terms on the website (it opens after sign-in).', welcome: '👋 Hi! I am the CampusPass bot.\nChoose what you need:', welcome_role: '👋 Hi, {name}! You are signed in as: {role}.\nChoose what you need:',
     linked: '✅ CampusPass is connected for {name} ({role}). Your menu and commands are ready.',
     bad_code: '⚠️ This link is not valid or was already used. Open your Profile in CampusPass and press “Connect Telegram” again.',
     not_linked: '🔒 This needs your CampusPass account. Open Profile → “Connect Telegram” on the website, then press Start.',
@@ -39,7 +39,7 @@ const T = {
     s_pending: '🕒 waiting for review', s_approved: '✅ approved', s_rejected: '❌ rejected', s_cancelled: '⛔ cancelled',
     seats_taken: '👥 {t}/{c} registered · waitlist {w}', participants: '👥 Participants', part_title: '👥 {title}: {n} participants ({k} checked in)', part_none: 'No participants yet.',
     checkin_ask: '✅ Check-in\nSend the ticket code from the student’s QR ticket, for example CP-1A2B3C4D5E. You can send codes one after another.\n/cancel — stop',
-    checkin_ok: '✅ {name} (ID {sid}) checked in at “{title}”. +{coins} coins.', checkin_none: 'No event of yours has open check-in now (from 1 hour before the start until the end).',
+    checkin_ok: '✅ {name} checked in at “{title}”. +{coins} coins.', checkin_none: 'No event of yours has open check-in now (from 1 hour before the start until the end).',
     pending_title: '🕒 Events waiting for review ({n})', pending_none: 'Nothing is waiting for review. 👍',
     approve: '✅ Approve', reject: '❌ Reject', approved: '✅ Approved: {title}', rejected: '❌ Rejected: {title}',
     reject_ask: 'Write the reason for rejecting “{title}” in one message (at least 5 characters). The organizer will see it.\n/cancel — stop',
@@ -52,7 +52,7 @@ const T = {
     cst_new: 'new', cst_in_review: 'in review', cst_resolved: 'resolved', cst_rejected: 'rejected',
     stopped: '👋 This chat is disconnected from CampusPass. You can connect again in your Profile.', cancelled_wait: 'OK, stopped.',
     rem_day: '🔔 Reminder: “{title}” starts in less than a day — {when}.\n📍 {place}', rem_hour: '🔔 Reminder: “{title}” starts in less than an hour ({when}).\n📍 {place}',
-    complaint: '🚩 New complaint #{id}\n{target}: {title}\nReason: {reason}\nFrom: {from}\n“{text}”',
+    complaint: '🚩 New complaint #{id}\n{target}: {title}\nReason: {reason}\n“{text}”\n(The author is shown on the website.)',
     new_event: '🆕 New event for review\n{title}\n🕒 {when}\n📍 {place}\n👥 {club} · {cap} seats',
     decided_ok: '✅ Your event “{title}” was approved and is now on the poster.', decided_no: '❌ Your event “{title}” was rejected.\nReason: {comment}',
     promoted: '🎉 A seat became free: you are now registered for “{title}”. Ticket: {code}',
@@ -61,7 +61,7 @@ const T = {
     err: '⚠️ {msg}', unknown: 'I did not understand. Use the buttons or /help.'
   },
   kk: {
-    welcome: '👋 Сәлем! Мен CampusPass ботымын.\nҚажетін таңдаңыз:', welcome_role: '👋 Сәлем, {name}! Сіздің рөліңіз: {role}.\nҚажетін таңдаңыз:',
+    plan: '🙋 Барамын', planned_n: '🙋 {n} адам барады · ашық іс-шара, орын шектеусіз', st_planned: 'Барамын деп белгіледіңіз', planned_ok: '🙋 Белгіленді: барасыз.', consent: 'Алдымен сайтта деректерді өңдеу шарттарын қабылдаңыз (кіргеннен кейін ашылады).', welcome: '👋 Сәлем! Мен CampusPass ботымын.\nҚажетін таңдаңыз:', welcome_role: '👋 Сәлем, {name}! Сіздің рөліңіз: {role}.\nҚажетін таңдаңыз:',
     linked: '✅ CampusPass {name} үшін қосылды ({role}). Мәзір мен командалар дайын.',
     bad_code: '⚠️ Сілтеме жарамсыз немесе қолданылып қойған. CampusPass профилінде «Telegram-ды қосу» батырмасын қайта басыңыз.',
     not_linked: '🔒 Бұл үшін CampusPass аккаунты керек. Сайтта Профиль → «Telegram-ды қосу», содан кейін Start басыңыз.',
@@ -87,7 +87,7 @@ const T = {
     s_pending: '🕒 қаралуда', s_approved: '✅ мақұлданды', s_rejected: '❌ қабылданбады', s_cancelled: '⛔ тоқтатылды',
     seats_taken: '👥 {t}/{c} тіркелді · кезекте {w}', participants: '👥 Қатысушылар', part_title: '👥 {title}: {n} қатысушы ({k} тіркелді)', part_none: 'Әзірге қатысушы жоқ.',
     checkin_ask: '✅ Тіркеу\nСтуденттің QR-билетіндегі кодты жіберіңіз, мысалы CP-1A2B3C4D5E. Кодтарды бірінен соң бірін жібере беруге болады.\n/cancel — тоқтату',
-    checkin_ok: '✅ {name} (ID {sid}) «{title}» іс-шарасында тіркелді. +{coins} монета.', checkin_none: 'Қазір тіркеу ашық іс-шараңыз жоқ (басталуға 1 сағат қалғаннан соңына дейін).',
+    checkin_ok: '✅ {name} «{title}» іс-шарасында тіркелді. +{coins} монета.', checkin_none: 'Қазір тіркеу ашық іс-шараңыз жоқ (басталуға 1 сағат қалғаннан соңына дейін).',
     pending_title: '🕒 Қаралуды күтетін іс-шаралар ({n})', pending_none: 'Қаралатын ештеңе жоқ. 👍',
     approve: '✅ Мақұлдау', reject: '❌ Қабылдамау', approved: '✅ Мақұлданды: {title}', rejected: '❌ Қабылданбады: {title}',
     reject_ask: '«{title}» іс-шарасын қабылдамау себебін бір хабарламамен жазыңыз (кемінде 5 таңба). Ұйымдастырушы оны көреді.\n/cancel — тоқтату',
@@ -100,7 +100,7 @@ const T = {
     cst_new: 'жаңа', cst_in_review: 'қаралуда', cst_resolved: 'шешілді', cst_rejected: 'қабылданбады',
     stopped: '👋 Чат CampusPass-тан ажыратылды. Профильде қайта қосуға болады.', cancelled_wait: 'Жарайды, тоқтаттым.',
     rem_day: '🔔 Еске салу: «{title}» бір тәулікке жетпей басталады — {when}.\n📍 {place}', rem_hour: '🔔 Еске салу: «{title}» бір сағатқа жетпей басталады ({when}).\n📍 {place}',
-    complaint: '🚩 Жаңа шағым #{id}\n{target}: {title}\nСебебі: {reason}\nКімнен: {from}\n«{text}»',
+    complaint: '🚩 Жаңа шағым #{id}\n{target}: {title}\nСебебі: {reason}\n«{text}»\n(Авторы сайтта көрсетіледі.)',
     new_event: '🆕 Қаралатын жаңа іс-шара\n{title}\n🕒 {when}\n📍 {place}\n👥 {club} · {cap} орын',
     decided_ok: '✅ «{title}» іс-шараңыз мақұлданды және афишаға шықты.', decided_no: '❌ «{title}» іс-шараңыз қабылданбады.\nСебебі: {comment}',
     promoted: '🎉 Орын босады: сіз «{title}» іс-шарасына тіркелдіңіз. Билет: {code}',
@@ -109,7 +109,7 @@ const T = {
     err: '⚠️ {msg}', unknown: 'Түсінбедім. Батырмаларды немесе /help пайдаланыңыз.'
   },
   ru: {
-    welcome: '👋 Привет! Я бот CampusPass.\nВыберите, что нужно:', welcome_role: '👋 Привет, {name}! Ваша роль: {role}.\nВыберите, что нужно:',
+    plan: '🙋 Я планирую прийти', planned_n: '🙋 Планируют прийти: {n} · открытое мероприятие, без лимита мест', st_planned: 'Вы планируете прийти', planned_ok: '🙋 Отмечено: вы планируете прийти.', consent: 'Сначала примите условия обработки данных на сайте (экран откроется после входа).', welcome: '👋 Привет! Я бот CampusPass.\nВыберите, что нужно:', welcome_role: '👋 Привет, {name}! Ваша роль: {role}.\nВыберите, что нужно:',
     linked: '✅ CampusPass подключён для {name} ({role}). Меню и команды готовы.',
     bad_code: '⚠️ Ссылка недействительна или уже использована. Откройте Профиль в CampusPass и снова нажмите «Подключить Telegram».',
     not_linked: '🔒 Для этого нужен аккаунт CampusPass. На сайте откройте Профиль → «Подключить Telegram», затем нажмите Start.',
@@ -135,7 +135,7 @@ const T = {
     s_pending: '🕒 на модерации', s_approved: '✅ одобрено', s_rejected: '❌ отклонено', s_cancelled: '⛔ отменено',
     seats_taken: '👥 {t}/{c} записались · в очереди {w}', participants: '👥 Участники', part_title: '👥 {title}: {n} участников ({k} отмечены)', part_none: 'Пока никто не записался.',
     checkin_ask: '✅ Отметка\nОтправьте код с QR-билета студента, например CP-1A2B3C4D5E. Коды можно отправлять один за другим.\n/cancel — закончить',
-    checkin_ok: '✅ {name} (ID {sid}) отмечен(а) на «{title}». +{coins} монет.', checkin_none: 'Сейчас нет вашего мероприятия с открытой отметкой (с 1 часа до начала и до конца).',
+    checkin_ok: '✅ {name} отмечен(а) на «{title}». +{coins} монет.', checkin_none: 'Сейчас нет вашего мероприятия с открытой отметкой (с 1 часа до начала и до конца).',
     pending_title: '🕒 На модерации ({n})', pending_none: 'На модерации ничего нет. 👍',
     approve: '✅ Одобрить', reject: '❌ Отклонить', approved: '✅ Одобрено: {title}', rejected: '❌ Отклонено: {title}',
     reject_ask: 'Напишите одним сообщением причину отклонения «{title}» (минимум 5 символов). Организатор её увидит.\n/cancel — отменить',
@@ -148,7 +148,7 @@ const T = {
     cst_new: 'новая', cst_in_review: 'на рассмотрении', cst_resolved: 'решена', cst_rejected: 'отклонена',
     stopped: '👋 Чат отключён от CampusPass. Подключить снова можно в Профиле.', cancelled_wait: 'Хорошо, отменил.',
     rem_day: '🔔 Напоминание: «{title}» меньше чем через сутки — {when}.\n📍 {place}', rem_hour: '🔔 Напоминание: «{title}» начнётся меньше чем через час ({when}).\n📍 {place}',
-    complaint: '🚩 Новая жалоба #{id}\n{target}: {title}\nПричина: {reason}\nОт: {from}\n«{text}»',
+    complaint: '🚩 Новая жалоба #{id}\n{target}: {title}\nПричина: {reason}\n«{text}»\n(Автор указан на сайте.)',
     new_event: '🆕 Новое мероприятие на модерацию\n{title}\n🕒 {when}\n📍 {place}\n👥 {club} · {cap} мест',
     decided_ok: '✅ Ваше мероприятие «{title}» одобрено и появилось в афише.', decided_no: '❌ Ваше мероприятие «{title}» отклонено.\nПричина: {comment}',
     promoted: '🎉 Освободилось место: вы записаны на «{title}». Билет: {code}',
@@ -216,7 +216,7 @@ function menu(lang, role) { return kb(MENU[role].map((row) => row.map((k) => btn
 const backMenu = (lang, back) => kb([[...(back ? [btn(lang, 'back', back)] : []), btn(lang, 'menu', 'menu')]]);
 
 function eventLine(e, lang, i) {
-  const seats = e.free ? tr(lang, 'free', { n: e.free, c: e.capacity }) : tr(lang, 'full', { n: e.waitlist });
+  const seats = e.open ? tr(lang, 'planned_n', { n: e.planned }) : e.free ? tr(lang, 'free', { n: e.free, c: e.capacity }) : tr(lang, 'full', { n: e.waitlist });
   return `${i}. ${L(e, 'title', lang)}\n   🕒 ${when(e.startsAt, lang)} · 📍 ${placeOf(e, lang)}\n   👥 ${seats}`;
 }
 function listMsg(title, items, lang, emptyKey, line, data, back) {
@@ -231,15 +231,16 @@ function statusLine(e, lang) {
   if (m.status === 'confirmed') return tr(lang, 'st_confirmed', { code: m.ticketCode });
   if (m.status === 'waitlisted') return tr(lang, 'st_waitlisted', { n: m.position });
   if (m.status === 'checked_in') return tr(lang, 'st_checked_in');
+  if (m.status === 'planned') return tr(lang, 'st_planned');
   return '';
 }
 function eventCard(e, lang, opts) {
-  const seats = e.free ? tr(lang, 'free', { n: e.free, c: e.capacity }) : tr(lang, 'full', { n: e.waitlist });
+  const seats = e.open ? tr(lang, 'planned_n', { n: e.planned }) : e.free ? tr(lang, 'free', { n: e.free, c: e.capacity }) : tr(lang, 'full', { n: e.waitlist });
   const st = statusLine(e, lang);
   const text = `${L(e, 'title', lang)}\n🕒 ${when(e.startsAt, lang)}–${hhmm(e.endsAt)}\n📍 ${placeOf(e, lang)}\n👥 ${clubOf(e, lang)} · ${seats} · ${tr(lang, 'coins_n', { n: e.coins })}${st ? '\n🎟 ' + st : ''}\n\n${L(e, 'description', lang)}`;
   const rows = [], future = new Date(e.startsAt) > opts.now;
-  if (opts.role === 'student' && !e.my && future) rows.push([{ text: tr(lang, 'register'), callback_data: 'reg:' + e.id }]);
-  if (opts.role === 'student' && e.my && ['confirmed', 'waitlisted'].includes(e.my.status) && future) rows.push([{ text: tr(lang, 'cancel_reg'), callback_data: 'cx:' + e.id }]);
+  if (opts.role === 'student' && !e.my && future) rows.push([{ text: tr(lang, e.open ? 'plan' : 'register'), callback_data: 'reg:' + e.id }]);
+  if (opts.role === 'student' && e.my && ['confirmed', 'waitlisted', 'planned'].includes(e.my.status) && future) rows.push([{ text: tr(lang, 'cancel_reg'), callback_data: 'cx:' + e.id }]);
   if (httpsUrl(opts.siteUrl)) rows.push([{ text: tr(lang, 'open_site'), url: `${opts.siteUrl}/#/events?e=${e.id}` }]);
   rows.push([btn(lang, 'back', opts.back || 'week'), btn(lang, 'menu', 'menu')]);
   return { text: text.slice(0, 4000), reply_markup: kb(rows) };
@@ -305,7 +306,7 @@ async function handle(update, api, opts = {}) {
       const shown = list.slice(0, 8), cn = (r) => (r.clubI18n && r.clubI18n[lang] && r.clubI18n[lang].name) || r.club;
       const rows = shown.map((r, i) => [{ text: `${tr(lang, 'accept')} ${i + 1}`, callback_data: `cr:a:${r.userId}:${r.clubId}` }, { text: `${tr(lang, 'decline')} ${i + 1}`, callback_data: `cr:d:${r.userId}:${r.clubId}` }]);
       rows.push([btn(lang, 'menu', 'menu')]);
-      say({ text: `${tr(lang, 'requests_title', { n: list.length })}\n\n${shown.map((r, i) => `${i + 1}. ${r.name} (ID ${r.studentId}) → ${cn(r)}${r.message ? `\n   “${r.message}”` : ''}`).join('\n\n')}`, reply_markup: kb(rows) });
+      say({ text: `${tr(lang, 'requests_title', { n: list.length })}\n\n${shown.map((r, i) => `${i + 1}. ${r.name} → ${cn(r)}${r.message ? `\n   “${r.message}”` : ''}`).join('\n\n')}`, reply_markup: kb(rows) });
     },
     stats: async () => {
       const s = await as('GET', '/api/admin/stats');
@@ -394,9 +395,9 @@ async function handle(update, api, opts = {}) {
         if (role !== 'student') { toast(tr(lang, 'only_students')); return calls; }
         try {
           const e = await api.register(user.id, Number(m[1]));
-          toast(e.my.status === 'confirmed' ? tr(lang, 'registered', { code: e.my.ticketCode }) : tr(lang, 'waitlisted', { n: e.my.position }));
+          toast(e.my.status === 'confirmed' ? tr(lang, 'registered', { code: e.my.ticketCode }) : e.my.status === 'planned' ? tr(lang, 'planned_ok') : tr(lang, 'waitlisted', { n: e.my.position }));
           say(eventCard(e, lang, { now, role, siteUrl: opts.siteUrl, back: 'week' }));
-        } catch (err) { toast(tr(lang, { already_registered: 'already', already_started: 'started' }[err.code] || 'not_found')); }
+        } catch (err) { toast(tr(lang, { already_registered: 'already', already_started: 'started', consent_required: 'consent' }[err.code] || 'not_found')); }
         return calls;
       }
       if ((m = /^cx:(\d+)$/.exec(data)) && role === 'student') {
@@ -412,7 +413,7 @@ async function handle(update, api, opts = {}) {
       if ((m = /^op:(\d+)$/.exec(data)) && ALLOW.checkin.includes(role)) {
         const list = await as('GET', `/api/events/${m[1]}/participants`), e = (await as('GET', '/api/organizer/events')).find((x) => x.id === Number(m[1]));
         toast();
-        say({ text: `${tr(lang, 'part_title', { title: e ? L(e, 'title', lang) : '', n: list.length, k: list.filter((p) => p.status === 'checked_in').length })}\n\n${list.slice(0, 40).map((p) => `${p.status === 'checked_in' ? '✅' : '▫️'} ${p.name} (${p.studentId})`).join('\n') || tr(lang, 'part_none')}`.slice(0, 4000), reply_markup: kb([[btn(lang, 'back', 'oe:' + m[1]), btn(lang, 'menu', 'menu')]]) });
+        say({ text: `${tr(lang, 'part_title', { title: e ? L(e, 'title', lang) : '', n: list.length, k: list.filter((p) => p.status === 'checked_in').length })}\n\n${list.slice(0, 40).map((p) => `${p.status === 'checked_in' ? '✅' : '▫️'} ${p.name}`).join('\n') || tr(lang, 'part_none')}`.slice(0, 4000), reply_markup: kb([[btn(lang, 'back', 'oe:' + m[1]), btn(lang, 'menu', 'menu')]]) });
         return calls;
       }
       if ((m = /^pe:(\d+)$/.exec(data)) && ALLOW.pending.includes(role)) {
@@ -437,7 +438,7 @@ async function handle(update, api, opts = {}) {
       if ((m = /^cp:(\d+)$/.exec(data)) && role === 'admin') {
         const c = (await as('GET', '/api/admin/complaints')).find((x) => x.id === Number(m[1])); if (!c) { toast(tr(lang, 'not_found')); return calls; }
         toast();
-        say({ text: `🚩 #${c.id} · ${tr(lang, 'cst_' + c.status)}\n${TARGET[lang][c.targetType]}: ${c.targetTitle}\n${REASONS[lang][c.reason]}\n${c.fromName}\n\n“${c.text}”${c.comment ? '\n💬 ' + c.comment : ''}`, reply_markup: complaintButtons(lang, c.id, 'complaints') });
+        say({ text: `🚩 #${c.id} · ${tr(lang, 'cst_' + c.status)}\n${TARGET[lang][c.targetType]}: ${c.targetTitle}\n${REASONS[lang][c.reason]}\n\n“${c.text}”${c.comment ? '\n💬 ' + c.comment : ''}`, reply_markup: complaintButtons(lang, c.id, 'complaints') });
         return calls;
       }
       if ((m = /^cs:(r|s|x):(\d+)$/.exec(data))) {

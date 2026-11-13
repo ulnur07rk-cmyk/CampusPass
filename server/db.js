@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
   lang TEXT NOT NULL DEFAULT 'en' CHECK (lang IN ('en','kk','ru')),
   telegram_chat_id TEXT,
   telegram_code TEXT,
+  consent_at TEXT,
   created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS sessions (
@@ -52,6 +53,7 @@ CREATE TABLE IF NOT EXISTS events (
   coins INTEGER NOT NULL DEFAULT 20 CHECK (coins BETWEEN 0 AND 100),
   status TEXT NOT NULL CHECK (status IN ('pending','approved','rejected','cancelled')),
   moderation_comment TEXT,
+  is_open INTEGER NOT NULL DEFAULT 0,
   created_by INTEGER REFERENCES users(id),
   created_at TEXT NOT NULL
 );
@@ -59,7 +61,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   id INTEGER PRIMARY KEY,
   event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  status TEXT NOT NULL CHECK (status IN ('confirmed','waitlisted','cancelled','checked_in')),
+  status TEXT NOT NULL CHECK (status IN ('confirmed','waitlisted','planned','cancelled','checked_in')),
   ticket_code TEXT UNIQUE,
   reminder_channel TEXT NOT NULL DEFAULT 'off' CHECK (reminder_channel IN ('off','push','telegram')),
   remind_day INTEGER NOT NULL DEFAULT 1,
@@ -134,7 +136,8 @@ function open(dbPath) {
   const db = new DatabaseSync(dbPath);
   // A database made by an older version (no 'moderator' role) is rebuilt: it holds only fictional test data
   const old = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").get();
-  if (old && !old.sql.includes("'moderator'")) {
+  const oldReg = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'registrations'").get();
+  if ((old && !old.sql.includes("'moderator'")) || (oldReg && !oldReg.sql.includes("'planned'"))) {
     db.exec('PRAGMA foreign_keys = OFF');
     for (const tb of ['notifications', 'coin_transactions', 'feedback', 'memberships', 'registrations', 'events', 'sessions', 'complaints', 'telegram_chats', 'users', 'clubs']) db.exec(`DROP TABLE IF EXISTS ${tb}`);
     console.log('Old database format: rebuilt with fresh fictional test data.');
@@ -142,7 +145,8 @@ function open(dbPath) {
   db.exec(SCHEMA);
   // Older local databases: add the Telegram columns if they are missing
   const cols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
-  for (const c of ['telegram_chat_id', 'telegram_code']) if (!cols.includes(c)) db.exec(`ALTER TABLE users ADD COLUMN ${c} TEXT`);
+  for (const c of ['telegram_chat_id', 'telegram_code', 'consent_at']) if (!cols.includes(c)) db.exec(`ALTER TABLE users ADD COLUMN ${c} TEXT`);
+  if (!db.prepare('PRAGMA table_info(events)').all().some((c) => c.name === 'is_open')) db.exec('ALTER TABLE events ADD COLUMN is_open INTEGER NOT NULL DEFAULT 0');
   // FR-47 The bot waits for a typed answer (rejection reason, answer to a complaint): saved per chat
   if (!db.prepare('PRAGMA table_info(telegram_chats)').all().some((c) => c.name === 'await_action')) db.exec('ALTER TABLE telegram_chats ADD COLUMN await_action TEXT');
   return db;
@@ -183,6 +187,7 @@ function seed(db, now = new Date()) {
       ids[a.email] = addUser.run(a.email, hashes[a.password], a.name, a.studentId, a.group, a.role, a.club ? clubId(a.club) : null, t).lastInsertRowid;
     }
     const S = hashes['Student123!'];
+    db.prepare("UPDATE users SET consent_at = ? WHERE email = 'student1@test.local'").run(t);
     const gdsc = clubId('GDSC (Google Developer Student Club)');
     const me = ids['student1@test.local'], org = ids['organizer1@test.local'];
     // 120 extra fictional students who fill seats
@@ -190,12 +195,13 @@ function seed(db, now = new Date()) {
     for (let i = 0; i < 120; i++) {
       const name = FIRST[i % FIRST.length] + ' ' + LAST[(i * 7 + 3) % LAST.length];
       crowd.push(addUser.run(`s${String(i + 1).padStart(3, '0')}@test.local`, S, name, String(240100 + i), 'ST-24' + String(i % 9 + 1).padStart(2, '0'), 'student', null, t).lastInsertRowid);
+      db.prepare('UPDATE users SET consent_at = ? WHERE id = ?').run(t, crowd[crowd.length - 1]);
     }
 
     // Events relative to "now" (local time of the machine that seeds the database)
     const at = (dayOffset, h, m) => { const d = new Date(now); d.setDate(d.getDate() + dayOffset); d.setHours(h, m, 0, 0); return d; };
-    const addEvent = db.prepare(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, i18n, room_code, venue)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+    const addEvent = db.prepare(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, i18n, room_code, venue, is_open)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     const addReg = db.prepare(`INSERT INTO registrations (event_id, user_id, status, ticket_code, created_at, updated_at) VALUES (?,?,?,?,?,?)`);
     let ticketNo = 1;
     const code = () => 'CP-' + String(ticketNo++).padStart(6, '0');
@@ -213,9 +219,9 @@ function seed(db, now = new Date()) {
       let start = e.demoSoon ? new Date(now.getTime() + 30 * 60000) : e.past ? at(e.past, 12, 0) : at(e.dayOffset, e.hour, e.minute);
       const end = new Date(start.getTime() + 2 * 3600000);
       const owner = e.club === 'GDSC (Google Developer Student Club)' ? org : null;
-      const ev = addEvent.run(e.title, e.description, clubId(e.club), e.location, e.type, iso(start), iso(end), e.capacity, e.coins, e.status, owner, t, JSON.stringify(e.i18n || (data.extraEventI18n || {})[e.title] || null), e.room || null, e.venue || null).lastInsertRowid;
+      const ev = addEvent.run(e.title, e.description, clubId(e.club), e.location, e.type, iso(start), iso(end), e.capacity, e.coins, e.status, owner, t, JSON.stringify(e.i18n || (data.extraEventI18n || {})[e.title] || null), e.room || null, e.venue || null, e.open ? 1 : 0).lastInsertRowid;
       if (e.status !== 'approved') continue;
-      for (let k = 0; k < e.taken; k++) { addReg.run(ev, crowd[(ci++) % crowd.length], e.past ? 'checked_in' : 'confirmed', code(), t, t); }
+      for (let k = 0; k < e.taken; k++) { const st = e.open ? 'planned' : e.past ? 'checked_in' : 'confirmed'; addReg.run(ev, crowd[(ci++) % crowd.length], st, st === 'planned' ? null : code(), t, t); }
       for (let k = 0; k < e.waitlist; k++) { addReg.run(ev, crowd[(ci++) % crowd.length], 'waitlisted', null, t, t); }
       if (e.past) {
         const st = e.me, checked = st === 'checked_in';

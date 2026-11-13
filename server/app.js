@@ -76,11 +76,12 @@ function createApp(db, opts = {}) {
     const wait = q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'waitlisted'").get(e.id).n;
     const out = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type,
       startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: wait, coins: e.coins, status: e.status,
-      i18n: parse(e.i18n), clubI18n: parse(c.i18n), place: placeOf(e) };
+      i18n: parse(e.i18n), clubI18n: parse(c.i18n), place: placeOf(e), open: !!e.is_open,
+      planned: e.is_open ? q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'planned'").get(e.id).n : 0 };
     if (u) {
       const r = q('SELECT * FROM registrations WHERE event_id = ? AND user_id = ?').get(e.id, u.id);
       if (r && r.status !== 'cancelled') {
-        out.my = { id: r.id, status: r.status, ticketCode: r.status === 'waitlisted' ? null : r.ticket_code, reminder: { channel: r.reminder_channel, day: !!r.remind_day, hour: !!r.remind_hour } };
+        out.my = { id: r.id, status: r.status, ticketCode: ['waitlisted', 'planned'].includes(r.status) ? null : r.ticket_code, reminder: { channel: r.reminder_channel, day: !!r.remind_day, hour: !!r.remind_hour } };
         if (r.status === 'waitlisted') out.my.position = q("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status = 'waitlisted' AND (updated_at < ? OR (updated_at = ? AND id <= ?))").get(e.id, r.updated_at, r.updated_at, r.id).n;
         const fb = q('SELECT rating FROM feedback WHERE event_id = ? AND user_id = ?').get(e.id, u.id);
         if (fb) out.my.rating = fb.rating;
@@ -134,7 +135,16 @@ function createApp(db, opts = {}) {
   route('GET', '/api/me', ({ user }) => {
     need(user);
     const club = user.club_id ? q('SELECT id, name FROM clubs WHERE id = ?').get(user.club_id) : null;
-    return { id: user.id, name: user.name, email: user.email, studentId: user.student_id, group: user.group_name, role: user.role, lang: user.lang, club, coins: balance(user.id) };
+    const c = q('SELECT consent_at FROM users WHERE id = ?').get(user.id);
+    return { id: user.id, name: user.name, email: user.email, studentId: user.student_id, group: user.group_name, role: user.role, lang: user.lang, club, coins: balance(user.id), consentAt: c.consent_at };
+  });
+  // C08 Consent to the processing of personal data: given at the first sign-in, can be withdrawn in the Profile
+  route('POST', '/api/me/consent', ({ user }) => { need(user); const t = iso(now()); q('UPDATE users SET consent_at = ? WHERE id = ?').run(t, user.id); return { consentAt: t }; });
+  route('DELETE', '/api/me/consent', ({ user }) => {
+    need(user);
+    // Withdrawal: future registrations are closed and Telegram is disconnected; what happened stays in the history (C11)
+    q('UPDATE users SET consent_at = NULL, telegram_chat_id = NULL, telegram_code = NULL WHERE id = ?').run(user.id);
+    return { consentAt: null };
   });
   // FR-19 Save interface language
   route('PUT', '/api/me/lang', ({ user, body }) => {
@@ -165,11 +175,13 @@ function createApp(db, opts = {}) {
       if (e.starts_at <= iso(now())) fail(409, 'already_started', 'The event has already started.');
       const r = q('SELECT * FROM registrations WHERE event_id = ? AND user_id = ?').get(e.id, user.id);
       if (r && r.status !== 'cancelled') fail(409, 'already_registered', 'You are already registered or on the waitlist.');
-      const status = taken(e.id) < e.capacity ? 'confirmed' : 'waitlisted';
+      if (!q('SELECT consent_at FROM users WHERE id = ?').get(user.id).consent_at) fail(403, 'consent_required', 'Accept the data processing terms first (C08).');
+      // F4 / F13 Open event: no seat limit and no ticket, the student only marks "I plan to come"
+      const status = e.is_open ? 'planned' : taken(e.id) < e.capacity ? 'confirmed' : 'waitlisted';
       const code = status === 'confirmed' ? newTicket() : null, t = iso(now());
       if (r) q('UPDATE registrations SET status = ?, ticket_code = ?, updated_at = ?, day_sent = 0, hour_sent = 0 WHERE id = ?').run(status, code, t, r.id);
       else q('INSERT INTO registrations (event_id, user_id, status, ticket_code, created_at, updated_at) VALUES (?,?,?,?,?,?)').run(e.id, user.id, status, code, t, t);
-      notify(user.id, 'email', status === 'confirmed' ? `Registration confirmed: ${e.title}. Ticket ${code}.` : `You joined the waitlist for ${e.title}.`);
+      notify(user.id, 'email', status === 'confirmed' ? `Registration confirmed: ${e.title}. Ticket ${code}.` : status === 'planned' ? `You plan to come to ${e.title}.` : `You joined the waitlist for ${e.title}.`);
       return eventView(e, user);
     });
   }
@@ -179,7 +191,7 @@ function createApp(db, opts = {}) {
     need(user, 'student');
     return tx(db, () => {
       const e = eventRow(int(params.id));
-      const r = q("SELECT * FROM registrations WHERE event_id = ? AND user_id = ? AND status IN ('confirmed','waitlisted')").get(e.id, user.id);
+      const r = q("SELECT * FROM registrations WHERE event_id = ? AND user_id = ? AND status IN ('confirmed','waitlisted','planned')").get(e.id, user.id);
       if (!r) fail(404, 'not_registered', 'You are not registered for this event.');
       if (e.starts_at <= iso(now())) fail(409, 'already_started', 'The event has already started.');
       q("UPDATE registrations SET status = 'cancelled', updated_at = ? WHERE id = ?").run(iso(now()), r.id);
@@ -230,7 +242,7 @@ function createApp(db, opts = {}) {
     const items = rows.map((r) => {
       const ended = r.ends_at <= t; let result;
       if (r.reg_status === 'checked_in') result = 'attended'; else if (r.reg_status === 'cancelled') result = 'cancelled';
-      else if (r.reg_status === 'waitlisted') result = 'expired'; else result = ended ? 'missed' : 'ongoing';
+      else if (r.reg_status === 'waitlisted') result = 'expired'; else if (r.reg_status === 'planned') result = ended ? 'planned' : 'ongoing'; else result = ended ? 'missed' : 'ongoing';
       const v = eventView(r, user);
       return { ...v, result, coinsEarned: result === 'attended' ? r.coins : 0 };
     }).filter((x) => x.result !== 'ongoing');
@@ -295,10 +307,11 @@ function createApp(db, opts = {}) {
     const capacity = Number(body.capacity); if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) fail(400, 'invalid_capacity', 'Seats must be 1–500.');
     if (room && capacity > room.capacity) fail(400, 'room_too_small', `This room has ${room.capacity} seats.`);
     if (room) { const a = availability(room, ROOMS, start, new Date(start.getTime() + minutes * 60000), q("SELECT id, title, room_code, status, starts_at, ends_at FROM events WHERE room_code IS NOT NULL").all()); if (!a.free) fail(409, 'room_busy', 'The room is not free at this time.'); }
+    const isOpen = body.open === true ? 1 : 0; // F13 open event (concert, fair): no registration limit, "I plan to come"
     const clubId = user.role === 'admin' ? int(body.clubId) : user.club_id;
     if (user.role === 'admin' && !q('SELECT 1 FROM clubs WHERE id = ?').get(clubId)) fail(404, 'club_not_found', 'Club not found.');
-    const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, room_code, venue, i18n) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?, ?, ?, ?)`)
-      .run(texts.title, texts.description, clubId, texts.location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, 20, user.id, iso(now()), room ? room.code : null, venue ? venue.id : null, JSON.stringify(texts.i18n)).lastInsertRowid;
+    const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, room_code, venue, i18n, is_open) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?, ?, ?, ?, ?)`)
+      .run(texts.title, texts.description, clubId, texts.location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, isOpen ? 0 : 20, user.id, iso(now()), room ? room.code : null, venue ? venue.id : null, JSON.stringify(texts.i18n), isOpen).lastInsertRowid;
     const newEv = eventView(eventRow(id), null);
     for (const a of q("SELECT id FROM users WHERE role IN ('moderator','admin')").all()) alert(a.id, `New event waiting for review: ${texts.title}.`, (lang) => bot.newEventAlert(lang, newEv, siteUrl()));
     return { id, status: 'pending', languages: texts.languages };
@@ -414,7 +427,8 @@ function createApp(db, opts = {}) {
       const status = body.status === undefined ? e.status : body.status; if (!['pending', 'approved', 'rejected', 'cancelled'].includes(status)) fail(400, 'invalid_status', 'Unknown status.');
       q('UPDATE events SET title = ?, description = ?, i18n = ?, type = ?, starts_at = ?, ends_at = ?, capacity = ?, coins = ?, status = ? WHERE id = ?')
         .run(texts ? texts.title : e.title, texts ? texts.description : e.description, texts ? JSON.stringify(texts.i18n) : e.i18n, type, iso(start), iso(start.getTime() + minutes * 60000), capacity, coins, status, e.id);
-      if (status === 'cancelled' && e.status !== 'cancelled') for (const r of q("SELECT user_id FROM registrations WHERE event_id = ? AND status IN ('confirmed','waitlisted')").all(e.id)) notify(r.user_id, 'app', `The event "${e.title}" was cancelled.`);
+      // State diagram: when an event is cancelled, every Confirmed / Waitlisted / Planned registration becomes Cancelled and the student is told
+      if (status === 'cancelled' && e.status !== 'cancelled') { for (const r of q("SELECT user_id FROM registrations WHERE event_id = ? AND status IN ('confirmed','waitlisted','planned')").all(e.id)) notify(r.user_id, 'app', `The event "${e.title}" was cancelled.`); q("UPDATE registrations SET status = 'cancelled', updated_at = ? WHERE event_id = ? AND status IN ('confirmed','waitlisted','planned')").run(iso(now()), e.id); }
       return { ...eventView(eventRow(e.id), null), comment: e.moderation_comment };
     });
   });
@@ -526,7 +540,7 @@ function createApp(db, opts = {}) {
 
   // Simulated reminder delivery (FR-08): called every minute by index.js and directly by tests
   function sendDueReminders() {
-    const t = now(), rows = q("SELECT r.*, e.title, e.starts_at FROM registrations r JOIN events e ON e.id = r.event_id WHERE r.status = 'confirmed' AND r.reminder_channel <> 'off' AND e.starts_at > ?").all(iso(t));
+    const t = now(), rows = q("SELECT r.*, e.title, e.starts_at FROM registrations r JOIN events e ON e.id = r.event_id WHERE r.status IN ('confirmed','planned') AND r.reminder_channel <> 'off' AND e.starts_at > ?").all(iso(t));
     let sent = 0;
     for (const r of rows) {
       const mins = (new Date(r.starts_at) - t) / 60000;

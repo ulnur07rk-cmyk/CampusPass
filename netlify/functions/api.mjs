@@ -6,7 +6,7 @@ import core from '../core.js';
 import bot from '../../server/bot.js';
 import seedData from '../../server/seed-data.json' with { type: 'json' };
 
-const KEY = 'state-v8'; // bump when the data structure changes, so Netlify starts with fresh test data
+const KEY = 'state-v9'; // bump when the data structure changes, so Netlify starts with fresh test data
 const TG = process.env.TELEGRAM_BOT_TOKEN || '';
 const tg = async (method, params) => { const r = await fetch(`https://api.telegram.org/bot${TG}/${method}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params || {}) }); const d = await r.json(); if (!d.ok) throw new Error(d.description); return d.result; };
 let BOT = null; const botName = async () => { if (!TG) return null; if (!BOT) BOT = (await tg('getMe')).username; return BOT; };

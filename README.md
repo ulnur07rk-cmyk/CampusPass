@@ -64,6 +64,11 @@ What one user does is saved in the database and is immediately visible to the ot
 | FR-47 | Organizer in the bot: events of the club (status, seats, waitlist), participant list, **check-in by sending the ticket code** | `/club`, `/checkin` |
 | FR-48 | Moderator in the bot: new events arrive with **Approve / Reject** buttons (reject asks for a reason), `/pending`, club requests ✅/❌, `/stats`; the organizer is told the decision | `/pending`, `/requests`, `/stats` |
 | FR-49 | Administrator in the bot: new complaints arrive with buttons (in review / resolve / reject with an answer), `/complaints`; the author is told the status; student: `/my` with cancel, `/coins`, a message when a waitlist seat is free | `/complaints`, `/my`, `/coins` |
+| C08 | Consent screen at the first sign-in (what is kept, why, who sees it, how long, where); without consent a student cannot register; consent can be withdrawn in the Profile | `POST/DELETE /api/me/consent` |
+| F4 / F13 | **Open events** (concerts, fairs): no registration limit and no ticket — students press “I plan to come”, the organizer sees how many to expect | `open` in `POST /api/events`, status `planned` |
+| State diagram | When an event is cancelled, all its Confirmed / Waitlisted / Planned registrations become Cancelled | `PUT /api/admin/events/:id` |
+| C10 | Telegram messages to staff contain no student IDs; complaint alerts do not name the author | `server/bot.js` |
+| UI01 | At most six menu sections for every role (Database is a tab inside Administration) | `NAV` in `public/app.js` |
 | NFR-UI | Green–beige design, day/night theme (choice saved in the browser), text contrast WCAG AA ≥ 4.5:1 | `public/theme.js`, `npm run contrast` |
 
 ## Technology stack and why
@@ -83,10 +88,10 @@ cp .env.example .env        # Windows: copy .env.example .env
 npm start                   # opens http://localhost:3000
 ```
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
-- `npm test` — run the 22 automated acceptance tests (AT-01 … AT-21; AT-20 checks that the Netlify version has the same rules, AT-21 the bot for every role).
+- `npm test` — run the 23 automated acceptance tests (AT-01 … AT-22; AT-20 checks that the Netlify version has the same rules, AT-21 the bot for every role).
 - `npm run demo` — build `CampusPass_demo.html`, one file that works without a server (data in the browser).
 - `npm run contrast` — check the colour contrast of both themes (WCAG AA).
-- Administrator → **Database**: all tables, columns, keys and row counts of the live database (passwords and Telegram data are hidden). ER diagram: `public/diagrams/fig_er_diagram.png`.
+- Administrator → **Administration → Database**: all tables, columns, keys and row counts of the live database (passwords and Telegram data are hidden). ER diagram: `public/diagrams/fig_er_diagram.png`.
 
 ## Settings in `.env` (never committed)
 
@@ -123,7 +128,7 @@ All accounts are fictional. On the sign-in screen, choose an account in the list
 | Moderator (Student Affairs) | moderator@test.local | Moderator123! |
 | Administrator (IT office) | admin@test.local | Admin123! |
 
-`student1` (Aruzhan Bekova) already has some history (an attended event, coins, a club); `student2` … `student10` start clean, so each usability tester can get an own account.
+`student1` (Aruzhan Bekova) already has some history and has given consent; all other accounts see the **consent screen** (C08) at the first sign-in. `student2` … `student10` start clean, so each usability tester can get an own account. *Acoustic Night* is an **open event** (“I plan to come”).
 Before each round of usability testing, the administrator can press **Administration → Users → Reset test data** to restore the starting data (everyone is signed out). Self-registration is intentionally not offered: the prototype must not collect data from real people.
 
 ## Security and data

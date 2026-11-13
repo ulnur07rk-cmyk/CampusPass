@@ -22,7 +22,8 @@ async function call(method, path, body, cookie) {
   const text = await r.text(); let json; try { json = JSON.parse(text); } catch { json = text; }
   return { status: r.status, body: json, cookie: (r.headers.get('set-cookie') || '').split(';')[0] };
 }
-const login = async (email, password) => (await call('POST', '/api/auth/login', { email, password })).cookie;
+// Test sign-in also gives the consent of C08 (the consent screen itself is tested in AT-22)
+const login = async (email, password) => { const ck = (await call('POST', '/api/auth/login', { email, password })).cookie; await call('POST', '/api/me/consent', {}, ck); return ck; };
 const eventId = (title) => db.prepare('SELECT id FROM events WHERE title = ?').get(title).id;
 
 test('AT-01 (FR-01) valid test account signs in; wrong password is rejected', async () => {
@@ -342,7 +343,7 @@ test('AT-19 (FR-34 … FR-38) Telegram bot: commands, buttons, language, registr
   r = await bot.handle(msg('/help'), api, opts); assert.match(text(r), /Не істей аламын/);
   // Link the account with the one-time code from the Profile
   const u = db4.prepare("SELECT id FROM users WHERE email = 'student7@test.local'").get();
-  db4.prepare("UPDATE users SET telegram_code = 'abcdef123456' WHERE id = ?").run(u.id);
+  db4.prepare("UPDATE users SET telegram_code = 'abcdef123456', consent_at = '2026-01-01T00:00:00Z' WHERE id = ?").run(u.id);
   r = await bot.handle(msg('/start abcdef123456'), api, opts); assert.match(text(r), /қосылды/);
   r = await bot.handle(msg('/start abcdef123456'), api, opts); assert.match(text(r), /жарамсыз/);    // the code works once
   // Register from the bot with the inline button
@@ -391,7 +392,7 @@ test('AT-21 (FR-46 … FR-49) the bot gives each role its own menu and tools; th
   const app5 = createApp(db5, { clock: () => new Date(NOW), telegram: fakeTg });
   const api = app5.botApi, opts = { now: () => new Date(NOW) };
   let n = 0;
-  const link = async (email, chat) => { db5.prepare('UPDATE users SET telegram_code = ? WHERE email = ?').run('code' + chat + 'abcdef', email); return bot.handle({ message: { chat: { id: chat }, from: { language_code: 'en' }, text: '/start code' + chat + 'abcdef' } }, api, opts); };
+  const link = async (email, chat) => { db5.prepare("UPDATE users SET telegram_code = ?, consent_at = '2026-01-01T00:00:00Z' WHERE email = ?").run('code' + chat + 'abcdef', email); return bot.handle({ message: { chat: { id: chat }, from: { language_code: 'en' }, text: '/start code' + chat + 'abcdef' } }, api, opts); };
   const msg = (chat, text) => bot.handle({ update_id: ++n, message: { message_id: n, chat: { id: chat }, from: { language_code: 'en' }, text } }, api, opts);
   const press = (chat, data) => bot.handle({ update_id: ++n, callback_query: { id: 'q' + n, data, from: {}, message: { message_id: 1, chat: { id: chat } } } }, api, opts);
   const text = (calls) => calls.filter((c) => c.params.text).map((c) => c.params.text).join('\n');
@@ -449,4 +450,44 @@ test('AT-21 (FR-46 … FR-49) the bot gives each role its own menu and tools; th
   assert.match(text(await msg(ADM, 'Fixed the time. Thank you!')), /resolved/);
   assert.ok(sent.some((m) => m.chat === String(ST) && /complaint #\d+ is now: resolved/.test(m.text) && /Fixed the time/.test(m.text)));
   assert.match(text(await msg(ADM, '/complaints')), /Open complaints/);
+});
+
+test('AT-22 (C08, F4/F13, state diagram, C10) consent, open events, cancelled event, no student IDs in Telegram', async () => {
+  // C08: without consent a student cannot register; withdrawal closes registration again
+  const raw = (await call('POST', '/api/auth/login', { email: 'student10@test.local', password: 'Student123!' })).cookie;
+  assert.equal((await call('GET', '/api/me', null, raw)).body.consentAt, null);
+  const cloud = eventId('Cloud Basics Workshop');
+  const no = await call('POST', `/api/events/${cloud}/register`, {}, raw);
+  assert.equal(no.status, 403); assert.equal(no.body.error.code, 'consent_required');
+  assert.ok((await call('POST', '/api/me/consent', {}, raw)).body.consentAt);
+  assert.equal((await call('POST', `/api/events/${cloud}/register`, {}, raw)).status, 200);
+  assert.equal((await call('DELETE', '/api/me/consent', {}, raw)).body.consentAt, null);
+  assert.equal((await call('GET', '/api/me', null, raw)).body.consentAt, null);
+  // F4 / F13: an open event has no ticket and no seat limit — "I plan to come"
+  const org = await login('organizer3@test.local', 'Organizer123!');
+  const made = await call('POST', '/api/events', { type: 'creative', venueId: SEED.venues[0].id, startsAt: at(19, 0, 5), durationMinutes: 90, capacity: 1, open: true, i18n: { en: { title: 'Open Air Concert', description: 'A free open concert, everybody is welcome.' } } }, org);
+  assert.equal(made.status, 200);
+  const mod = await login('moderator@test.local', 'Moderator123!');
+  await call('POST', `/api/admin/events/${made.body.id}/decision`, { decision: 'approve' }, mod);
+  const a = await login('student8@test.local', 'Student123!'), b = await login('student9@test.local', 'Student123!');
+  const ra = await call('POST', `/api/events/${made.body.id}/register`, {}, a), rb = await call('POST', `/api/events/${made.body.id}/register`, {}, b);
+  assert.equal(ra.body.my.status, 'planned'); assert.equal(ra.body.my.ticketCode, null);
+  assert.equal(rb.body.my.status, 'planned', 'no waitlist for an open event even above the expected number');
+  assert.equal(rb.body.open, true); assert.equal(rb.body.planned, 2);
+  assert.equal((await call('DELETE', `/api/events/${made.body.id}/registration`, {}, b)).status, 200);
+  assert.equal((await call('GET', `/api/events/${made.body.id}`, null, a)).body.planned, 1);
+  // State diagram: when the administrator cancels an event, its registrations become Cancelled
+  const adm = await login('admin@test.local', 'Admin123!');
+  await call('PUT', `/api/admin/events/${made.body.id}`, { status: 'cancelled' }, adm);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM registrations WHERE event_id = ? AND status <> 'cancelled'").get(made.body.id).n, 0);
+  assert.ok((await call('GET', '/api/me/history', null, a)).body.items.some((x) => x.id === made.body.id && x.result === 'cancelled'));
+  // C10: Telegram messages to staff contain no student IDs
+  const NOW = new Date(); NOW.setHours(8, 0, 0, 0);
+  const db6 = open(':memory:'); seed(db6, NOW);
+  const app6 = createApp(db6, { clock: () => new Date(NOW), telegram: { enabled: false, send: async () => true, botName: async () => null } });
+  db6.prepare("UPDATE users SET telegram_chat_id = '700' WHERE email = 'organizer1@test.local'").run();
+  const demo = db6.prepare("SELECT id FROM events WHERE title = 'Open Lab Demo Day'").get().id;
+  const r = await bot.handle({ callback_query: { id: 'x', data: 'op:' + demo, from: {}, message: { message_id: 1, chat: { id: 700 } } } }, app6.botApi, { now: () => new Date(NOW) });
+  const listText = r.find((c) => c.params.text && /participants/.test(c.params.text)).params.text;
+  assert.ok(!/\b2401\d\d\b/.test(listText), 'no student IDs in the participant list sent to Telegram');
 });

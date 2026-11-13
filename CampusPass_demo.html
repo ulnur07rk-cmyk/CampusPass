@@ -1188,7 +1188,7 @@ module.exports = { lectures, availability };
 const LANGS = ['en', 'kk', 'ru'];
 const T = {
   en: {
-    welcome: '👋 Hi! I am the CampusPass bot.\nChoose what you need:', welcome_role: '👋 Hi, {name}! You are signed in as: {role}.\nChoose what you need:',
+    plan: '🙋 I plan to come', planned_n: '🙋 {n} plan to come · open event, no seat limit', st_planned: 'You plan to come', planned_ok: '🙋 Noted: you plan to come.', consent: 'First accept the data processing terms on the website (it opens after sign-in).', welcome: '👋 Hi! I am the CampusPass bot.\nChoose what you need:', welcome_role: '👋 Hi, {name}! You are signed in as: {role}.\nChoose what you need:',
     linked: '✅ CampusPass is connected for {name} ({role}). Your menu and commands are ready.',
     bad_code: '⚠️ This link is not valid or was already used. Open your Profile in CampusPass and press “Connect Telegram” again.',
     not_linked: '🔒 This needs your CampusPass account. Open Profile → “Connect Telegram” on the website, then press Start.',
@@ -1214,7 +1214,7 @@ const T = {
     s_pending: '🕒 waiting for review', s_approved: '✅ approved', s_rejected: '❌ rejected', s_cancelled: '⛔ cancelled',
     seats_taken: '👥 {t}/{c} registered · waitlist {w}', participants: '👥 Participants', part_title: '👥 {title}: {n} participants ({k} checked in)', part_none: 'No participants yet.',
     checkin_ask: '✅ Check-in\nSend the ticket code from the student’s QR ticket, for example CP-1A2B3C4D5E. You can send codes one after another.\n/cancel — stop',
-    checkin_ok: '✅ {name} (ID {sid}) checked in at “{title}”. +{coins} coins.', checkin_none: 'No event of yours has open check-in now (from 1 hour before the start until the end).',
+    checkin_ok: '✅ {name} checked in at “{title}”. +{coins} coins.', checkin_none: 'No event of yours has open check-in now (from 1 hour before the start until the end).',
     pending_title: '🕒 Events waiting for review ({n})', pending_none: 'Nothing is waiting for review. 👍',
     approve: '✅ Approve', reject: '❌ Reject', approved: '✅ Approved: {title}', rejected: '❌ Rejected: {title}',
     reject_ask: 'Write the reason for rejecting “{title}” in one message (at least 5 characters). The organizer will see it.\n/cancel — stop',
@@ -1227,7 +1227,7 @@ const T = {
     cst_new: 'new', cst_in_review: 'in review', cst_resolved: 'resolved', cst_rejected: 'rejected',
     stopped: '👋 This chat is disconnected from CampusPass. You can connect again in your Profile.', cancelled_wait: 'OK, stopped.',
     rem_day: '🔔 Reminder: “{title}” starts in less than a day — {when}.\n📍 {place}', rem_hour: '🔔 Reminder: “{title}” starts in less than an hour ({when}).\n📍 {place}',
-    complaint: '🚩 New complaint #{id}\n{target}: {title}\nReason: {reason}\nFrom: {from}\n“{text}”',
+    complaint: '🚩 New complaint #{id}\n{target}: {title}\nReason: {reason}\n“{text}”\n(The author is shown on the website.)',
     new_event: '🆕 New event for review\n{title}\n🕒 {when}\n📍 {place}\n👥 {club} · {cap} seats',
     decided_ok: '✅ Your event “{title}” was approved and is now on the poster.', decided_no: '❌ Your event “{title}” was rejected.\nReason: {comment}',
     promoted: '🎉 A seat became free: you are now registered for “{title}”. Ticket: {code}',
@@ -1236,7 +1236,7 @@ const T = {
     err: '⚠️ {msg}', unknown: 'I did not understand. Use the buttons or /help.'
   },
   kk: {
-    welcome: '👋 Сәлем! Мен CampusPass ботымын.\nҚажетін таңдаңыз:', welcome_role: '👋 Сәлем, {name}! Сіздің рөліңіз: {role}.\nҚажетін таңдаңыз:',
+    plan: '🙋 Барамын', planned_n: '🙋 {n} адам барады · ашық іс-шара, орын шектеусіз', st_planned: 'Барамын деп белгіледіңіз', planned_ok: '🙋 Белгіленді: барасыз.', consent: 'Алдымен сайтта деректерді өңдеу шарттарын қабылдаңыз (кіргеннен кейін ашылады).', welcome: '👋 Сәлем! Мен CampusPass ботымын.\nҚажетін таңдаңыз:', welcome_role: '👋 Сәлем, {name}! Сіздің рөліңіз: {role}.\nҚажетін таңдаңыз:',
     linked: '✅ CampusPass {name} үшін қосылды ({role}). Мәзір мен командалар дайын.',
     bad_code: '⚠️ Сілтеме жарамсыз немесе қолданылып қойған. CampusPass профилінде «Telegram-ды қосу» батырмасын қайта басыңыз.',
     not_linked: '🔒 Бұл үшін CampusPass аккаунты керек. Сайтта Профиль → «Telegram-ды қосу», содан кейін Start басыңыз.',
@@ -1262,7 +1262,7 @@ const T = {
     s_pending: '🕒 қаралуда', s_approved: '✅ мақұлданды', s_rejected: '❌ қабылданбады', s_cancelled: '⛔ тоқтатылды',
     seats_taken: '👥 {t}/{c} тіркелді · кезекте {w}', participants: '👥 Қатысушылар', part_title: '👥 {title}: {n} қатысушы ({k} тіркелді)', part_none: 'Әзірге қатысушы жоқ.',
     checkin_ask: '✅ Тіркеу\nСтуденттің QR-билетіндегі кодты жіберіңіз, мысалы CP-1A2B3C4D5E. Кодтарды бірінен соң бірін жібере беруге болады.\n/cancel — тоқтату',
-    checkin_ok: '✅ {name} (ID {sid}) «{title}» іс-шарасында тіркелді. +{coins} монета.', checkin_none: 'Қазір тіркеу ашық іс-шараңыз жоқ (басталуға 1 сағат қалғаннан соңына дейін).',
+    checkin_ok: '✅ {name} «{title}» іс-шарасында тіркелді. +{coins} монета.', checkin_none: 'Қазір тіркеу ашық іс-шараңыз жоқ (басталуға 1 сағат қалғаннан соңына дейін).',
     pending_title: '🕒 Қаралуды күтетін іс-шаралар ({n})', pending_none: 'Қаралатын ештеңе жоқ. 👍',
     approve: '✅ Мақұлдау', reject: '❌ Қабылдамау', approved: '✅ Мақұлданды: {title}', rejected: '❌ Қабылданбады: {title}',
     reject_ask: '«{title}» іс-шарасын қабылдамау себебін бір хабарламамен жазыңыз (кемінде 5 таңба). Ұйымдастырушы оны көреді.\n/cancel — тоқтату',
@@ -1275,7 +1275,7 @@ const T = {
     cst_new: 'жаңа', cst_in_review: 'қаралуда', cst_resolved: 'шешілді', cst_rejected: 'қабылданбады',
     stopped: '👋 Чат CampusPass-тан ажыратылды. Профильде қайта қосуға болады.', cancelled_wait: 'Жарайды, тоқтаттым.',
     rem_day: '🔔 Еске салу: «{title}» бір тәулікке жетпей басталады — {when}.\n📍 {place}', rem_hour: '🔔 Еске салу: «{title}» бір сағатқа жетпей басталады ({when}).\n📍 {place}',
-    complaint: '🚩 Жаңа шағым #{id}\n{target}: {title}\nСебебі: {reason}\nКімнен: {from}\n«{text}»',
+    complaint: '🚩 Жаңа шағым #{id}\n{target}: {title}\nСебебі: {reason}\n«{text}»\n(Авторы сайтта көрсетіледі.)',
     new_event: '🆕 Қаралатын жаңа іс-шара\n{title}\n🕒 {when}\n📍 {place}\n👥 {club} · {cap} орын',
     decided_ok: '✅ «{title}» іс-шараңыз мақұлданды және афишаға шықты.', decided_no: '❌ «{title}» іс-шараңыз қабылданбады.\nСебебі: {comment}',
     promoted: '🎉 Орын босады: сіз «{title}» іс-шарасына тіркелдіңіз. Билет: {code}',
@@ -1284,7 +1284,7 @@ const T = {
     err: '⚠️ {msg}', unknown: 'Түсінбедім. Батырмаларды немесе /help пайдаланыңыз.'
   },
   ru: {
-    welcome: '👋 Привет! Я бот CampusPass.\nВыберите, что нужно:', welcome_role: '👋 Привет, {name}! Ваша роль: {role}.\nВыберите, что нужно:',
+    plan: '🙋 Я планирую прийти', planned_n: '🙋 Планируют прийти: {n} · открытое мероприятие, без лимита мест', st_planned: 'Вы планируете прийти', planned_ok: '🙋 Отмечено: вы планируете прийти.', consent: 'Сначала примите условия обработки данных на сайте (экран откроется после входа).', welcome: '👋 Привет! Я бот CampusPass.\nВыберите, что нужно:', welcome_role: '👋 Привет, {name}! Ваша роль: {role}.\nВыберите, что нужно:',
     linked: '✅ CampusPass подключён для {name} ({role}). Меню и команды готовы.',
     bad_code: '⚠️ Ссылка недействительна или уже использована. Откройте Профиль в CampusPass и снова нажмите «Подключить Telegram».',
     not_linked: '🔒 Для этого нужен аккаунт CampusPass. На сайте откройте Профиль → «Подключить Telegram», затем нажмите Start.',
@@ -1310,7 +1310,7 @@ const T = {
     s_pending: '🕒 на модерации', s_approved: '✅ одобрено', s_rejected: '❌ отклонено', s_cancelled: '⛔ отменено',
     seats_taken: '👥 {t}/{c} записались · в очереди {w}', participants: '👥 Участники', part_title: '👥 {title}: {n} участников ({k} отмечены)', part_none: 'Пока никто не записался.',
     checkin_ask: '✅ Отметка\nОтправьте код с QR-билета студента, например CP-1A2B3C4D5E. Коды можно отправлять один за другим.\n/cancel — закончить',
-    checkin_ok: '✅ {name} (ID {sid}) отмечен(а) на «{title}». +{coins} монет.', checkin_none: 'Сейчас нет вашего мероприятия с открытой отметкой (с 1 часа до начала и до конца).',
+    checkin_ok: '✅ {name} отмечен(а) на «{title}». +{coins} монет.', checkin_none: 'Сейчас нет вашего мероприятия с открытой отметкой (с 1 часа до начала и до конца).',
     pending_title: '🕒 На модерации ({n})', pending_none: 'На модерации ничего нет. 👍',
     approve: '✅ Одобрить', reject: '❌ Отклонить', approved: '✅ Одобрено: {title}', rejected: '❌ Отклонено: {title}',
     reject_ask: 'Напишите одним сообщением причину отклонения «{title}» (минимум 5 символов). Организатор её увидит.\n/cancel — отменить',
@@ -1323,7 +1323,7 @@ const T = {
     cst_new: 'новая', cst_in_review: 'на рассмотрении', cst_resolved: 'решена', cst_rejected: 'отклонена',
     stopped: '👋 Чат отключён от CampusPass. Подключить снова можно в Профиле.', cancelled_wait: 'Хорошо, отменил.',
     rem_day: '🔔 Напоминание: «{title}» меньше чем через сутки — {when}.\n📍 {place}', rem_hour: '🔔 Напоминание: «{title}» начнётся меньше чем через час ({when}).\n📍 {place}',
-    complaint: '🚩 Новая жалоба #{id}\n{target}: {title}\nПричина: {reason}\nОт: {from}\n«{text}»',
+    complaint: '🚩 Новая жалоба #{id}\n{target}: {title}\nПричина: {reason}\n«{text}»\n(Автор указан на сайте.)',
     new_event: '🆕 Новое мероприятие на модерацию\n{title}\n🕒 {when}\n📍 {place}\n👥 {club} · {cap} мест',
     decided_ok: '✅ Ваше мероприятие «{title}» одобрено и появилось в афише.', decided_no: '❌ Ваше мероприятие «{title}» отклонено.\nПричина: {comment}',
     promoted: '🎉 Освободилось место: вы записаны на «{title}». Билет: {code}',
@@ -1391,7 +1391,7 @@ function menu(lang, role) { return kb(MENU[role].map((row) => row.map((k) => btn
 const backMenu = (lang, back) => kb([[...(back ? [btn(lang, 'back', back)] : []), btn(lang, 'menu', 'menu')]]);
 
 function eventLine(e, lang, i) {
-  const seats = e.free ? tr(lang, 'free', { n: e.free, c: e.capacity }) : tr(lang, 'full', { n: e.waitlist });
+  const seats = e.open ? tr(lang, 'planned_n', { n: e.planned }) : e.free ? tr(lang, 'free', { n: e.free, c: e.capacity }) : tr(lang, 'full', { n: e.waitlist });
   return `${i}. ${L(e, 'title', lang)}\n   🕒 ${when(e.startsAt, lang)} · 📍 ${placeOf(e, lang)}\n   👥 ${seats}`;
 }
 function listMsg(title, items, lang, emptyKey, line, data, back) {
@@ -1406,15 +1406,16 @@ function statusLine(e, lang) {
   if (m.status === 'confirmed') return tr(lang, 'st_confirmed', { code: m.ticketCode });
   if (m.status === 'waitlisted') return tr(lang, 'st_waitlisted', { n: m.position });
   if (m.status === 'checked_in') return tr(lang, 'st_checked_in');
+  if (m.status === 'planned') return tr(lang, 'st_planned');
   return '';
 }
 function eventCard(e, lang, opts) {
-  const seats = e.free ? tr(lang, 'free', { n: e.free, c: e.capacity }) : tr(lang, 'full', { n: e.waitlist });
+  const seats = e.open ? tr(lang, 'planned_n', { n: e.planned }) : e.free ? tr(lang, 'free', { n: e.free, c: e.capacity }) : tr(lang, 'full', { n: e.waitlist });
   const st = statusLine(e, lang);
   const text = `${L(e, 'title', lang)}\n🕒 ${when(e.startsAt, lang)}–${hhmm(e.endsAt)}\n📍 ${placeOf(e, lang)}\n👥 ${clubOf(e, lang)} · ${seats} · ${tr(lang, 'coins_n', { n: e.coins })}${st ? '\n🎟 ' + st : ''}\n\n${L(e, 'description', lang)}`;
   const rows = [], future = new Date(e.startsAt) > opts.now;
-  if (opts.role === 'student' && !e.my && future) rows.push([{ text: tr(lang, 'register'), callback_data: 'reg:' + e.id }]);
-  if (opts.role === 'student' && e.my && ['confirmed', 'waitlisted'].includes(e.my.status) && future) rows.push([{ text: tr(lang, 'cancel_reg'), callback_data: 'cx:' + e.id }]);
+  if (opts.role === 'student' && !e.my && future) rows.push([{ text: tr(lang, e.open ? 'plan' : 'register'), callback_data: 'reg:' + e.id }]);
+  if (opts.role === 'student' && e.my && ['confirmed', 'waitlisted', 'planned'].includes(e.my.status) && future) rows.push([{ text: tr(lang, 'cancel_reg'), callback_data: 'cx:' + e.id }]);
   if (httpsUrl(opts.siteUrl)) rows.push([{ text: tr(lang, 'open_site'), url: `${opts.siteUrl}/#/events?e=${e.id}` }]);
   rows.push([btn(lang, 'back', opts.back || 'week'), btn(lang, 'menu', 'menu')]);
   return { text: text.slice(0, 4000), reply_markup: kb(rows) };
@@ -1480,7 +1481,7 @@ async function handle(update, api, opts = {}) {
       const shown = list.slice(0, 8), cn = (r) => (r.clubI18n && r.clubI18n[lang] && r.clubI18n[lang].name) || r.club;
       const rows = shown.map((r, i) => [{ text: `${tr(lang, 'accept')} ${i + 1}`, callback_data: `cr:a:${r.userId}:${r.clubId}` }, { text: `${tr(lang, 'decline')} ${i + 1}`, callback_data: `cr:d:${r.userId}:${r.clubId}` }]);
       rows.push([btn(lang, 'menu', 'menu')]);
-      say({ text: `${tr(lang, 'requests_title', { n: list.length })}\n\n${shown.map((r, i) => `${i + 1}. ${r.name} (ID ${r.studentId}) → ${cn(r)}${r.message ? `\n   “${r.message}”` : ''}`).join('\n\n')}`, reply_markup: kb(rows) });
+      say({ text: `${tr(lang, 'requests_title', { n: list.length })}\n\n${shown.map((r, i) => `${i + 1}. ${r.name} → ${cn(r)}${r.message ? `\n   “${r.message}”` : ''}`).join('\n\n')}`, reply_markup: kb(rows) });
     },
     stats: async () => {
       const s = await as('GET', '/api/admin/stats');
@@ -1569,9 +1570,9 @@ async function handle(update, api, opts = {}) {
         if (role !== 'student') { toast(tr(lang, 'only_students')); return calls; }
         try {
           const e = await api.register(user.id, Number(m[1]));
-          toast(e.my.status === 'confirmed' ? tr(lang, 'registered', { code: e.my.ticketCode }) : tr(lang, 'waitlisted', { n: e.my.position }));
+          toast(e.my.status === 'confirmed' ? tr(lang, 'registered', { code: e.my.ticketCode }) : e.my.status === 'planned' ? tr(lang, 'planned_ok') : tr(lang, 'waitlisted', { n: e.my.position }));
           say(eventCard(e, lang, { now, role, siteUrl: opts.siteUrl, back: 'week' }));
-        } catch (err) { toast(tr(lang, { already_registered: 'already', already_started: 'started' }[err.code] || 'not_found')); }
+        } catch (err) { toast(tr(lang, { already_registered: 'already', already_started: 'started', consent_required: 'consent' }[err.code] || 'not_found')); }
         return calls;
       }
       if ((m = /^cx:(\d+)$/.exec(data)) && role === 'student') {
@@ -1587,7 +1588,7 @@ async function handle(update, api, opts = {}) {
       if ((m = /^op:(\d+)$/.exec(data)) && ALLOW.checkin.includes(role)) {
         const list = await as('GET', `/api/events/${m[1]}/participants`), e = (await as('GET', '/api/organizer/events')).find((x) => x.id === Number(m[1]));
         toast();
-        say({ text: `${tr(lang, 'part_title', { title: e ? L(e, 'title', lang) : '', n: list.length, k: list.filter((p) => p.status === 'checked_in').length })}\n\n${list.slice(0, 40).map((p) => `${p.status === 'checked_in' ? '✅' : '▫️'} ${p.name} (${p.studentId})`).join('\n') || tr(lang, 'part_none')}`.slice(0, 4000), reply_markup: kb([[btn(lang, 'back', 'oe:' + m[1]), btn(lang, 'menu', 'menu')]]) });
+        say({ text: `${tr(lang, 'part_title', { title: e ? L(e, 'title', lang) : '', n: list.length, k: list.filter((p) => p.status === 'checked_in').length })}\n\n${list.slice(0, 40).map((p) => `${p.status === 'checked_in' ? '✅' : '▫️'} ${p.name}`).join('\n') || tr(lang, 'part_none')}`.slice(0, 4000), reply_markup: kb([[btn(lang, 'back', 'oe:' + m[1]), btn(lang, 'menu', 'menu')]]) });
         return calls;
       }
       if ((m = /^pe:(\d+)$/.exec(data)) && ALLOW.pending.includes(role)) {
@@ -1612,7 +1613,7 @@ async function handle(update, api, opts = {}) {
       if ((m = /^cp:(\d+)$/.exec(data)) && role === 'admin') {
         const c = (await as('GET', '/api/admin/complaints')).find((x) => x.id === Number(m[1])); if (!c) { toast(tr(lang, 'not_found')); return calls; }
         toast();
-        say({ text: `🚩 #${c.id} · ${tr(lang, 'cst_' + c.status)}\n${TARGET[lang][c.targetType]}: ${c.targetTitle}\n${REASONS[lang][c.reason]}\n${c.fromName}\n\n“${c.text}”${c.comment ? '\n💬 ' + c.comment : ''}`, reply_markup: complaintButtons(lang, c.id, 'complaints') });
+        say({ text: `🚩 #${c.id} · ${tr(lang, 'cst_' + c.status)}\n${TARGET[lang][c.targetType]}: ${c.targetTitle}\n${REASONS[lang][c.reason]}\n\n“${c.text}”${c.comment ? '\n💬 ' + c.comment : ''}`, reply_markup: complaintButtons(lang, c.id, 'complaints') });
         return calls;
       }
       if ((m = /^cs:(r|s|x):(\d+)$/.exec(data))) {
@@ -1685,7 +1686,7 @@ function createCore(SEED, state) {
     SEED.clubs.forEach((c) => D.clubs.push({ id: id(), ...c }));
     const club = (n) => D.clubs.find((c) => c.name === n).id;
     const gdsc = club('GDSC (Google Developer Student Club)');
-    const U = (email, pw, name, sid, group, role, clubId) => { const u = { id: id(), email, pw, name, student_id: sid, group_name: group, role, club_id: clubId, lang: 'en' }; D.users.push(u); return u.id; };
+    const U = (email, pw, name, sid, group, role, clubId) => { const u = { id: id(), email, pw, name, student_id: sid, group_name: group, role, club_id: clubId, lang: 'en', consent_at: /^s\d{3}@|^student1@/.test(email) ? t : null }; D.users.push(u); return u.id; };
     const ids = {};
     for (const a of SEED.accounts) ids[a.email] = U(a.email, a.password, a.name, a.studentId, a.group, a.role, a.club ? club(a.club) : null);
     const me = ids['student1@test.local'], org = ids['organizer1@test.local'];
@@ -1703,10 +1704,10 @@ function createCore(SEED, state) {
     let ci = 0;
     for (const e of all) {
       const start = e.demoSoon ? new Date(now.getTime() + 30 * 60000) : e.past ? at(e.past, 12, 0) : at(e.dayOffset, e.hour, e.minute);
-      const ev = { id: id(), room_code: e.room || null, venue: e.venue || null, title: e.title, i18n: e.i18n || (SEED.extraEventI18n || {})[e.title] || null, description: e.description, club_id: club(e.club), location: e.location, type: e.type, starts_at: iso(start), ends_at: iso(start.getTime() + 7200000), capacity: e.capacity, coins: e.coins, status: e.status, created_by: e.club === 'GDSC (Google Developer Student Club)' ? org : null, comment: null };
+      const ev = { id: id(), room_code: e.room || null, venue: e.venue || null, title: e.title, i18n: e.i18n || (SEED.extraEventI18n || {})[e.title] || null, is_open: !!e.open, description: e.description, club_id: club(e.club), location: e.location, type: e.type, starts_at: iso(start), ends_at: iso(start.getTime() + 7200000), capacity: e.capacity, coins: e.coins, status: e.status, created_by: e.club === 'GDSC (Google Developer Student Club)' ? org : null, comment: null };
       D.events.push(ev);
       if (e.status !== 'approved') continue;
-      for (let k = 0; k < e.taken; k++) D.regs.push(reg(id(), ev.id, crowd[(ci++) % 120], e.past ? 'checked_in' : 'confirmed', rnd(), t));
+      for (let k = 0; k < e.taken; k++) { const st = e.open ? 'planned' : e.past ? 'checked_in' : 'confirmed'; D.regs.push(reg(id(), ev.id, crowd[(ci++) % 120], st, st === 'planned' ? null : rnd(), t)); }
       for (let k = 0; k < e.waitlist; k++) D.regs.push(reg(id(), ev.id, crowd[(ci++) % 120], 'waitlisted', null, t));
       if (e.past) { const r = reg(id(), ev.id, me, e.me, rnd(), t); if (e.me === 'checked_in') { r.method = 'qr'; D.coins.push({ user_id: me, amount: e.coins, reason: 'Check-in', event_id: ev.id, created_at: iso(start) }); } D.regs.push(r); }
     }
@@ -1746,9 +1747,9 @@ function createCore(SEED, state) {
   const str = (v, n, a, b) => { const s = typeof v === 'string' ? v.trim() : ''; if (s.length < a || s.length > b) fail(400, 'invalid_' + n, `${n[0].toUpperCase() + n.slice(1)} must be ${a}–${b} characters.`); return s; };
   function view(e, u) {
     const c = D.clubs.find((x) => x.id === e.club_id), tk = taken(e.id), q = waitQ(e.id);
-    const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status, i18n: e.i18n || null, clubI18n: c.i18n || null , place: placeOf(e) };
+    const o = { id: e.id, title: e.title, description: e.description, clubId: e.club_id, club: c.name, location: e.location, type: e.type, startsAt: e.starts_at, endsAt: e.ends_at, capacity: e.capacity, taken: tk, free: Math.max(0, e.capacity - tk), waitlist: q.length, coins: e.coins, status: e.status, i18n: e.i18n || null, clubI18n: c.i18n || null , place: placeOf(e), open: !!e.is_open, planned: e.is_open ? D.regs.filter((r) => r.event_id === e.id && r.status === 'planned').length : 0 };
     if (u) { const r = D.regs.find((x) => x.event_id === e.id && x.user_id === u.id); if (r && r.status !== 'cancelled') {
-      o.my = { id: r.id, status: r.status, ticketCode: r.status === 'waitlisted' ? null : r.ticket, reminder: { channel: r.channel, day: r.day, hour: r.hour } };
+      o.my = { id: r.id, status: r.status, ticketCode: ['waitlisted', 'planned'].includes(r.status) ? null : r.ticket, reminder: { channel: r.channel, day: r.day, hour: r.hour } };
       if (r.status === 'waitlisted') o.my.position = q.indexOf(r) + 1;
       const f = D.feedback.find((x) => x.event_id === e.id && x.user_id === u.id); if (f) o.my.rating = f.rating; } }
     return o;
@@ -1756,7 +1757,7 @@ function createCore(SEED, state) {
   function reminders() {
     const t = now();
     for (const r of D.regs) {
-      if (r.status !== 'confirmed' || r.channel === 'off') continue;
+      if (!['confirmed', 'planned'].includes(r.status) || r.channel === 'off') continue;
       const e = D.events.find((x) => x.id === r.event_id), mins = (new Date(e.starts_at) - t) / 60000; if (mins <= 0) continue;
       const tgMsg = (kind) => { if (r.channel !== 'telegram') return undefined; const usr = D.users.find((x) => x.id === r.user_id); return bot.reminder(chatLang(usr && usr.telegram_chat_id) || (usr && usr.lang), view(e, null), kind, siteUrl()); };
       const hourDue = r.hour && !r.hour_sent && mins <= 60;
@@ -1785,10 +1786,11 @@ function createCore(SEED, state) {
     if (e.starts_at <= iso(now())) fail(409, 'already_started', 'The event has already started.');
     let r = D.regs.find((x) => x.event_id === e.id && x.user_id === u.id);
     if (r && r.status !== 'cancelled') fail(409, 'already_registered', 'You are already registered or on the waitlist.');
-    const st = taken(e.id) < e.capacity ? 'confirmed' : 'waitlisted', t = iso(now());
+    if (!u.consent_at) fail(403, 'consent_required', 'Accept the data processing terms first (C08).');
+    const st = e.is_open ? 'planned' : taken(e.id) < e.capacity ? 'confirmed' : 'waitlisted', t = iso(now());
     if (r) Object.assign(r, { status: st, ticket: st === 'confirmed' ? rnd() : null, updated_at: t, day_sent: false, hour_sent: false });
     else { r = reg(D.seq++, e.id, u.id, st, st === 'confirmed' ? rnd() : null, t); D.regs.push(r); }
-    notify(u.id, 'email', st === 'confirmed' ? `Registration confirmed: ${e.title}. Ticket ${r.ticket}.` : `You joined the waitlist for ${e.title}.`);
+    notify(u.id, 'email', st === 'confirmed' ? `Registration confirmed: ${e.title}. Ticket ${r.ticket}.` : st === 'planned' ? `You plan to come to ${e.title}.` : `You joined the waitlist for ${e.title}.`);
     return view(e, u);
   }
   const targetTitle = (type, id) => { const x = type === 'event' ? D.events.find((e) => e.id === id) : D.clubs.find((c) => c.id === id); return x ? x.title || x.name : null; };
@@ -1831,14 +1833,16 @@ function createCore(SEED, state) {
   on('POST', '/api/admin/reset', (b, u) => { need(u, 'admin'); D = seed(); NEW_TOKEN = ''; return { ok: true }; });
   on('POST', '/api/auth/login', (b) => { const u = D.users.find((x) => x.email === String(b.email || '').trim().toLowerCase()); if (!u || u.pw !== b.password) fail(401, 'invalid_credentials', 'Wrong e-mail or password.'); const tk = Array.from(globalThis.crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join(''); D.sessions[tk] = { uid: u.id, exp: Date.now() + 12 * 3600000 }; NEW_TOKEN = tk; return { user: { id: u.id, name: u.name, email: u.email, role: u.role } }; });
   on('POST', '/api/auth/logout', () => { if (TOKEN) delete D.sessions[TOKEN]; NEW_TOKEN = ''; return { ok: true }; });
-  on('GET', '/api/me', (b, u) => { need(u); const c = u.club_id ? D.clubs.find((x) => x.id === u.club_id) : null; return { id: u.id, name: u.name, email: u.email, studentId: u.student_id, group: u.group_name, role: u.role, lang: u.lang, club: c ? { id: c.id, name: c.name } : null, coins: balance(u.id) }; });
+  on('GET', '/api/me', (b, u) => { need(u); const c = u.club_id ? D.clubs.find((x) => x.id === u.club_id) : null; return { id: u.id, name: u.name, email: u.email, studentId: u.student_id, group: u.group_name, role: u.role, lang: u.lang, club: c ? { id: c.id, name: c.name } : null, coins: balance(u.id), consentAt: u.consent_at || null }; });
+  on('POST', '/api/me/consent', (b, u) => { need(u); u.consent_at = iso(now()); return { consentAt: u.consent_at }; });
+  on('DELETE', '/api/me/consent', (b, u) => { need(u); Object.assign(u, { consent_at: null, telegram_chat_id: null, telegram_code: null }); return { consentAt: null }; });
   on('PUT', '/api/me/lang', (b, u) => { need(u); u.lang = b.lang; return { lang: b.lang }; });
   on('GET', '/api/events', (b, u, p, q) => { const days = Math.min(60, Number(q.get('days')) || 7), f = iso(now()), to = iso(now().getTime() + days * 86400000); return D.events.filter((e) => e.status === 'approved' && e.ends_at > f && e.starts_at < to).sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => view(e, u)); });
   on('GET', '/api/events/:id', (b, u, p) => view(ev(p.id), u));
   on('GET', '/api/events/:id/ics', (b, u, p) => { const e = ev(p.id), f = (s) => s.replace(/[-:]/g, '').replace(/\.\d{3}/, ''); return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//CampusPass//Demo//EN', 'BEGIN:VEVENT', `UID:event-${e.id}@campuspass.local`, `DTSTAMP:${f(iso(now()))}`, `DTSTART:${f(e.starts_at)}`, `DTEND:${f(e.ends_at)}`, `SUMMARY:${e.title}`, `LOCATION:${e.location}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n'); });
   on('POST', '/api/events/:id/register', (b, u, p) => { need(u, 'student'); return registerStudent(u, Number(p.id)); });
   on('DELETE', '/api/events/:id/registration', (b, u, p) => {
-    need(u, 'student'); const e = ev(p.id), r = D.regs.find((x) => x.event_id === e.id && x.user_id === u.id && (x.status === 'confirmed' || x.status === 'waitlisted'));
+    need(u, 'student'); const e = ev(p.id), r = D.regs.find((x) => x.event_id === e.id && x.user_id === u.id && ['confirmed', 'waitlisted', 'planned'].includes(x.status));
     if (!r) fail(404, 'not_registered', 'You are not registered for this event.');
     if (e.starts_at <= iso(now())) fail(409, 'already_started', 'The event has already started.');
     const was = r.status; r.status = 'cancelled'; r.updated_at = iso(now()); let promoted = null;
@@ -1851,7 +1855,7 @@ function createCore(SEED, state) {
     need(u); const t = iso(now());
     const items = D.regs.filter((r) => r.user_id === u.id).map((r) => ({ r, e: ev(r.event_id) })).filter(({ r, e }) => e.starts_at <= t || r.status === 'cancelled')
       .sort((a, c) => (a.e.starts_at < c.e.starts_at ? 1 : -1)).map(({ r, e }) => {
-        const ended = e.ends_at <= t; const result = r.status === 'checked_in' ? 'attended' : r.status === 'cancelled' ? 'cancelled' : r.status === 'waitlisted' ? 'expired' : ended ? 'missed' : 'ongoing';
+        const ended = e.ends_at <= t; const result = r.status === 'checked_in' ? 'attended' : r.status === 'cancelled' ? 'cancelled' : r.status === 'waitlisted' ? 'expired' : r.status === 'planned' ? (ended ? 'planned' : 'ongoing') : ended ? 'missed' : 'ongoing';
         return { ...view(e, u), result, coinsEarned: result === 'attended' ? e.coins : 0 };
       }).filter((x) => x.result !== 'ongoing');
     return { items, attended: items.filter((x) => x.result === 'attended').length, missed: items.filter((x) => x.result === 'missed').length };
@@ -1892,7 +1896,7 @@ function createCore(SEED, state) {
     if (room && cap > room.capacity) fail(400, 'room_too_small', `This room has ${room.capacity} seats.`);
     if (room && !availability(room, ROOMS, s, new Date(s.getTime() + mins * 60000), D.events).free) fail(409, 'room_busy', 'The room is not free at this time.');
     const clubId = u.role === 'admin' ? Number(b.clubId) : u.club_id; if (!D.clubs.find((c) => c.id === clubId)) fail(404, 'club_not_found', 'Club not found.');
-    const e = { id: D.seq++, room_code: room ? room.code : null, venue: venue ? venue.id : null, title: texts.title, i18n: texts.i18n, description: texts.description, club_id: clubId, location: texts.location, type: b.type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins: 20, status: 'pending', created_by: u.id, comment: null };
+    const e = { id: D.seq++, room_code: room ? room.code : null, venue: venue ? venue.id : null, title: texts.title, i18n: texts.i18n, description: texts.description, club_id: clubId, location: texts.location, type: b.type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins: b.open === true ? 0 : 20, is_open: b.open === true, status: 'pending', created_by: u.id, comment: null };
     D.events.push(e); const newEv = view(e, null); D.users.filter((x) => STAFF.includes(x.role)).forEach((a) => alert(a.id, `New event waiting for review: ${texts.title}.`, (lang) => bot.newEventAlert(lang, newEv, siteUrl()))); return { id: e.id, status: 'pending', languages: texts.languages };
   });
   on('GET', '/api/organizer/events', (b, u) => { need(u, 'organizer', ...STAFF); return D.events.filter((e) => STAFF.includes(u.role) || e.club_id === u.club_id).sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => ({ ...view(e, null), comment: e.comment })); });
@@ -1947,7 +1951,7 @@ function createCore(SEED, state) {
     const cap = b.capacity === undefined ? e.capacity : Number(b.capacity); if (!Number.isInteger(cap) || cap < 1 || cap > 500) fail(400, 'invalid_capacity', 'Seats must be 1–500.');
     const coins = b.coins === undefined ? e.coins : Number(b.coins); if (!Number.isInteger(coins) || coins < 0 || coins > 100) fail(400, 'invalid_coins', 'Coins must be 0–100.');
     const status = b.status === undefined ? e.status : b.status; if (!['pending', 'approved', 'rejected', 'cancelled'].includes(status)) fail(400, 'invalid_status', 'Unknown status.');
-    if (status === 'cancelled' && e.status !== 'cancelled') D.regs.filter((r) => r.event_id === e.id && (r.status === 'confirmed' || r.status === 'waitlisted')).forEach((r) => notify(r.user_id, 'app', `The event "${e.title}" was cancelled.`));
+    if (status === 'cancelled' && e.status !== 'cancelled') D.regs.filter((r) => r.event_id === e.id && ['confirmed', 'waitlisted', 'planned'].includes(r.status)).forEach((r) => { notify(r.user_id, 'app', `The event "${e.title}" was cancelled.`); r.status = 'cancelled'; r.updated_at = iso(now()); });
     if (texts) Object.assign(e, { title: texts.title, description: texts.description, i18n: texts.i18n });
     Object.assign(e, { type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins, status });
     return { ...view(e, null), comment: e.comment };
@@ -3009,7 +3013,7 @@ module.exports = { createCore };
    "type": "creative",
    "capacity": 80,
    "taken": 41,
-   "coins": 20,
+   "coins": 0,
    "description": "A cosy evening with guitars, favourite student songs and hot tea.",
    "status": "approved",
    "waitlist": 0,
@@ -3025,7 +3029,8 @@ module.exports = { createCore };
      "description": "Уютный вечер с гитарами, любимыми студенческими песнями и горячим чаем."
     }
    },
-   "room": "C1.1.AH"
+   "room": "C1.1.AH",
+   "open": true
   },
   {
    "key": "s8",
@@ -3910,6 +3915,18 @@ window.I18N = {
 
 // ---------- Final release: administrator, complaints, events in three languages, theme (FR-39 … FR-45) ----------
 Object.assign(window.I18N.en, {
+  consent_title: 'Your data in CampusPass', consent_sub: 'Before you start, please read what CampusPass keeps about you (Law of the Republic of Kazakhstan “On Personal Data”, constraint C08).',
+  consent_what: 'What: your name, university e-mail, student ID, role, registrations, check-ins, ratings and coins. No IIN, phone or photos.',
+  consent_why: 'Why: to register you for events, check you in and show your history and coins.',
+  consent_who: 'Who sees it: you; the organizer of an event sees its participant list; Student Affairs sees statistics.',
+  consent_long: 'How long: registrations and check-ins are anonymised after 12 months.',
+  consent_where: 'Where: on university servers in Kazakhstan. Telegram gets messages only if you connect it.',
+  consent_rights: 'Your rights: see your data in the Profile, withdraw this consent or ask for deletion at any time.',
+  consent_demo: 'Prototype: all accounts and data here are fictional.', consent_check: 'I have read this and agree to the processing of my data for these purposes.', consent_accept: 'Agree and continue',
+  consent_given: 'Consent given: {date}.', consent_withdraw_hint: 'If you withdraw consent, you cannot register for new events, and Telegram is disconnected. Your past history stays (C11).', consent_withdraw: 'Withdraw consent', consent_withdraw_confirm: 'Withdraw your consent? You will not be able to register for events until you agree again.',
+  err_consent_required: 'Accept the data processing terms first.',
+  open_event: 'Open event', planned_n: '{n} plan to come', plan_to_come: 'I plan to come', you_plan: 'You plan to come. No ticket is needed — the event is open.', wont_come: 'I won’t come', hist_planned: 'Planned (open event)',
+  f_open: 'Open event — no registration and no seat limit', f_open_hint: 'For concerts, fairs and shows: students only press “I plan to come”, so you know how many people to expect. No tickets and no check-in.',
   tg_role_student: 'In the bot: events today and this week, register with one button, your tickets (cancel), coins, reminders 1 day and 1 hour before.',
   tg_role_organizer: 'In the bot: events of your club with seats and participants, check-in by sending the ticket code, a message when your event is approved or rejected.',
   tg_role_moderator: 'In the bot: new events for review arrive with Approve / Reject buttons, club requests, statistics.',
@@ -3935,6 +3952,18 @@ Object.assign(window.I18N.en, {
   err_title_lang: 'Title ({lang}): 3–120 characters.', err_desc_lang: 'Description ({lang}): 10–1000 characters.', err_no_language: 'Write the title and the description in at least one language.'
 });
 Object.assign(window.I18N.kk, {
+  consent_title: 'CampusPass-тағы деректеріңіз', consent_sub: 'Бастамас бұрын CampusPass сіз туралы не сақтайтынын оқыңыз (ҚР «Дербес деректер туралы» Заңы, C08 шектеуі).',
+  consent_what: 'Не: аты-жөніңіз, университет поштасы, студенттік ID, рөл, тіркелулер, қатысу белгілері, бағалар мен монеталар. ЖСН, телефон, фото сақталмайды.',
+  consent_why: 'Не үшін: іс-шараға тіркеу, қатысуды белгілеу, тарих пен монеталарды көрсету.',
+  consent_who: 'Кім көреді: өзіңіз; іс-шара ұйымдастырушысы қатысушылар тізімін; студенттер ісі бөлімі статистиканы.',
+  consent_long: 'Қанша уақыт: тіркелулер мен белгілер 12 айдан кейін иесіздендіріледі.',
+  consent_where: 'Қайда: Қазақстандағы университет серверлерінде. Telegram хабарды тек сіз қосқанда алады.',
+  consent_rights: 'Құқықтарыңыз: деректерді Профильден көру, келісімді кері қайтару немесе кез келген уақытта жоюды сұрау.',
+  consent_demo: 'Прототип: мұндағы барлық аккаунттар мен деректер ойдан шығарылған.', consent_check: 'Оқыдым және деректерімнің осы мақсаттарда өңделуіне келісемін.', consent_accept: 'Келісемін және жалғастыру',
+  consent_given: 'Келісім берілді: {date}.', consent_withdraw_hint: 'Келісімді кері қайтарсаңыз, жаңа іс-шараларға тіркеле алмайсыз, Telegram ажыратылады. Бұрынғы тарих сақталады (C11).', consent_withdraw: 'Келісімді кері қайтару', consent_withdraw_confirm: 'Келісімді кері қайтарасыз ба? Қайта келіскенше іс-шараға тіркеле алмайсыз.',
+  err_consent_required: 'Алдымен деректерді өңдеу шарттарын қабылдаңыз.',
+  open_event: 'Ашық іс-шара', planned_n: '{n} адам барады', plan_to_come: 'Барамын', you_plan: 'Сіз барамын деп белгіледіңіз. Билет керек емес — іс-шара ашық.', wont_come: 'Бармаймын', hist_planned: 'Жоспарланды (ашық іс-шара)',
+  f_open: 'Ашық іс-шара — тіркеусіз және орын шектеусіз', f_open_hint: 'Концерт, жәрмеңке, шоу үшін: студенттер тек «Барамын» басады, сіз қанша адам келетінін білесіз. Билет пен белгілеу жоқ.',
   tg_role_student: 'Ботта: бүгінгі және апталық іс-шаралар, бір батырмамен тіркелу, билеттер (бас тарту), монеталар, 1 күн және 1 сағат бұрын еске салу.',
   tg_role_organizer: 'Ботта: клубыңыздың іс-шаралары, орындар мен қатысушылар, билет кодын жіберіп тіркеу, іс-шара мақұлданғанда не қабылданбағанда хабар.',
   tg_role_moderator: 'Ботта: жаңа іс-шаралар «Мақұлдау / Қабылдамау» батырмаларымен келеді, клубқа өтінімдер, статистика.',
@@ -3960,6 +3989,18 @@ Object.assign(window.I18N.kk, {
   err_title_lang: 'Атауы ({lang}): 3–120 таңба.', err_desc_lang: 'Сипаттама ({lang}): 10–1000 таңба.', err_no_language: 'Атауы мен сипаттамасын кемінде бір тілде жазыңыз.'
 });
 Object.assign(window.I18N.ru, {
+  consent_title: 'Ваши данные в CampusPass', consent_sub: 'Перед началом прочитайте, что CampusPass хранит о вас (Закон РК «О персональных данных», ограничение C08).',
+  consent_what: 'Что: имя, университетская почта, ID студента, роль, записи, отметки, оценки и монеты. Без ИИН, телефона и фото.',
+  consent_why: 'Зачем: чтобы записывать на мероприятия, отмечать присутствие и показывать историю и монеты.',
+  consent_who: 'Кто видит: вы; организатор мероприятия видит список его участников; Student Affairs видит статистику.',
+  consent_long: 'Как долго: записи и отметки обезличиваются через 12 месяцев.',
+  consent_where: 'Где: на серверах университета в Казахстане. Telegram получает сообщения, только если вы его подключите.',
+  consent_rights: 'Ваши права: смотреть свои данные в Профиле, отозвать согласие или попросить удалить данные в любой момент.',
+  consent_demo: 'Прототип: все аккаунты и данные здесь вымышлены.', consent_check: 'Я прочитал(а) и согласен(на) на обработку моих данных для этих целей.', consent_accept: 'Согласиться и продолжить',
+  consent_given: 'Согласие дано: {date}.', consent_withdraw_hint: 'Если отозвать согласие, нельзя будет записываться на новые мероприятия, а Telegram отключится. Прошлая история сохранится (C11).', consent_withdraw: 'Отозвать согласие', consent_withdraw_confirm: 'Отозвать согласие? Записываться на мероприятия можно будет только после нового согласия.',
+  err_consent_required: 'Сначала примите условия обработки данных.',
+  open_event: 'Открытое мероприятие', planned_n: 'Планируют прийти: {n}', plan_to_come: 'Я планирую прийти', you_plan: 'Вы планируете прийти. Билет не нужен — мероприятие открытое.', wont_come: 'Не приду', hist_planned: 'Планировал(а) (открытое)',
+  f_open: 'Открытое мероприятие — без записи и лимита мест', f_open_hint: 'Для концертов, ярмарок и шоу: студенты только нажимают «Я планирую прийти», и вы знаете, сколько людей ждать. Без билетов и отметки.',
   tg_role_student: 'В боте: мероприятия на сегодня и неделю, запись одной кнопкой, ваши билеты (можно отменить), монеты, напоминания за 1 день и за 1 час.',
   tg_role_organizer: 'В боте: мероприятия вашего клуба, места и участники, отметка по коду билета, сообщение, когда мероприятие одобрено или отклонено.',
   tg_role_moderator: 'В боте: новые мероприятия приходят с кнопками «Одобрить / Отклонить», заявки в клубы, статистика.',
@@ -4182,7 +4223,7 @@ window.CPMaps = (function () {
     student: [['events', 'nav_events'], ['map', 'nav_map'], ['clubs', 'nav_clubs'], ['tickets', 'nav_tickets'], ['history', 'nav_history'], ['profile', 'nav_profile']],
     organizer: [['events', 'nav_events'], ['map', 'nav_map'], ['myevents', 'nav_myevents'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
     moderator: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
-    admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['db', 'nav_db'], ['profile', 'nav_profile']]
+    admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['profile', 'nav_profile']] // UI01: at most six sections
   };
   const go = (v) => { if (location.hash !== '#/' + v) location.hash = '#/' + v; else render(); };
   const svg = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
@@ -4190,7 +4231,7 @@ window.CPMaps = (function () {
   function chrome(view) {
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
-    const items = S.me ? NAV[S.me.role] : [];
+    const items = S.me && S.me.consentAt ? NAV[S.me.role] : []; // no menu until the consent is given (C08)
     const link = (icon) => ([v, k]) => `<a href="#/${v}" class="${v === view ? 'on' : ''}" ${v === view ? 'aria-current="page"' : ''}>${icon ? ICON[v] || '' : ''}<span>${esc(t(k))}</span></a>`;
     $('#nav').innerHTML = items.map(link(false)).join(''); $('#bottom').innerHTML = items.map(link(true)).join('');
     // Day / night switch (theme.js keeps the choice); the label says what the button will do
@@ -4204,6 +4245,7 @@ window.CPMaps = (function () {
     const view = (location.hash.replace('#/', '') || '').split('?')[0];
     if (!S.me) { try { S.me = await api('GET', '/api/me'); if (S.me.lang && !localStorage.getItem('cp.lang')) S.lang = S.me.lang; } catch { S.me = null; } }
     if (!S.me) { chrome('signin'); return viewSignin(); }
+    if (!S.me.consentAt) { chrome('consent'); return viewConsent(); }
     const allowed = NAV[S.me.role].map((x) => x[0]).concat(S.me.role === 'student' ? [] : ['profile']);
     const v = allowed.includes(view) ? view : NAV[S.me.role][0][0];
     chrome(v);
@@ -4246,8 +4288,21 @@ window.CPMaps = (function () {
     });
   }
 
+  // ---------- C08 Consent to the processing of personal data (first sign-in) ----------
+  function viewConsent() {
+    app.innerHTML = `<section class="card signin" style="max-width:640px"><h1 style="margin-top:0">🔒 ${esc(t('consent_title'))}</h1><p class="sub">${esc(t('consent_sub'))}</p>
+      <ul class="list">${['consent_what', 'consent_why', 'consent_who', 'consent_long', 'consent_where', 'consent_rights'].map((k) => `<li>${esc(t(k))}</li>`).join('')}</ul>
+      <p class="note info">${esc(t('consent_demo'))}</p>
+      <label class="chk"><input type="checkbox" id="cagree"> ${esc(t('consent_check'))}</label>
+      <div class="row"><button class="btn" id="cok" disabled>${esc(t('consent_accept'))}</button><button class="btn ghost" id="cno">${esc(t('sign_out'))}</button></div></section>`;
+    $('#cagree').addEventListener('change', (e) => { $('#cok').disabled = !e.target.checked; });
+    $('#cok').addEventListener('click', (ev) => act(ev.currentTarget, async () => { try { const r = await api('POST', '/api/me/consent', {}); S.me.consentAt = r.consentAt; location.hash = ''; render(); } catch (err) { fail(err); } }));
+    $('#cno').addEventListener('click', async () => { await api('POST', '/api/auth/logout').catch(() => {}); S.me = null; go('signin'); });
+  }
+
   // ---------- W02/W03 Events poster and details (FR-02 … FR-09, FR-17) ----------
   function seatsBlock(e) {
+    if (e.open) return `<div class="spread meta" style="margin-top:10px"><span>🙋 ${esc(t('planned_n', { n: e.planned }))}</span><span class="pill">${esc(t('open_event'))}</span></div>`;
     const pct = Math.min(100, Math.round((e.taken / e.capacity) * 100));
     return `<div class="bar ${e.free ? '' : 'full'}"><i style="width:${pct}%"></i></div><div class="spread meta"><span>${e.free ? esc(t('seats_free', { n: e.free, c: e.capacity })) : `<b style="color:var(--bad)">${esc(t('full'))}</b> · ${esc(t('waitlist_n', { n: e.waitlist }))}`}</span><span>${esc(t('coins_n', { n: e.coins }))}</span></div>`;
   }
@@ -4255,15 +4310,16 @@ window.CPMaps = (function () {
     if (S.me.role !== 'student') return '';
     const m = e.my, started = new Date(e.startsAt) <= new Date();
     if (started && (!m || m.status === 'waitlisted')) return `<p class="note info">${esc(t('live_now'))}</p>`;
-    if (!m) return `<div class="row"><button class="btn" data-reg="${e.id}">${esc(t(e.free ? 'register' : 'join_waitlist'))}</button><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
+    if (!m) return `<div class="row"><button class="btn" data-reg="${e.id}">${esc(t(e.open ? 'plan_to_come' : e.free ? 'register' : 'join_waitlist'))}</button><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
     if (m.status === 'confirmed') return `<p class="note ok">${esc(t('registered'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button><button class="btn danger" data-cancel="${e.id}">${esc(t('cant_come'))}</button></div>`;
+    if (m.status === 'planned') return `<p class="note ok">🙋 ${esc(t('you_plan'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button><button class="btn danger" data-cancel="${e.id}">${esc(t('wont_come'))}</button></div>`;
     if (m.status === 'waitlisted') return `<p class="note warn">${esc(t('waitlisted', { n: m.position }))}</p><div class="row"><button class="btn danger" data-cancel="${e.id}">${esc(t('leave_waitlist'))}</button></div>`;
     return `<p class="note ok">✓ ${esc(t('status_checked'))}</p><div class="row"><button class="btn ghost" data-open="${e.id}">${esc(t('details'))}</button></div>`;
   }
   const eventCard = (e) => `<article class="card ev"><div class="spread"><span class="pill">${esc(t('type_' + e.type))}</span>${new Date(e.startsAt) <= new Date() ? `<span class="pill live">● ${esc(t('live'))}</span>` : ''}<span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}</span></div>
     <h3>${esc(L(e, 'title'))}</h3><div class="meta">${esc(clubName(e))} · ${esc(L(e, 'location'))}</div>${seatsBlock(e)}${actionBlock(e)}</article>`;
 
-  async function register(id, btn) { return act(btn, async () => { try { const e = await api('POST', `/api/events/${id}/register`); toast(e.my.status === 'confirmed' ? t('registered') : t('waitlisted', { n: e.my.position })); render(); } catch (err) { fail(err); } }); }
+  async function register(id, btn) { return act(btn, async () => { try { const e = await api('POST', `/api/events/${id}/register`); toast(e.my.status === 'confirmed' ? t('registered') : e.my.status === 'planned' ? t('you_plan') : t('waitlisted', { n: e.my.position })); render(); } catch (err) { fail(err); } }); }
   async function cancel(id, btn, waitlisted) {
     if (!(await confirmBox(t(waitlisted ? 'confirm_leave' : 'confirm_cancel'), t('yes_cancel')))) return;
     return act(btn, async () => { try { await api('DELETE', `/api/events/${id}/registration`); render(); } catch (err) { fail(err); } });
@@ -4355,7 +4411,7 @@ window.CPMaps = (function () {
   const LANGNAME = { en: 'EN', kk: 'ҚАЗ', ru: 'РУС' };
   function openEvent(e) {
     const m = e.my, rem = m && m.reminder;
-    const reminders = m && m.status === 'confirmed' ? `<label>${esc(t('reminders'))}</label><div class="seg" role="group">${['off', 'push', 'telegram'].map((c) => `<button data-ch="${c}" aria-pressed="${rem.channel === c}">${esc(t(c === 'off' ? 'rem_off' : c === 'push' ? 'rem_push' : 'rem_tg'))}</button>`).join('')}</div>
+    const reminders = m && ['confirmed', 'planned'].includes(m.status) ? `<label>${esc(t('reminders'))}</label><div class="seg" role="group">${['off', 'push', 'telegram'].map((c) => `<button data-ch="${c}" aria-pressed="${rem.channel === c}">${esc(t(c === 'off' ? 'rem_off' : c === 'push' ? 'rem_push' : 'rem_tg'))}</button>`).join('')}</div>
       <div><label class="chk"><input type="checkbox" id="rd" ${rem.day ? 'checked' : ''}> ${esc(t('rem_day'))}</label><label class="chk"><input type="checkbox" id="rh" ${rem.hour ? 'checked' : ''}> ${esc(t('rem_hour'))}</label></div><p class="meta">${esc(t('rem_note'))}</p>` : '';
     const rating = m && m.status === 'checked_in' ? (m.rating ? `<p class="note ok">${esc(t('rated', { n: m.rating }))}</p>` : `<label>${esc(t('rate'))}</label><div class="stars">${[1, 2, 3, 4, 5].map((n) => `<button data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`) : '';
     modal(`<span class="pill">${esc(t('type_' + e.type))}</span><h2 style="margin-top:8px">${esc(L(e, 'title'))}</h2><p class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))}–${esc(time(e.endsAt))} · ${esc(clubName(e))}</p>${placeLine(e)}<p>${esc(L(e, 'description'))}</p>${seatsBlock(e)}${actionBlock(e)}${reminders}${m && m.status !== 'waitlisted' ? calendarLinks(e) : ''}<div class="row"><button class="btn ghost small" data-share>↗ ${esc(t('share'))}</button>${canReport() ? `<button class="btn ghost small" data-report>🚩 ${esc(t('report'))}</button>` : ''}</div>${rating}`, (root, close) => {
@@ -4409,7 +4465,7 @@ window.CPMaps = (function () {
 
   // ---------- W06 Profile (FR-16, FR-19, FR-21) ----------
   // Attendance history (shared by the History tab and the Profile)
-  const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'] };
+  const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'], planned: ['info', 'hist_planned'] };
   function historyHTML(regs) { const hist = regs.items, rate = regs.attended + regs.missed ? Math.round((regs.attended / (regs.attended + regs.missed)) * 100) : null; return `<section class="card" style="grid-column:1/-1"><h2>${esc(t('history_title'))}</h2>${rate !== null ? `<p class="meta">${esc(t('hist_summary', { a: regs.attended, t: regs.attended + regs.missed, p: rate }))}</p>` : ''}${hist.length ? `<div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_status'))}</th><th>${esc(t('coins'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>${hist.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(clubName(e))}</span></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_status'))}"><span class="note ${RES[e.result][0]}" style="margin:0;padding:3px 8px;display:inline-block">${esc(t(RES[e.result][1]))}</span></td><td data-label="${esc(t('coins'))}">${e.coinsEarned ? '+' + e.coinsEarned : '—'}</td><td data-label="${esc(t('th_rating'))}">${e.result !== 'attended' ? '—' : e.my && e.my.rating ? '★ ' + e.my.rating + '/5' : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</td></tr>`).join('')}</tbody></table></div><p class="meta">${esc(t('rate_hint'))}</p>` : `<p class="meta">${esc(t('hist_empty'))}</p>`}</section>`; }
   function bindRating(root) { root.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', async () => { try { await api('POST', `/api/events/${b.dataset.rate}/feedback`, { rating: Number(b.dataset.star) }); toast(t('rated', { n: b.dataset.star })); render(); } catch (err) { fail(err); } })); }
   VIEWS.history = async () => {
@@ -4421,7 +4477,6 @@ window.CPMaps = (function () {
     const [me, coins, notes, clubs, regs, reports] = await Promise.all([api('GET', '/api/me'), api('GET', '/api/me/coins'), api('GET', '/api/me/notifications'), api('GET', '/api/clubs'), S.me.role === 'student' ? api('GET', '/api/me/history') : { items: [] }, api('GET', '/api/me/complaints').catch(() => [])]);
     const mine = clubs.filter((c) => c.myStatus === 'accepted' || c.myStatus === 'pending');
     const hist = regs.items, rate = regs.attended + regs.missed ? Math.round((regs.attended / (regs.attended + regs.missed)) * 100) : null;
-    const RES = { attended: ['ok', 'hist_attended'], missed: ['bad', 'hist_missed'], cancelled: ['warn', 'hist_cancelled'], expired: ['warn', 'hist_expired'] };
     app.innerHTML = `<h1>${esc(me.name)}</h1><p class="sub">${esc(me.email)}${me.studentId ? ' · ID ' + esc(me.studentId) : ''}${me.group ? ' · ' + esc(me.group) : ''}${me.club ? ' · ' + esc(me.club.name) : ''}</p>
       <div class="grid"><section class="card"><h2>${esc(t('coins'))}</h2><div class="kpi"><b>${coins.balance}</b></div><p class="note info" style="margin:8px 0">${esc(t('coins_info'))}</p><ul class="list">${coins.history.map((h) => `<li class="spread"><span>${esc(h.event || h.reason)}<br><span class="meta">${esc(dateLong(h.createdAt))}</span></span><b>+${h.amount}</b></li>`).join('')}</ul></section>
       <section class="card"><h2>${esc(t('notifications'))}</h2><p class="meta">${esc(t('notes_info'))}</p>${notes.length ? `<ul class="list">${notes.map((n) => `<li><span class="pill">${esc(t('ch_' + n.channel))}</span> ${esc(n.text)}<br><span class="meta">${esc(dateLong(n.createdAt))}, ${esc(time(n.createdAt))}</span></li>`).join('')}</ul>` : `<p class="meta">${esc(t('no_notifications'))}</p>`}</section>
@@ -4429,17 +4484,19 @@ window.CPMaps = (function () {
       ${reports.length ? `<section class="card"><h2>🚩 ${esc(t('my_complaints'))}</h2><ul class="list">${reports.map((c) => `<li><div class="spread"><b>${esc(c.targetTitle || '—')}</b>${cstPill(c.status)}</div><span class="meta">${esc(t('target_' + c.targetType))} · ${esc(t('reason_' + c.reason))} · ${esc(dateLong(c.createdAt))}</span><br><span style="font-size:14px">${esc(c.text)}</span>${c.comment ? `<p class="note info" style="margin:6px 0 0">💬 ${esc(c.comment)}</p>` : ''}</li>`).join('')}</ul></section>` : ''}
       ${S.me.role === 'student' ? `<section class="card" style="grid-column:1/-1"><h2>${esc(t('history_title'))}</h2>${rate !== null ? `<p class="meta">${esc(t('hist_summary', { a: regs.attended, t: regs.attended + regs.missed, p: rate }))}</p>` : ''}${hist.length ? `<div class="tablewrap"><table class="stack"><thead><tr><th>${esc(t('th_event'))}</th><th>${esc(t('th_date'))}</th><th>${esc(t('th_status'))}</th><th>${esc(t('coins'))}</th><th>${esc(t('th_rating'))}</th></tr></thead><tbody>${hist.map((e) => `<tr><td data-label="${esc(t('th_event'))}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(clubName(e))}</span></td><td data-label="${esc(t('th_date'))}">${esc(dateLong(e.startsAt))}</td><td data-label="${esc(t('th_status'))}"><span class="note ${RES[e.result][0]}" style="margin:0;padding:3px 8px;display:inline-block">${esc(t(RES[e.result][1]))}</span></td><td data-label="${esc(t('coins'))}">${e.coinsEarned ? '+' + e.coinsEarned : '—'}</td><td data-label="${esc(t('th_rating'))}">${e.result !== 'attended' ? '—' : e.my && e.my.rating ? '★ ' + e.my.rating + '/5' : `<div class="stars" aria-label="${esc(t('rate'))}">${[1, 2, 3, 4, 5].map((n) => `<button data-rate="${e.id}" data-star="${n}" aria-label="${n}">★</button>`).join('')}</div>`}</td></tr>`).join('')}</tbody></table></div><p class="meta">${esc(t('rate_hint'))}</p>` : `<p class="meta">${esc(t('hist_empty'))}</p>`}</section>` : ''}
       <section class="card"><h2>${esc(t('my_clubs'))}</h2><ul class="list">${mine.map((c) => `<li class="spread"><span>${esc(L(c, 'name'))}</span><span class="meta">${esc(t(c.myStatus === 'accepted' ? 'st_accepted' : 'st_pending'))}</span></li>`).join('') || '<li class="meta">—</li>'}</ul>
-      <label for="pl">${esc(t('language'))}</label><select id="pl"><option value="en">English</option><option value="kk">Қазақша</option><option value="ru">Русский</option></select></section></div>`;
+      <label for="pl">${esc(t('language'))}</label><select id="pl"><option value="en">English</option><option value="kk">Қазақша</option><option value="ru">Русский</option></select></section>
+      <section class="card"><h2>🔒 ${esc(t('consent_title'))}</h2><p class="meta">${esc(t('consent_given', { date: me.consentAt ? dateLong(me.consentAt) : '—' }))}</p><p class="meta">${esc(t('consent_withdraw_hint'))}</p><button class="btn danger small" id="cwd">${esc(t('consent_withdraw'))}</button></section></div>`;
+    $('#cwd').addEventListener('click', async (ev) => { const b = ev.currentTarget; if (!(await confirmBox(t('consent_withdraw_confirm'), t('consent_withdraw')))) return; await act(b, async () => { try { await api('DELETE', '/api/me/consent'); S.me.consentAt = null; render(); } catch (err) { fail(err); } }); });
     app.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', async () => { try { await api('POST', `/api/events/${b.dataset.rate}/feedback`, { rating: Number(b.dataset.star) }); toast(t('rated', { n: b.dataset.star })); render(); } catch (err) { fail(err); } }));
     $('#pl').value = S.lang; $('#pl').addEventListener('change', (e) => { $('#lang').value = e.target.value; $('#lang').dispatchEvent(new Event('change')); });
     drawTelegram();
   };
 
   // Database overview for the defense (administrator): tables, columns, links, row counts and a masked sample
-  VIEWS.db = async () => {
+  VIEWS.db = async (host = app) => {
     const tables = await api('GET', '/api/admin/db');
     const total = tables.reduce((n, x) => n + x.count, 0);
-    app.innerHTML = `<h1>${esc(t('db_title'))}</h1><p class="sub">${esc(t('db_sub', { n: tables.length, rows: total }))}</p>
+    host.innerHTML = `${host === app ? `<h1>${esc(t('db_title'))}</h1>` : ''}<p class="sub">${esc(t('db_sub', { n: tables.length, rows: total }))}</p>
       <p><a class="btn ghost small" href="/diagrams/fig_er_diagram.png" target="_blank" rel="noopener">${esc(t('db_er'))}</a></p>
       <div class="grid">${tables.map((x) => `<section class="card"><div class="spread"><h2 style="margin:0">${esc(x.table)}</h2><span class="pill">${x.count} ${esc(t('db_rows'))}</span></div>
         <div class="tablewrap"><table><thead><tr><th>${esc(t('db_col'))}</th><th>${esc(t('db_type'))}</th><th>${esc(t('db_key'))}</th></tr></thead><tbody>${x.columns.map((c) => `<tr><td>${esc(c.name)}</td><td class="meta">${esc(c.type)}</td><td>${c.pk ? '<span class="pill">PK</span>' : ''}${c.ref ? `<span class="pill">FK → ${esc(c.ref)}</span>` : ''}</td></tr>`).join('')}</tbody></table></div>
@@ -4545,6 +4602,7 @@ window.CPMaps = (function () {
       ${langFields('f', {})}<label for="fy">${esc(t('f_type'))}</label><select id="fy">${['tech', 'sports', 'creative', 'intellectual', 'social'].map((c) => `<option value="${c}">${esc(t('type_' + c))}</option>`).join('')}</select>
       <label for="fs">${esc(t('f_start'))}</label><input id="fs" type="datetime-local" value="${local}" min="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}" required>
       <div class="spread"><div style="flex:1"><label for="fd">${esc(t('f_duration'))}</label><input id="fd" type="number" min="15" max="720" value="120"></div><div style="flex:1"><label for="fc">${esc(t('f_capacity'))}</label><input id="fc" type="number" min="1" max="500" value="40"></div></div>
+      <label class="chk" style="margin-top:12px"><input type="checkbox" id="fopen"> ${esc(t('f_open'))}</label><p class="meta" style="margin:2px 0 0">${esc(t('f_open_hint'))}</p>
       <label>${esc(t('f_place'))}</label><div class="seg" role="group"><button type="button" data-pk="room" aria-pressed="true">${esc(t('place_campus'))}</button><button type="button" data-pk="venue" aria-pressed="false">${esc(t('place_city'))}</button></div>
       <div id="pk-room"><select id="fr" aria-label="${esc(t('f_place'))}" style="margin-top:8px"></select><div class="row" style="margin-top:6px"><button class="btn ghost small" type="button" id="frshow">🧭 ${esc(t('show_on_plan'))}</button><span class="meta" id="frinfo"></span></div></div>
       <div id="pk-venue" hidden><select id="fv" aria-label="${esc(t('place_city'))}" style="margin-top:8px"></select></div>
@@ -4600,7 +4658,7 @@ window.CPMaps = (function () {
     $('#ef').addEventListener('submit', async (ev) => {
       ev.preventDefault(); clearErr();
       const bad = check(); if (bad) return showErr(bad, bad === 'lang' ? LMSG : t('err_' + bad));
-      const body = { i18n: LF.read(), type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value) };
+      const body = { i18n: LF.read(), type: $('#fy').value, roomCode: PK === 'room' ? $('#fr').value : undefined, venueId: PK === 'venue' ? $('#fv').value : undefined, startsAt: new Date($('#fs').value).toISOString(), durationMinutes: Number($('#fd').value), capacity: Number($('#fc').value), open: $('#fopen').checked };
       await act(ev.submitter || $('#ef button'), async () => { try { await api('POST', '/api/events', body); toast(t('submitted')); render(); } catch (err) { showErr(err.code, err.message); } });
     });
   };
@@ -4608,7 +4666,7 @@ window.CPMaps = (function () {
   // ---------- W08 Check-in: QR code or manual list (FR-14, FR-15) ----------
   VIEWS.checkin = async () => {
     const all = await api('GET', '/api/organizer/events');
-    const list = all.filter((e) => e.status === 'approved' && new Date(e.endsAt) > new Date(Date.now() - 86400000));
+    const list = all.filter((e) => e.status === 'approved' && !e.open && new Date(e.endsAt) > new Date(Date.now() - 86400000));
     if (!S.ci || !list.find((e) => e.id === S.ci)) S.ci = (list.find((e) => new Date(e.endsAt) > new Date()) || list[0] || {}).id;
     app.innerHTML = `<h1>${esc(t('checkin_title'))}</h1><p class="sub">${esc(t('checkin_sub'))}</p><div class="grid"><section class="card">
       <label for="ce">${esc(t('choose_event'))}</label><select id="ce">${list.map((e) => `<option value="${e.id}" ${e.id === S.ci ? 'selected' : ''}>${esc(L(e, 'title'))} · ${esc(dateLong(e.startsAt))} ${esc(time(e.startsAt))}</option>`).join('')}</select>
@@ -4694,13 +4752,14 @@ window.CPMaps = (function () {
   const TYPESL = ['tech', 'sports', 'creative', 'intellectual', 'social'];
   VIEWS.admin = async () => {
     const tab = (/[?&]tab=(\w+)/.exec(location.hash) || [])[1] || S.adminTab || 'complaints'; S.adminTab = tab;
-    const TABS = [['complaints', 'tab_complaints'], ['events', 'tab_events'], ['clubs', 'tab_clubs'], ['users', 'tab_users']];
+    const TABS = [['complaints', 'tab_complaints'], ['events', 'tab_events'], ['clubs', 'tab_clubs'], ['users', 'tab_users'], ['db', 'nav_db']];
     app.innerHTML = `<h1>${esc(t('admin_title'))}</h1><p class="sub">${esc(t('admin_sub'))}</p>
       <div class="seg" role="tablist" style="margin-bottom:14px;flex-wrap:wrap">${TABS.map(([k, l]) => `<button role="tab" data-atab="${k}" aria-selected="${tab === k}" aria-pressed="${tab === k}">${esc(t(l))}</button>`).join('')}</div><div id="apanel"><p class="meta">${esc(t('loading'))}</p></div>`;
     app.querySelectorAll('[data-atab]').forEach((b) => b.addEventListener('click', () => { S.adminTab = b.dataset.atab; history.replaceState(null, '', '#/admin?tab=' + b.dataset.atab); render(); }));
     await ADMIN[tab]($('#apanel'));
   };
   const ADMIN = {
+    db: (box) => VIEWS.db(box),
     async complaints(box) {
       const list = await api('GET', '/api/admin/complaints');
       if (!list.length) { box.innerHTML = `<p class="note ok">${esc(t('no_complaints'))}</p>`; return; }
