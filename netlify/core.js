@@ -10,7 +10,7 @@ function createCore(SEED, state) {
   const TYPES = ['sports', 'creative', 'tech', 'intellectual', 'social'], LANGS = ['en', 'kk', 'ru'];
   const ROLES = ['student', 'organizer', 'moderator', 'admin', 'shop'], STAFF = ['moderator', 'admin'];
   // FR-28 … FR-33 merch shop (same rules as server/app.js: BR-07 … BR-10)
-  const SHOP = { offers: [{ pct: 5, coins: 100 }, { pct: 10, coins: 200 }], maxDiscount: 2000, validDays: 7 };
+  const SHOP = { offers: [{ pct: 5, coins: 300 }, { pct: 10, coins: 700 }], maxDiscount: 2000, validDays: 7 };
   const yearStart = (d) => { const x = new Date(d); const y = x.getUTCMonth() >= 7 ? x.getUTCFullYear() : x.getUTCFullYear() - 1; return new Date(Date.UTC(y, 7, 1) - 5 * 3600000); };
   const yearEnd = (d) => new Date(Date.UTC(yearStart(d).getUTCFullYear() + 1, 5, 30, 23, 59) - 5 * 3600000);
   const IMG = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
@@ -52,7 +52,7 @@ function createCore(SEED, state) {
       for (let k = 0; k < e.waitlist; k++) D.regs.push(reg(id(), ev.id, crowd[(ci++) % 120], 'waitlisted', null, t));
       if (e.past) { const r = reg(id(), ev.id, me, e.me, rnd(), t); if (e.me === 'checked_in') { r.method = 'qr'; D.coins.push({ user_id: me, amount: e.coins, reason: 'Check-in', event_id: ev.id, created_at: iso(start) }); } D.regs.push(r); }
     }
-    D.coins.push({ user_id: me, amount: 100, reason: 'Welcome bonus', event_id: null, created_at: t });
+    D.coins.push({ user_id: me, amount: 350, reason: 'Welcome bonus', event_id: null, created_at: t });
     D.members.push({ user_id: me, club_id: gdsc, status: 'accepted', message: '', created_at: t });
     D.clubs.forEach((c, k) => { const n = 6 + ((k * 13) % 35); for (let j = 0; j < n; j++) { const uid = crowd[(k * 17 + j) % crowd.length]; if (!D.members.find((m) => m.user_id === uid && m.club_id === c.id)) D.members.push({ user_id: uid, club_id: c.id, status: 'accepted', message: '', created_at: t }); } });
     D.members.push({ user_id: crowd[0], club_id: club('Music Club'), status: 'pending', message: 'I play guitar and would like to join the acoustic nights.', created_at: t });

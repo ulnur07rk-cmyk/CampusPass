@@ -503,15 +503,15 @@ test('AT-23 (FR-28 … FR-33, BR-07 … BR-10) Campus Coins buy a 5% / 10% merch
     const st = (await c7('POST', '/api/auth/login', { email: 'student1@test.local', password: 'Student123!' })).cookie;
     const uid = db7.prepare("SELECT id FROM users WHERE email = 'student1@test.local'").get().id;
     let shop = (await c7('GET', '/api/shop', null, st)).body;
-    assert.deepEqual(shop.offers, [{ pct: 5, coins: 100 }, { pct: 10, coins: 200 }]); assert.equal(shop.maxDiscount, 2000);
-    const start = shop.balance; assert.ok(start >= 100 && start < 200);
+    assert.deepEqual(shop.offers, [{ pct: 5, coins: 300 }, { pct: 10, coins: 700 }]); assert.equal(shop.maxDiscount, 2000);
+    const start = shop.balance; assert.ok(start >= 300 && start < 700);
     assert.match(shop.coinsExpireAt, /-06-30T/);                                                       // BR-10 end of the academic year
-    // BR-07 not enough coins for 10%; 5% works and takes 100 coins
+    // BR-07 not enough coins for 10% (700); 5% works and takes 300 coins
     assert.equal((await c7('POST', '/api/shop/vouchers', { pct: 10 }, st)).body.error.code, 'not_enough_coins');
     assert.equal((await c7('POST', '/api/shop/vouchers', { pct: 7 }, st)).status, 400);
     const v = (await c7('POST', '/api/shop/vouchers', { pct: 5 }, st)).body;
     assert.match(v.code, /^MERCH-[0-9A-F]{8}$/); assert.equal(v.status, 'active');
-    assert.equal((await c7('GET', '/api/shop', null, st)).body.balance, start - 100);
+    assert.equal((await c7('GET', '/api/shop', null, st)).body.balance, start - 300);
     assert.equal((await c7('POST', '/api/shop/vouchers', { pct: 5 }, st)).body.error.code, 'voucher_active');   // one active voucher
     // FR-31 Only the cashier (or the administrator) redeems; preview first, then confirm; a voucher works once
     assert.equal((await c7('POST', '/api/shop/redeem', { code: v.code, amount: 15000 }, st)).status, 403);
@@ -524,19 +524,19 @@ test('AT-23 (FR-28 … FR-33, BR-07 … BR-10) Campus Coins buy a 5% / 10% merch
     assert.equal((await c7('POST', '/api/shop/redeem', { code: v.code, amount: 15000, confirm: true }, cash)).body.error.code, 'voucher_used');
     assert.ok((await c7('GET', '/api/me/notifications', null, st)).body.some((n) => /750 ₸/.test(n.text)));
     // BR-08 at most 2 000 ₸ off
-    db7.prepare("INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?, 300, 'Test coins', ?)").run(uid, new Date(NOW).toISOString());
+    db7.prepare("INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?, 800, 'Test coins', ?)").run(uid, new Date(NOW).toISOString());
     const v10 = (await c7('POST', '/api/shop/vouchers', { pct: 10 }, st)).body;
     assert.equal((await c7('POST', '/api/shop/redeem', { code: v10.code, amount: 50000 }, cash)).body.discount, 2000);
     // BR-09 cancel → coins back; an expired voucher gives the coins back too
     const before = (await c7('GET', '/api/shop', null, st)).body.balance;
-    assert.equal((await c7('DELETE', `/api/shop/vouchers/${v10.id}`, {}, st)).body.balance, before + 200);
+    assert.equal((await c7('DELETE', `/api/shop/vouchers/${v10.id}`, {}, st)).body.balance, before + 700);
     const v3 = (await c7('POST', '/api/shop/vouchers', { pct: 5 }, st)).body;
     db7.prepare("UPDATE vouchers SET expires_at = '2000-01-01T00:00:00.000Z' WHERE id = ?").run(v3.id);
     shop = (await c7('GET', '/api/shop', null, st)).body;
-    assert.equal(shop.vouchers.find((x) => x.id === v3.id).status, 'expired'); assert.equal(shop.balance, before + 200);
+    assert.equal(shop.vouchers.find((x) => x.id === v3.id).status, 'expired'); assert.equal(shop.balance, before + 700);
     // BR-10 coins from the previous academic year do not count
     db7.prepare("INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?, 500, 'Last year', '2020-05-01T00:00:00.000Z')").run(uid);
-    assert.equal((await c7('GET', '/api/shop', null, st)).body.balance, before + 200);
+    assert.equal((await c7('GET', '/api/shop', null, st)).body.balance, before + 700);
     // Statistics for BO6 (students who used the shop) and the cashier's list
     const red = (await c7('GET', '/api/shop/redemptions', null, cash)).body; assert.equal(red.totals.used, 1); assert.equal(red.totals.discount, 750);
     const adm = (await c7('POST', '/api/auth/login', { email: 'admin@test.local', password: 'Admin123!' })).cookie;

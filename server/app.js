@@ -28,9 +28,9 @@ const STAFF = ['moderator', 'admin'];
 const REASONS = ['wrong_info', 'spam', 'offensive', 'safety', 'other'];
 const C_STATUS = ['new', 'in_review', 'resolved', 'rejected'];
 // FR-28 … FR-33 Coin redemption in the university merch shop (agreement with the shop, Appendix D)
-// BR-07 offers: 5 % for 100 coins, 10 % for 200 coins · BR-08 at most 2 000 ₸ discount per purchase, one voucher per purchase
+// BR-07 offers: 5 % for 300 coins, 10 % for 700 coins (agreed with the university) · BR-08 at most 2 000 ₸ discount per purchase, one voucher per purchase
 // BR-09 a voucher is valid 7 days and only once; unused coins come back · BR-10 coins expire at the end of the academic year (30 June)
-const SHOP = { offers: [{ pct: 5, coins: 100 }, { pct: 10, coins: 200 }], maxDiscount: 2000, validDays: 7 };
+const SHOP = { offers: [{ pct: 5, coins: 300 }, { pct: 10, coins: 700 }], maxDiscount: 2000, validDays: 7 };
 const yearStart = (d) => { const x = new Date(d); const y = x.getUTCMonth() >= 7 ? x.getUTCFullYear() : x.getUTCFullYear() - 1; return new Date(Date.UTC(y, 7, 1) - 5 * 3600000); }; // 1 August, Astana time
 const yearEnd = (d) => new Date(Date.UTC(yearStart(d).getUTCFullYear() + 1, 5, 30, 23, 59) - 5 * 3600000); // 30 June
 const IMG = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;

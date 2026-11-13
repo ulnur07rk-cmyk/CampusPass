@@ -7,6 +7,7 @@ Students find events and clubs, register in one tap, get a QR ticket and earn Ca
 
 - **Demo video:** _add the OneDrive link here_
 - **SRS:** Team06_FP_Report.pdf (Moodle)
+- **Product backlog:** https://claude.ai/artifact/TKweTmNxmPac5At8RKx4x6 (48 user stories, MoSCoW, story points, release, status, links to FR and tests)
 
 ## Main use case (end to end)
 1. A **student** opens the events poster, registers for an event and receives a QR ticket (or joins the waitlist if the event is full).
@@ -48,7 +49,7 @@ What one user does is saved in the database and is immediately visible to the ot
 
 | ID | Requirement (short) | Where |
 |---|---|---|
-| FR-28 … FR-33 | **Campus Coins → merch discount** (agreement with the university merch shop): a student exchanges 100 coins for a 5% voucher or 200 coins for 10%; the voucher is a QR code valid 7 days for one purchase; the **cashier** scans it, types the amount and confirms; BR-07 offers, BR-08 at most 2 000 ₸ off, BR-09 unused or cancelled voucher returns the coins, BR-10 coins expire on 30 June (end of the academic year) | `/api/shop`, `/api/shop/vouchers`, `/api/shop/redeem`, Profile → Merch shop, role *shop* → Check-out |
+| FR-28 … FR-33 | **Campus Coins → merch discount** (agreement with the university merch shop): a student exchanges 300 coins for a 5% voucher or 700 coins for 10%; the voucher is a QR code valid 7 days for one purchase; the **cashier** scans it, types the amount and confirms; BR-07 offers, BR-08 at most 2 000 ₸ off, BR-09 unused or cancelled voucher returns the coins, BR-10 coins expire on 30 June (end of the academic year) | `/api/shop`, `/api/shop/vouchers`, `/api/shop/redeem`, Profile → Merch shop, role *shop* → Check-out |
 | F3 | **Event pictures**: every event has a cover of its type (original artwork, `public/covers/`); the organizer or the administrator can upload an own photo (cut to 16:9 and compressed in the browser) | `image` in `POST /api/events`, `PUT /api/admin/events/:id` |
 | FR-34 | Telegram bot commands `/today`, `/events`, `/my`, `/help`, `/lang`, `/stop`; command menu in EN/KK/RU | `server/bot.js` |
 | FR-35 | Inline buttons: menu, event list → event card, back | `server/bot.js` |
@@ -131,7 +132,7 @@ All accounts are fictional. On the sign-in screen, choose an account in the list
 | Administrator (IT office) | admin@test.local | Admin123! |
 | Merch shop cashier | shop@test.local | Shop123! |
 
-`student1` (Aruzhan Bekova) already has some history and has given consent; all other accounts see the **consent screen** (C08) at the first sign-in. `student2` … `student10` start clean, so each usability tester can get an own account. *Acoustic Night* is an **open event** (“I plan to come”).
+`student1` (Aruzhan Bekova) already has some history, 370 coins (enough for a 5% merch voucher) and has given consent; all other accounts see the **consent screen** (C08) at the first sign-in. `student2` … `student10` start clean, so each usability tester can get an own account. *Acoustic Night* is an **open event** (“I plan to come”).
 Before each round of usability testing, the administrator can press **Administration → Users → Reset test data** to restore the starting data (everyone is signed out). Self-registration is intentionally not offered: the prototype must not collect data from real people.
 
 ## Security and data

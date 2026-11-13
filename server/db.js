@@ -247,7 +247,7 @@ function seed(db, now = new Date()) {
         if (checked) db.prepare('INSERT INTO coin_transactions (user_id, amount, reason, event_id, created_at) VALUES (?,?,?,?,?)').run(me, e.coins, 'Check-in', ev, iso(start));
       }
     }
-    db.prepare('INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?,?,?,?)').run(me, 100, 'Welcome bonus', t);
+    db.prepare('INSERT INTO coin_transactions (user_id, amount, reason, created_at) VALUES (?,?,?,?)').run(me, 350, 'Welcome bonus', t); // enough for a 5% merch voucher at the demo
     db.prepare("INSERT INTO memberships (user_id, club_id, status, created_at, decided_at) VALUES (?,?, 'accepted', ?, ?)").run(me, gdsc, t, t);
     // Fictional club members so that membership counts look realistic (6–40 per club)
     const addMember = db.prepare("INSERT OR IGNORE INTO memberships (user_id, club_id, status, created_at, decided_at) VALUES (?,?, 'accepted', ?, ?)");

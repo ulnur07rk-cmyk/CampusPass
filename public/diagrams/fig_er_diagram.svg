@@ -132,7 +132,7 @@
 <text text-anchor="start" x="5.5" y="-518.2" font-family="Helvetica,sans-Serif" font-size="11.00">cashier_id</text>
 <text text-anchor="start" x="197.5" y="-518.2" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#5b6b82">INTEGER</text>
 <text text-anchor="start" x="282.5" y="-519.2" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#1f5ad6">FK</text>
-<text text-anchor="start" x="5.5" y="-499.8" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#2e6b45">percent 5 | 10 for 100 | 200 coins (BR&#45;07); discount ≤ 2 000 ₸ (BR&#45;08)</text>
+<text text-anchor="start" x="5.5" y="-499.8" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#2e6b45">percent 5 | 10 for 300 | 700 coins (BR&#45;07); discount ≤ 2 000 ₸ (BR&#45;08)</text>
 <text text-anchor="start" x="5.5" y="-489.8" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#2e6b45">status: active → used | expired | cancelled (BR&#45;09)</text>
 <polygon fill="none" stroke="#2e6b45" points="0,-482 0,-752 335,-752 335,-482 0,-482"/>
 </g>

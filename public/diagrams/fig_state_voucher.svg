@@ -27,7 +27,7 @@
 <polygon fill="#475569" stroke="#475569" points="487.68,-99.8 495.68,-97 487.68,-94.2 487.68,-99.8"/>
 <text text-anchor="middle" x="341.5" y="-119.4" font-family="Helvetica,sans-Serif" font-size="9.50">student chooses 5% or 10%</text>
 <text text-anchor="middle" x="341.5" y="-109.4" font-family="Helvetica,sans-Serif" font-size="9.50">[consent, enough coins, no other active voucher]</text>
-<text text-anchor="middle" x="341.5" y="-99.4" font-family="Helvetica,sans-Serif" font-size="9.50">/ take 100 or 200 coins, make QR code (BR&#45;07)</text>
+<text text-anchor="middle" x="341.5" y="-99.4" font-family="Helvetica,sans-Serif" font-size="9.50">/ take 300 or 700 coins, make QR code (BR&#45;07)</text>
 </g>
 <!-- final -->
 <g id="node2" class="node">
