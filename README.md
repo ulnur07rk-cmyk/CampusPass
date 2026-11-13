@@ -60,6 +60,10 @@ What one user does is saved in the database and is immediately visible to the ot
 | FR-43 | Any user (not the administrator) reports an event or a club with a reason and text; one open report per target | `POST /api/complaints` |
 | FR-44 | New report → administrator's inbox and Telegram (if linked) | `alert()` in `server/app.js` |
 | FR-45 | Report statuses new → in review → resolved / rejected; closing needs an answer; the author sees status and answer in the Profile | `PUT /api/admin/complaints/:id`, `GET /api/me/complaints` |
+| FR-46 | The bot is different for each role: own menu buttons and own command list (set for the chat when the account is linked) | `MENU`, `ROLE_CMDS` in `server/bot.js` |
+| FR-47 | Organizer in the bot: events of the club (status, seats, waitlist), participant list, **check-in by sending the ticket code** | `/club`, `/checkin` |
+| FR-48 | Moderator in the bot: new events arrive with **Approve / Reject** buttons (reject asks for a reason), `/pending`, club requests ✅/❌, `/stats`; the organizer is told the decision | `/pending`, `/requests`, `/stats` |
+| FR-49 | Administrator in the bot: new complaints arrive with buttons (in review / resolve / reject with an answer), `/complaints`; the author is told the status; student: `/my` with cancel, `/coins`, a message when a waitlist seat is free | `/complaints`, `/my`, `/coins` |
 | NFR-UI | Green–beige design, day/night theme (choice saved in the browser), text contrast WCAG AA ≥ 4.5:1 | `public/theme.js`, `npm run contrast` |
 
 ## Technology stack and why
@@ -79,7 +83,7 @@ cp .env.example .env        # Windows: copy .env.example .env
 npm start                   # opens http://localhost:3000
 ```
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
-- `npm test` — run the 21 automated acceptance tests (AT-01 … AT-20; AT-20 checks that the Netlify version has the same rules).
+- `npm test` — run the 22 automated acceptance tests (AT-01 … AT-21; AT-20 checks that the Netlify version has the same rules, AT-21 the bot for every role).
 - `npm run demo` — build `CampusPass_demo.html`, one file that works without a server (data in the browser).
 - `npm run contrast` — check the colour contrast of both themes (WCAG AA).
 - Administrator → **Database**: all tables, columns, keys and row counts of the live database (passwords and Telegram data are hidden). ER diagram: `public/diagrams/fig_er_diagram.png`.
@@ -93,7 +97,7 @@ npm start                   # opens http://localhost:3000
 | `TELEGRAM_POLLING` | `1` = localhost receives bot messages (long polling) | — |
 | `SITE_URL` | Optional. An `https://` address adds “Open in CampusPass” buttons to bot messages (Netlify fills it automatically) | — |
 
-**Telegram on localhost:** put the token in `.env`, run `npm start` (the console shows *Telegram bot @… is listening*). Sign in as a student → **Profile → Connect Telegram** → press **Start** in the bot → **Send a test message**. Then try `/today`, `/events`, `/my`, `/lang` and the buttons; register for an event from the bot and see it in *Tickets* on the website. Sign in as `admin@test.local`, connect Telegram, and report an event as a student: the alert arrives in the administrator's chat. Only the numeric chat id is stored, never a name or phone number; use only the team's own Telegram accounts in demos. **Reset test data** removes every link.
+**Telegram on localhost:** put the token in `.env`, run `npm start` (the console shows *Telegram bot @… is listening*). Sign in as a student → **Profile → Connect Telegram** → press **Start** in the bot → **Send a test message**. Then try the buttons. **Each role sees its own menu:** student — events, register, `/my`, `/coins`; organizer — `/club`, participants, check-in by sending the ticket code `CP-…`; moderator — `/pending` (Approve / Reject), `/requests`, `/stats`; administrator — `/complaints` and the moderator tools. The bot acts through the same API rules as the website, so a role can never do more in the bot than on the website. Sign in as `admin@test.local`, connect Telegram, and report an event as a student: the alert arrives in the administrator's chat. Only the numeric chat id is stored, never a name or phone number; use only the team's own Telegram accounts in demos. **Reset test data** removes every link.
 
 **Telegram and the map on Netlify:** Site configuration → Environment variables → add `MAPGL_KEY` and `TELEGRAM_BOT_TOKEN` → redeploy. The website receives bot messages through the function `netlify/functions/telegram.mjs` (path `/tg-hook`); pressing *Connect Telegram* on the website switches the bot to the website, and starting `npm start` switches it back to localhost — use one at a time.
 

@@ -121,6 +121,7 @@ CREATE TABLE IF NOT EXISTS complaints (
 CREATE TABLE IF NOT EXISTS telegram_chats (
   chat_id TEXT PRIMARY KEY,
   lang TEXT NOT NULL DEFAULT 'en' CHECK (lang IN ('en','kk','ru')),
+  await_action TEXT,
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints(status);
@@ -142,6 +143,8 @@ function open(dbPath) {
   // Older local databases: add the Telegram columns if they are missing
   const cols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
   for (const c of ['telegram_chat_id', 'telegram_code']) if (!cols.includes(c)) db.exec(`ALTER TABLE users ADD COLUMN ${c} TEXT`);
+  // FR-47 The bot waits for a typed answer (rejection reason, answer to a complaint): saved per chat
+  if (!db.prepare('PRAGMA table_info(telegram_chats)').all().some((c) => c.name === 'await_action')) db.exec('ALTER TABLE telegram_chats ADD COLUMN await_action TEXT');
   return db;
 }
 

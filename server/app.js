@@ -49,7 +49,7 @@ function createApp(db, opts = {}) {
     const u = q('SELECT telegram_chat_id, lang FROM users WHERE id = ?').get(userId);
     if (tg.enabled && u && u.telegram_chat_id && tgMsgFor) { const m = tgMsgFor(chatLang(u.telegram_chat_id) || u.lang); tg.send(u.telegram_chat_id, m.text, m.reply_markup); }
   };
-  const chatLang = (chatId) => { const r = q('SELECT lang FROM telegram_chats WHERE chat_id = ?').get(String(chatId)); return r ? r.lang : null; };
+  const chatLang = (chatId) => { const r = chatId && q('SELECT lang FROM telegram_chats WHERE chat_id = ?').get(String(chatId)); return r ? r.lang : null; };
   const newTicket = () => 'CP-' + crypto.randomBytes(5).toString('hex').toUpperCase();
 
   // ---------- helpers ----------
@@ -189,7 +189,7 @@ function createApp(db, opts = {}) {
         if (next) {
           const code = newTicket();
           q("UPDATE registrations SET status = 'confirmed', ticket_code = ?, updated_at = ? WHERE id = ?").run(code, iso(now()), next.id);
-          notify(next.user_id, 'app', `A seat became free: you are now registered for ${e.title}. Ticket ${code}.`);
+          alert(next.user_id, `A seat became free: you are now registered for ${e.title}. Ticket ${code}.`, (lang) => bot.promotedMsg(lang, eventView(e, null), code));
           promoted = next.user_id;
         }
       }
@@ -299,7 +299,8 @@ function createApp(db, opts = {}) {
     if (user.role === 'admin' && !q('SELECT 1 FROM clubs WHERE id = ?').get(clubId)) fail(404, 'club_not_found', 'Club not found.');
     const id = q(`INSERT INTO events (title, description, club_id, location, type, starts_at, ends_at, capacity, coins, status, created_by, created_at, room_code, venue, i18n) VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, ?, ?, ?, ?)`)
       .run(texts.title, texts.description, clubId, texts.location, body.type, iso(start), iso(start.getTime() + minutes * 60000), capacity, 20, user.id, iso(now()), room ? room.code : null, venue ? venue.id : null, JSON.stringify(texts.i18n)).lastInsertRowid;
-    for (const a of q("SELECT id FROM users WHERE role IN ('moderator','admin')").all()) notify(a.id, 'app', `New event waiting for review: ${texts.title}.`);
+    const newEv = eventView(eventRow(id), null);
+    for (const a of q("SELECT id FROM users WHERE role IN ('moderator','admin')").all()) alert(a.id, `New event waiting for review: ${texts.title}.`, (lang) => bot.newEventAlert(lang, newEv, siteUrl()));
     return { id, status: 'pending', languages: texts.languages };
   });
   route('GET', '/api/organizer/events', ({ user }) => {
@@ -345,7 +346,7 @@ function createApp(db, opts = {}) {
       const r = ROOMS.find((x) => x.code === e.room_code), others = q("SELECT id, title, room_code, status, starts_at, ends_at FROM events WHERE room_code = ? AND status = 'approved'").all(e.room_code);
       if (r && !availability(r, ROOMS, e.starts_at, e.ends_at, others, e.id).free) fail(409, 'room_busy', 'The room is not free at this time.'); }
     q('UPDATE events SET status = ?, moderation_comment = ? WHERE id = ?').run(status, comment || null, e.id);
-    if (e.created_by) notify(e.created_by, 'app', `Your event "${e.title}" was ${status}.${comment ? ' Comment: ' + comment : ''}`);
+    if (e.created_by) alert(e.created_by, `Your event "${e.title}" was ${status}.${comment ? ' Comment: ' + comment : ''}`, (lang) => bot.decisionMsg(lang, eventView(e, null), status, comment));
     return { id: e.id, status };
   });
   // FR-13 Club join requests
@@ -357,7 +358,8 @@ function createApp(db, opts = {}) {
     const status = body.decision === 'accept' ? 'accepted' : 'declined';
     q('UPDATE memberships SET status = ?, decided_at = ? WHERE user_id = ? AND club_id = ?').run(status, iso(now()), uid, cid);
     const club = q('SELECT name FROM clubs WHERE id = ?').get(cid).name;
-    notify(uid, 'app', `Your request to join ${club} was ${status}.`);
+    const ci = parse(q('SELECT i18n FROM clubs WHERE id = ?').get(cid).i18n);
+    alert(uid, `Your request to join ${club} was ${status}.`, (lang) => bot.clubDecisionMsg(lang, (ci && ci[lang] && ci[lang].name) || club, status));
     return { status };
   });
   // FR-18 Statistics
@@ -471,7 +473,7 @@ function createApp(db, opts = {}) {
     const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
     if (['resolved', 'rejected'].includes(body.status) && comment.length < 5) fail(400, 'answer_required', 'Write a short answer to the person (at least 5 characters).');
     q('UPDATE complaints SET status = ?, admin_comment = ?, handled_by = ?, updated_at = ? WHERE id = ?').run(body.status, comment || c.admin_comment, user.id, iso(now()), c.id);
-    notify(c.user_id, 'app', `Your complaint #${c.id} is now: ${body.status.replace('_', ' ')}.${comment ? ' Answer: ' + comment : ''}`);
+    alert(c.user_id, `Your complaint #${c.id} is now: ${body.status.replace('_', ' ')}.${comment ? ' Answer: ' + comment : ''}`, (lang) => bot.complaintStatusMsg(lang, c.id, body.status, comment));
     return { id: c.id, status: body.status };
   });
 
@@ -577,9 +579,20 @@ function createApp(db, opts = {}) {
   }
   // Data adapter for the Telegram bot (server/bot.js): the same rules as the website
   const regUser = (id) => q('SELECT id, name, role, lang, club_id FROM users WHERE id = ?').get(id);
+  // The bot acts as the linked user through the same routes as the website, so every right is checked by the same code
+  async function callAs(userId, method, path, body) {
+    const user = q('SELECT id, email, name, student_id, group_name, role, club_id, lang FROM users WHERE id = ?').get(userId);
+    const url = new URL(path, 'http://bot'), r = routes.find((x) => x.method === method && x.re.test(url.pathname));
+    if (!r) fail(404, 'not_found', 'Unknown API endpoint.');
+    const res = { setHeader() {}, writeHead() {}, end() {} };
+    return r.handler({ req: { headers: {}, socket: {} }, res, body: body || {}, user, params: r.re.exec(url.pathname).groups || {}, query: Object.fromEntries(url.searchParams) });
+  }
   const botApi = {
-    chatInfo: (chatId) => { const u = q('SELECT id, name, role, lang FROM users WHERE telegram_chat_id = ?').get(String(chatId)); return { lang: chatLang(chatId), user: u || null }; },
+    chatInfo: (chatId) => { const u = q('SELECT id, name, role, lang FROM users WHERE telegram_chat_id = ?').get(String(chatId)); const c = q('SELECT lang, await_action FROM telegram_chats WHERE chat_id = ?').get(String(chatId)); return { lang: c ? c.lang : null, await: c ? c.await_action : null, user: u || null }; },
     setChatLang: (chatId, lang) => { if (!LANGS.includes(lang)) return; q('INSERT INTO telegram_chats (chat_id, lang, updated_at) VALUES (?,?,?) ON CONFLICT(chat_id) DO UPDATE SET lang = excluded.lang, updated_at = excluded.updated_at').run(String(chatId), lang, iso(now())); },
+    setAwait: (chatId, value) => { q("INSERT INTO telegram_chats (chat_id, lang, await_action, updated_at) VALUES (?, 'en', ?, ?) ON CONFLICT(chat_id) DO UPDATE SET await_action = excluded.await_action, updated_at = excluded.updated_at").run(String(chatId), value || null, iso(now())); },
+    call: callAs,
+    anyEvent: (id) => { const e = q('SELECT * FROM events WHERE id = ?').get(id); return e ? eventView(e, null) : null; },
     link: (code, chatId) => linkTelegram(code, String(chatId)),
     unlink: (chatId) => { q('UPDATE users SET telegram_chat_id = NULL WHERE telegram_chat_id = ?').run(String(chatId)); return true; },
     events: (from, to, userId) => q("SELECT * FROM events WHERE status = 'approved' AND ends_at > ? AND starts_at < ? ORDER BY starts_at").all(iso(from), iso(to)).map((e) => eventView(e, userId ? regUser(userId) : null)),

@@ -64,6 +64,10 @@ window.I18N = {
 
 // ---------- Final release: administrator, complaints, events in three languages, theme (FR-39 … FR-45) ----------
 Object.assign(window.I18N.en, {
+  tg_role_student: 'In the bot: events today and this week, register with one button, your tickets (cancel), coins, reminders 1 day and 1 hour before.',
+  tg_role_organizer: 'In the bot: events of your club with seats and participants, check-in by sending the ticket code, a message when your event is approved or rejected.',
+  tg_role_moderator: 'In the bot: new events for review arrive with Approve / Reject buttons, club requests, statistics.',
+  tg_role_admin: 'In the bot: new complaints arrive at once with buttons (in review, resolve, reject with an answer), plus moderation and statistics.',
   err_answer_required: 'Write a short answer to the person (at least 5 characters).',
   role_moderator: 'Moderator (Student Affairs)', role_admin: 'Administrator', group_admin: 'Administrator (IT office)',
   nav_admin: 'Administration', admin_title: 'Administration', admin_sub: 'The administrator sees and edits everything: events, clubs, users and roles, complaints.',
@@ -85,6 +89,10 @@ Object.assign(window.I18N.en, {
   err_title_lang: 'Title ({lang}): 3–120 characters.', err_desc_lang: 'Description ({lang}): 10–1000 characters.', err_no_language: 'Write the title and the description in at least one language.'
 });
 Object.assign(window.I18N.kk, {
+  tg_role_student: 'Ботта: бүгінгі және апталық іс-шаралар, бір батырмамен тіркелу, билеттер (бас тарту), монеталар, 1 күн және 1 сағат бұрын еске салу.',
+  tg_role_organizer: 'Ботта: клубыңыздың іс-шаралары, орындар мен қатысушылар, билет кодын жіберіп тіркеу, іс-шара мақұлданғанда не қабылданбағанда хабар.',
+  tg_role_moderator: 'Ботта: жаңа іс-шаралар «Мақұлдау / Қабылдамау» батырмаларымен келеді, клубқа өтінімдер, статистика.',
+  tg_role_admin: 'Ботта: жаңа шағымдар бірден батырмалармен келеді (қарау, шешу, жауаппен қабылдамау), сондай-ақ модерация мен статистика.',
   err_answer_required: 'Адамға қысқа жауап жазыңыз (кемінде 5 таңба).',
   role_moderator: 'Модератор (студенттер ісі)', role_admin: 'Әкімші', group_admin: 'Әкімші (IT бөлімі)',
   nav_admin: 'Әкімшілік', admin_title: 'Әкімшілік', admin_sub: 'Әкімші бәрін көреді және өзгертеді: іс-шаралар, клубтар, пайдаланушылар мен рөлдер, шағымдар.',
@@ -106,6 +114,10 @@ Object.assign(window.I18N.kk, {
   err_title_lang: 'Атауы ({lang}): 3–120 таңба.', err_desc_lang: 'Сипаттама ({lang}): 10–1000 таңба.', err_no_language: 'Атауы мен сипаттамасын кемінде бір тілде жазыңыз.'
 });
 Object.assign(window.I18N.ru, {
+  tg_role_student: 'В боте: мероприятия на сегодня и неделю, запись одной кнопкой, ваши билеты (можно отменить), монеты, напоминания за 1 день и за 1 час.',
+  tg_role_organizer: 'В боте: мероприятия вашего клуба, места и участники, отметка по коду билета, сообщение, когда мероприятие одобрено или отклонено.',
+  tg_role_moderator: 'В боте: новые мероприятия приходят с кнопками «Одобрить / Отклонить», заявки в клубы, статистика.',
+  tg_role_admin: 'В боте: новые жалобы приходят сразу с кнопками (взять в работу, решить, отклонить с ответом), а также модерация и статистика.',
   err_answer_required: 'Напишите короткий ответ человеку (минимум 5 символов).',
   role_moderator: 'Модератор (Student Affairs)', role_admin: 'Администратор', group_admin: 'Администратор (IT-отдел)',
   nav_admin: 'Администрирование', admin_title: 'Администрирование', admin_sub: 'Администратор видит и редактирует всё: мероприятия, клубы, пользователей и роли, жалобы.',

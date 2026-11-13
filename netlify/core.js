@@ -179,7 +179,7 @@ function createCore(SEED, state) {
     if (!r) fail(404, 'not_registered', 'You are not registered for this event.');
     if (e.starts_at <= iso(now())) fail(409, 'already_started', 'The event has already started.');
     const was = r.status; r.status = 'cancelled'; r.updated_at = iso(now()); let promoted = null;
-    if (was === 'confirmed') { const n = waitQ(e.id)[0]; if (n) { n.status = 'confirmed'; n.ticket = rnd(); n.updated_at = iso(now()); notify(n.user_id, 'app', `A seat became free: you are now registered for ${e.title}. Ticket ${n.ticket}.`); promoted = n.user_id; } }
+    if (was === 'confirmed') { const n = waitQ(e.id)[0]; if (n) { n.status = 'confirmed'; n.ticket = rnd(); n.updated_at = iso(now()); alert(n.user_id, `A seat became free: you are now registered for ${e.title}. Ticket ${n.ticket}.`, (lang) => bot.promotedMsg(lang, view(e, null), n.ticket)); promoted = n.user_id; } }
     return { ok: true, promotedUserId: promoted };
   });
   on('PUT', '/api/registrations/:id/reminders', (b, u, p) => { need(u, 'student'); const r = D.regs.find((x) => x.id === Number(p.id) && x.user_id === u.id); if (!r) fail(404, 'not_found', 'Registration not found.'); if (!['off', 'push', 'telegram'].includes(b.channel)) fail(400, 'invalid_channel', 'Channel must be off, push or telegram.'); Object.assign(r, { channel: b.channel, day: !!b.day, hour: !!b.hour }); return { channel: r.channel, day: r.day, hour: r.hour }; });
@@ -230,7 +230,7 @@ function createCore(SEED, state) {
     if (room && !availability(room, ROOMS, s, new Date(s.getTime() + mins * 60000), D.events).free) fail(409, 'room_busy', 'The room is not free at this time.');
     const clubId = u.role === 'admin' ? Number(b.clubId) : u.club_id; if (!D.clubs.find((c) => c.id === clubId)) fail(404, 'club_not_found', 'Club not found.');
     const e = { id: D.seq++, room_code: room ? room.code : null, venue: venue ? venue.id : null, title: texts.title, i18n: texts.i18n, description: texts.description, club_id: clubId, location: texts.location, type: b.type, starts_at: iso(s), ends_at: iso(s.getTime() + mins * 60000), capacity: cap, coins: 20, status: 'pending', created_by: u.id, comment: null };
-    D.events.push(e); D.users.filter((x) => STAFF.includes(x.role)).forEach((a) => notify(a.id, 'app', `New event waiting for review: ${texts.title}.`)); return { id: e.id, status: 'pending', languages: texts.languages };
+    D.events.push(e); const newEv = view(e, null); D.users.filter((x) => STAFF.includes(x.role)).forEach((a) => alert(a.id, `New event waiting for review: ${texts.title}.`, (lang) => bot.newEventAlert(lang, newEv, siteUrl()))); return { id: e.id, status: 'pending', languages: texts.languages };
   });
   on('GET', '/api/organizer/events', (b, u) => { need(u, 'organizer', ...STAFF); return D.events.filter((e) => STAFF.includes(u.role) || e.club_id === u.club_id).sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => ({ ...view(e, null), comment: e.comment })); });
   on('GET', '/api/events/:id/participants', (b, u, p) => { need(u, 'organizer', ...STAFF); const e = ev(p.id); if (!canManage(u, e)) fail(403, 'forbidden', "You can manage only your club's events."); return D.regs.filter((r) => r.event_id === e.id && (r.status === 'confirmed' || r.status === 'checked_in')).map((r) => { const s = D.users.find((x) => x.id === r.user_id); return { id: r.id, status: r.status, method: r.method, name: s.name, studentId: s.student_id }; }).sort((a, c) => a.name.localeCompare(c.name)); });
@@ -252,10 +252,15 @@ function createCore(SEED, state) {
     if (!['approve', 'reject'].includes(b.decision)) fail(400, 'invalid_decision', 'Decision must be approve or reject.');
     const c = String(b.comment || '').trim().slice(0, 500); if (b.decision === 'reject' && c.length < 5) fail(400, 'comment_required', 'Write a short reason for the rejection.');
     if (b.decision === 'approve' && e.room_code) { const r = ROOMS.find((x) => x.code === e.room_code); if (r && !availability(r, ROOMS, e.starts_at, e.ends_at, D.events.filter((x) => x.status === 'approved'), e.id).free) fail(409, 'room_busy', 'The room is not free at this time.'); }
-    e.status = b.decision === 'approve' ? 'approved' : 'rejected'; e.comment = c || null; if (e.created_by) notify(e.created_by, 'app', `Your event "${e.title}" was ${e.status}.${c ? ' Comment: ' + c : ''}`); return { id: e.id, status: e.status };
+    e.status = b.decision === 'approve' ? 'approved' : 'rejected'; e.comment = c || null; if (e.created_by) alert(e.created_by, `Your event "${e.title}" was ${e.status}.${c ? ' Comment: ' + c : ''}`, (lang) => bot.decisionMsg(lang, view(e, null), e.status, c)); return { id: e.id, status: e.status };
   });
   on('GET', '/api/admin/club-requests', (b, u) => { need(u, ...STAFF); return D.members.filter((m) => m.status === 'pending').map((m) => { const s = D.users.find((x) => x.id === m.user_id); return { userId: m.user_id, clubId: m.club_id, message: m.message, createdAt: m.created_at, name: s.name, studentId: s.student_id, club: D.clubs.find((c) => c.id === m.club_id).name, clubI18n: D.clubs.find((c) => c.id === m.club_id).i18n || null }; }); });
-  on('POST', '/api/admin/club-requests/decision', (b, u) => { need(u, ...STAFF); const m = D.members.find((x) => x.user_id === Number(b.userId) && x.club_id === Number(b.clubId) && x.status === 'pending'); if (!m) fail(404, 'request_not_found', 'Request not found.'); m.status = b.decision === 'accept' ? 'accepted' : 'declined'; notify(m.user_id, 'app', `Your request to join ${D.clubs.find((c) => c.id === m.club_id).name} was ${m.status}.`); return { status: m.status }; });
+  on('POST', '/api/admin/club-requests/decision', (b, u) => {
+    need(u, ...STAFF); const m = D.members.find((x) => x.user_id === Number(b.userId) && x.club_id === Number(b.clubId) && x.status === 'pending'); if (!m) fail(404, 'request_not_found', 'Request not found.');
+    if (!['accept', 'decline'].includes(b.decision)) fail(400, 'invalid_decision', 'Decision must be accept or decline.');
+    m.status = b.decision === 'accept' ? 'accepted' : 'declined'; const cl = D.clubs.find((c) => c.id === m.club_id);
+    alert(m.user_id, `Your request to join ${cl.name} was ${m.status}.`, (lang) => bot.clubDecisionMsg(lang, (cl.i18n && cl.i18n[lang] && cl.i18n[lang].name) || cl.name, m.status)); return { status: m.status };
+  });
   on('GET', '/api/admin/stats', (b, u) => {
     need(u, ...STAFF);
     const events = D.events.filter((e) => e.status === 'approved').sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => { const v = view(e, null), f = D.feedback.filter((x) => x.event_id === e.id); return { id: e.id, title: e.title, i18n: e.i18n || null, startsAt: e.starts_at, capacity: e.capacity, registered: v.taken, fillRate: Math.round((v.taken / e.capacity) * 100), waitlist: v.waitlist, checkedIn: D.regs.filter((r) => r.event_id === e.id && r.status === 'checked_in').length, avgRating: f.length ? Math.round((f.reduce((a, x) => a + x.rating, 0) / f.length) * 10) / 10 : null }; });
@@ -311,7 +316,7 @@ function createCore(SEED, state) {
     if (!C_STATUS.includes(b.status) || b.status === 'new') fail(400, 'invalid_status', 'Status must be in_review, resolved or rejected.');
     const comment = String(b.comment || '').trim().slice(0, 500); if ((b.status === 'resolved' || b.status === 'rejected') && comment.length < 5) fail(400, 'answer_required', 'Write a short answer to the person (at least 5 characters).');
     Object.assign(c, { status: b.status, admin_comment: comment || c.admin_comment, handled_by: u.id, updated_at: iso(now()) });
-    notify(c.user_id, 'app', `Your complaint #${c.id} is now: ${b.status.replace('_', ' ')}.${comment ? ' Answer: ' + comment : ''}`); return { id: c.id, status: c.status };
+    alert(c.user_id, `Your complaint #${c.id} is now: ${b.status.replace('_', ' ')}.${comment ? ' Answer: ' + comment : ''}`, (lang) => bot.complaintStatusMsg(lang, c.id, b.status, comment)); return { id: c.id, status: c.status };
   });
   function handle(method, url, body, token) {
     TOKEN = token || null; NEW_TOKEN = undefined;
@@ -326,7 +331,10 @@ function createCore(SEED, state) {
   const linkTelegram = (code, chatId) => { const u = D.users.find((x) => x.telegram_code && x.telegram_code === code); if (!u) return null; D.users.forEach((x) => { if (x.telegram_chat_id === chatId) x.telegram_chat_id = null; }); u.telegram_chat_id = chatId; u.telegram_code = null; return u.name; };
   // Data adapter for the Telegram bot (server/bot.js)
   const botApi = {
-    chatInfo: (chatId) => { const u = D.users.find((x) => x.telegram_chat_id === String(chatId)); return { lang: chatLang(String(chatId)), user: u ? { id: u.id, name: u.name, role: u.role, lang: u.lang } : null }; },
+    chatInfo: (chatId) => { const u = D.users.find((x) => x.telegram_chat_id === String(chatId)); return { lang: chatLang(String(chatId)), await: (D.tgWait && D.tgWait[String(chatId)]) || null, user: u ? { id: u.id, name: u.name, role: u.role, lang: u.lang } : null }; },
+    setAwait: (chatId, value) => { const w = D.tgWait || (D.tgWait = {}); if (value) w[String(chatId)] = value; else delete w[String(chatId)]; },
+    call: (userId, method, path, body) => callAs(userId, method, path, body),
+    anyEvent: (id) => { const e = D.events.find((x) => x.id === id); return e ? view(e, null) : null; },
     setChatLang: (chatId, lang) => { if (LANGS.includes(lang)) (D.tgChats || (D.tgChats = {}))[String(chatId)] = lang; },
     link: (code, chatId) => linkTelegram(code, String(chatId)),
     unlink: (chatId) => { D.users.forEach((x) => { if (x.telegram_chat_id === String(chatId)) x.telegram_chat_id = null; }); return true; },
@@ -335,6 +343,13 @@ function createCore(SEED, state) {
     myEvents: (userId) => { const u = D.users.find((x) => x.id === userId); return D.regs.filter((r) => r.user_id === userId && r.status !== 'cancelled').map((r) => D.events.find((e) => e.id === r.event_id)).filter(Boolean).sort((a, c) => (a.starts_at < c.starts_at ? -1 : 1)).map((e) => view(e, u)); },
     register: (userId, eventId) => { const u = D.users.find((x) => x.id === userId); try { return registerStudent(u, eventId); } catch (e) { const err = new Error(e.message); err.code = e.c; throw err; } }
   };
+  // The bot acts as the linked user through the same routes as the website (rights are checked in one place)
+  function callAs(userId, method, url, body) {
+    const usr = D.users.find((x) => x.id === userId), u = new URL(url, 'http://bot');
+    const r = R.find((x) => x.m === method && x.re.test(u.pathname)); if (!r) fail(404, 'not_found', 'Unknown API endpoint.');
+    try { return r.h(body || {}, usr, r.re.exec(u.pathname).groups || {}, u.searchParams); }
+    catch (e) { if (e instanceof E) { const err = new Error(e.message); err.code = e.c; throw err; } throw e; }
+  }
   // Scheduled run (netlify/functions/reminders.mjs): only the reminders, no request
   const tick = () => { reminders(); };
   return { handle, linkTelegram, botApi, tick, get state() { return D; } };

@@ -380,6 +380,73 @@ test('AT-20 (NFR-portability) the Netlify version has the same rules: roles, com
   assert.equal(core.handle('PUT', `/api/admin/events/${ev.data.id}`, { status: 'approved' }, adm).data.status, 'approved');
   // Bot on the Netlify data
   const r = await bot.handle({ message: { chat: { id: 77 }, from: { language_code: 'en' }, text: '/events' } }, core.botApi, {});
-  assert.match(r[0].params.text, /Events this week/);
+  assert.match(r[0].params.text, /This week/);
   assert.ok(r[0].params.reply_markup.inline_keyboard.flat().some((b) => b.callback_data === 'ev:' + ev.data.id));
+});
+
+test('AT-21 (FR-46 … FR-49) the bot gives each role its own menu and tools; the website sends role messages to Telegram', async () => {
+  const sent = [], fakeTg = { enabled: true, botName: async () => 'campuspass_test_bot', send: async (chat, text, markup) => { sent.push({ chat, text, markup }); return true; } };
+  const NOW = new Date(); NOW.setHours(8, 0, 0, 0);
+  const db5 = open(':memory:'); seed(db5, NOW);
+  const app5 = createApp(db5, { clock: () => new Date(NOW), telegram: fakeTg });
+  const api = app5.botApi, opts = { now: () => new Date(NOW) };
+  let n = 0;
+  const link = async (email, chat) => { db5.prepare('UPDATE users SET telegram_code = ? WHERE email = ?').run('code' + chat + 'abcdef', email); return bot.handle({ message: { chat: { id: chat }, from: { language_code: 'en' }, text: '/start code' + chat + 'abcdef' } }, api, opts); };
+  const msg = (chat, text) => bot.handle({ update_id: ++n, message: { message_id: n, chat: { id: chat }, from: { language_code: 'en' }, text } }, api, opts);
+  const press = (chat, data) => bot.handle({ update_id: ++n, callback_query: { id: 'q' + n, data, from: {}, message: { message_id: 1, chat: { id: chat } } } }, api, opts);
+  const text = (calls) => calls.filter((c) => c.params.text).map((c) => c.params.text).join('\n');
+  const keys = (calls) => calls.flatMap((c) => (c.params.reply_markup ? c.params.reply_markup.inline_keyboard.flat() : [])).map((b) => b.callback_data).filter(Boolean);
+  // Each role gets its own menu and its own command list
+  const ST = 101, ORG = 102, MOD = 103, ADM = 104;
+  let r = await link('student3@test.local', ST);
+  assert.ok(keys(r).includes('my') && keys(r).includes('coins') && !keys(r).includes('pending'));
+  assert.deepEqual(r.find((c) => c.method === 'setMyCommands').params.commands.map((c) => c.command), bot.ROLE_CMDS.student);
+  r = await link('organizer1@test.local', ORG); assert.ok(keys(r).includes('club') && keys(r).includes('checkin') && !keys(r).includes('my'));
+  r = await link('moderator@test.local', MOD); assert.ok(keys(r).includes('pending') && keys(r).includes('requests') && !keys(r).includes('complaints'));
+  r = await link('admin@test.local', ADM); assert.ok(keys(r).includes('complaints') && keys(r).includes('pending'));
+  // A student cannot open moderator tools; a moderator cannot open complaints
+  assert.match(text(await msg(ST, '/pending')), /not available for your role/);
+  assert.match(text(await msg(MOD, '/complaints')), /not available for your role/);
+  // Student: coins, register, my tickets, cancel
+  assert.match(text(await msg(ST, '/coins')), /Campus Coins: \d+/);
+  const tt = db5.prepare("SELECT id FROM events WHERE title = 'Open Lab Demo Day'").get().id;
+  await press(ST, 'reg:' + tt);
+  const code = db5.prepare("SELECT r.ticket_code FROM registrations r JOIN users u ON u.id = r.user_id WHERE u.email = 'student3@test.local' AND r.event_id = ?").get(tt).ticket_code;
+  assert.match(text(await msg(ST, '/my')), /Open Lab Demo Day/);
+  // Organizer of GDSC: club events, participants, check-in by sending the ticket code
+  assert.match(text(await msg(ORG, '/club')), /Open Lab Demo Day/);
+  r = await press(ORG, 'op:' + tt); assert.match(text(r), /participants/);
+  r = await msg(ORG, code); assert.match(text(r), /checked in at “Open Lab Demo Day”/);
+  r = await msg(ORG, code); assert.match(text(r), /already checked in/);
+  assert.match(text(await msg(ORG, 'CP-000000')), /not found/i);
+  // A student's other event: the cancel button works
+  const cb = db5.prepare("SELECT id FROM events WHERE title = 'Cloud Basics Workshop'").get().id;
+  await press(ST, 'reg:' + cb); r = await press(ST, 'my:' + cb); assert.ok(keys(r).includes('cx:' + cb));
+  r = await press(ST, 'cx:' + cb); assert.ok(r.some((c) => c.method === 'answerCallbackQuery' && /cancelled/.test(c.params.text)));
+  // Organizer submits an event (same API as the website) → moderator and administrator get it in Telegram with buttons
+  const ev = await api.call(db5.prepare("SELECT id FROM users WHERE email = 'organizer1@test.local'").get().id, 'POST', '/api/events', { type: 'tech', venueId: SEED.venues[0].id, startsAt: at(17, 0, 2), durationMinutes: 60, capacity: 20, i18n: { en: { title: 'Bot Review Test', description: 'An event to test the moderation bot.' } } });
+  const alertMod = sent.find((m) => m.chat === String(MOD) && /Bot Review Test/.test(m.text));
+  assert.ok(alertMod); assert.ok(alertMod.markup.inline_keyboard.flat().some((b) => b.callback_data === 'mod:no:' + ev.id));
+  // Moderator rejects from the bot: the bot asks for a reason, a short reason is refused, then the organizer is told
+  r = await press(MOD, 'mod:no:' + ev.id); assert.match(text(r), /reason/);
+  assert.match(text(await msg(MOD, 'no')), /too short/);
+  assert.match(text(await msg(MOD, 'The room is too small for this.')), /Rejected: Bot Review Test/);
+  assert.ok(sent.some((m) => m.chat === String(ORG) && /rejected/.test(m.text) && /too small/.test(m.text)));
+  // Approve another one with one tap
+  const ev2 = await api.call(db5.prepare("SELECT id FROM users WHERE email = 'organizer1@test.local'").get().id, 'POST', '/api/events', { type: 'tech', venueId: SEED.venues[0].id, startsAt: at(18, 0, 3), durationMinutes: 60, capacity: 20, i18n: { en: { title: 'Bot Approve Test', description: 'An event to test one-tap approval.' } } });
+  r = await press(MOD, 'mod:ok:' + ev2.id); assert.match(text(r), /Approved: Bot Approve Test/);
+  assert.ok(sent.some((m) => m.chat === String(ORG) && /approved/.test(m.text)));
+  // Club requests and statistics for the moderator
+  r = await msg(MOD, '/requests'); const acc = keys(r).find((k) => k.startsWith('cr:a:')); assert.ok(acc);
+  await press(MOD, acc); assert.match(text(await msg(MOD, '/stats')), /Approved events/);
+  // Administrator: complaint from the website arrives with buttons; resolve needs an answer; the author is told in Telegram
+  const stId = db5.prepare("SELECT id FROM users WHERE email = 'student3@test.local'").get().id;
+  const c = await api.call(stId, 'POST', '/api/complaints', { targetType: 'event', targetId: tt, reason: 'wrong_info', text: 'The time on the poster is wrong.' });
+  const alertAdm = sent.find((m) => m.chat === String(ADM) && /#\d+/.test(m.text) && /time on the poster/.test(m.text));
+  assert.ok(alertAdm.markup.inline_keyboard.flat().some((b) => b.callback_data === 'cs:s:' + c.id));
+  r = await press(ADM, 'cs:r:' + c.id); assert.match(text(r), /in review/);
+  r = await press(ADM, 'cs:s:' + c.id); assert.match(text(r), /answer/);
+  assert.match(text(await msg(ADM, 'Fixed the time. Thank you!')), /resolved/);
+  assert.ok(sent.some((m) => m.chat === String(ST) && /complaint #\d+ is now: resolved/.test(m.text) && /Fixed the time/.test(m.text)));
+  assert.match(text(await msg(ADM, '/complaints')), /Open complaints/);
 });

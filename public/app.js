@@ -327,8 +327,8 @@
     if (!box.isConnected) return;
     if (!st.enabled) { box.innerHTML = `<p class="note info" style="margin:0">${esc(t('tg_off'))}</p>`; return; }
     box.innerHTML = st.connected
-      ? `<p class="note ok" style="margin:0 0 8px">✓ ${esc(t('tg_connected', { bot: '@' + st.bot }))}</p><div class="row"><button class="btn small" id="tgtest">${esc(t('tg_test'))}</button><button class="btn ghost small" id="tgoff">${esc(t('tg_disconnect'))}</button></div>`
-      : `<p class="meta">${esc(t('tg_info'))}</p><div class="row"><button class="btn small" id="tglink">${esc(t('tg_connect'))}</button></div><p class="meta" style="margin-top:6px">${esc(t('tg_privacy'))}</p>`;
+      ? `<p class="note ok" style="margin:0 0 8px">✓ ${esc(t('tg_connected', { bot: '@' + st.bot }))}</p><p class="meta" style="margin:0 0 6px">${esc(t('tg_role_' + S.me.role))}</p><div class="row"><button class="btn small" id="tgtest">${esc(t('tg_test'))}</button><button class="btn ghost small" id="tgoff">${esc(t('tg_disconnect'))}</button></div>`
+      : `<p class="meta">${esc(t('tg_role_' + S.me.role))}</p><div class="row"><button class="btn small" id="tglink">${esc(t('tg_connect'))}</button></div><p class="meta" style="margin-top:6px">${esc(t('tg_privacy'))}</p>`;
     const go = (id, fn) => { const b = $(id); if (b) b.addEventListener('click', () => act(b, fn)); };
     go('#tglink', async () => {
       const w = window.open('about:blank', '_blank');
