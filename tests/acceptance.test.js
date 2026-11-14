@@ -122,7 +122,7 @@ test('AT-09 (FR-11, FR-12) organizer submits an event; it stays hidden until the
   assert.ok((await call('GET', '/api/events', null, st)).body.some((e) => e.id === r.body.id));
 });
 
-test('AT-10 (NFR, role rights) a student cannot moderate, check in or see statistics', async () => {
+test('AT-10 (NFR-07) a student cannot moderate, check in or see statistics', async () => {
   const st = await login('student1@test.local', 'Student123!');
   assert.equal((await call('GET', '/api/admin/stats', null, st)).status, 403);
   assert.equal((await call('POST', '/api/checkin', { eventId: 1, ticketCode: 'CP-X' }, st)).status, 403);
@@ -141,7 +141,7 @@ test('AT-11 (FR-10, FR-13) student sends a club request; moderator accepts it', 
   assert.equal((await call('GET', '/api/clubs', null, st)).body.find((c) => c.id === club).myStatus, 'accepted');
 });
 
-test('AT-13 (testing support) 16 fictional test accounts are listed; a new student starts clean; only the administrator can reset', async () => {
+test('AT-13 (FR-44) 16 fictional test accounts are listed; a new student starts clean; only the administrator can reset', async () => {
   const list = (await call('GET', '/api/test-accounts')).body;
   assert.equal(list.length, 16);
   assert.deepEqual(['student', 'organizer', 'moderator', 'admin', 'shop'].map((r) => list.filter((a) => a.role === r).length), [10, 3, 1, 1, 1]);
@@ -151,7 +151,7 @@ test('AT-13 (testing support) 16 fictional test accounts are listed; a new stude
   assert.equal((await call('POST', '/api/admin/reset', {}, await login('moderator@test.local', 'Moderator123!'))).status, 403);
 });
 
-test('AT-14 (F10) attendance history shows attended, missed and cancelled events', async () => {
+test('AT-14 (FR-26) attendance history shows attended, missed and cancelled events', async () => {
   const s1 = await login('student1@test.local', 'Student123!');
   const h = (await call('GET', '/api/me/history', null, s1)).body;
   const res = h.items.map((x) => x.result).sort();
@@ -159,7 +159,7 @@ test('AT-14 (F10) attendance history shows attended, missed and cancelled events
   assert.equal(h.attended, 1); assert.equal(h.missed, 1);
 });
 
-test('AT-14 (F21) organizers see free rooms; a busy room or a too small room cannot be booked; approval confirms the booking', async () => {
+test('AT-25 (FR-22, FR-23) organizers see free rooms; a busy room or a too small room cannot be booked; approval confirms the booking', async () => {
   const org = await login('organizer1@test.local', 'Organizer123!');
   const d = new Date(Date.now() + 2 * 86400000); while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
   d.setUTCHours(13, 0, 0, 0); // 18:00 in Astana, after lectures
@@ -190,7 +190,7 @@ test('AT-12 (FR-17, FR-18) only attendees can rate once; statistics show the ave
   assert.equal(s.body.events.find((e) => e.id === fair).avgRating, 5);
 });
 
-test('AT-15 (FR-08, SW02) a student links Telegram with a one-time code; reminders and test messages go to that chat only', async () => {
+test('AT-15 (FR-08, FR-21, NFR-10) a student links Telegram with a one-time code; reminders and test messages go to that chat only', async () => {
   // Second app with a fake Telegram service, so the test needs no real bot or internet
   const sent = [], fakeTg = { enabled: true, botName: async () => 'campuspass_test_bot', send: async (chat, text) => { sent.push({ chat, text }); return true; } };
   const NOW = new Date(); NOW.setHours(8, 0, 0, 0);
@@ -245,7 +245,7 @@ test('AT-16 (FR-39) an organizer submits an event in EN, KK and RU; an unfinishe
   assert.equal(ru.status, 200); assert.equal((await call('GET', `/api/events/${ru.body.id}`, null, org)).body.title, 'Встреча по Python');
 });
 
-test('AT-17 (FR-40 … FR-42) moderator and administrator are different roles; the administrator edits events, clubs and users', async () => {
+test('AT-17 (FR-20, FR-40, FR-41, FR-44, FR-45) moderator and administrator are different roles; the administrator edits events, clubs and users', async () => {
   const mod = await login('moderator@test.local', 'Moderator123!'), adm = await login('admin@test.local', 'Admin123!'), st = await login('student5@test.local', 'Student123!');
   // The moderator moderates and sees statistics, but cannot open the administration
   assert.equal((await call('GET', '/api/admin/pending-events', null, mod)).status, 200);
@@ -280,7 +280,7 @@ test('AT-17 (FR-40 … FR-42) moderator and administrator are different roles; t
   assert.equal((await call('PUT', `/api/admin/users/${u.id}`, { role: 'boss' }, adm)).status, 400);
 });
 
-test('AT-18 (FR-43 … FR-45) a complaint reaches the administrator in the inbox and in Telegram; the author sees the status', async () => {
+test('AT-18 (FR-42, FR-43) a complaint reaches the administrator in the inbox and in Telegram; the author sees the status', async () => {
   const sent = [], fakeTg = { enabled: true, botName: async () => 'campuspass_test_bot', send: async (chat, text, markup) => { sent.push({ chat, text, markup }); return true; } };
   const NOW = new Date(); NOW.setHours(8, 0, 0, 0);
   const db3 = open(':memory:'); seed(db3, NOW);
@@ -366,7 +366,7 @@ test('AT-19 (FR-34 … FR-38) Telegram bot: commands, buttons, language, registr
   assert.deepEqual(bot.commandSets().map((x) => x.language_code || 'en'), ['en', 'kk', 'ru']);
 });
 
-test('AT-20 (NFR-portability) the Netlify version has the same rules: roles, complaints, three languages and the bot', async () => {
+test('AT-20 (NFR-15) the Netlify version has the same rules: roles, complaints, three languages and the bot', async () => {
   const core = createCore(SEED, null);
   const tok = (email, pw) => core.handle('POST', '/api/auth/login', { email, password: pw }).token;
   const adm = tok('admin@test.local', 'Admin123!'), mod = tok('moderator@test.local', 'Moderator123!'), org = tok('organizer1@test.local', 'Organizer123!'), st = tok('student8@test.local', 'Student123!');
@@ -452,7 +452,7 @@ test('AT-21 (FR-46 … FR-49) the bot gives each role its own menu and tools; th
   assert.match(text(await msg(ADM, '/complaints')), /Open complaints/);
 });
 
-test('AT-22 (C08, F4/F13, state diagram, C10) consent, open events, cancelled event, no student IDs in Telegram', async () => {
+test('AT-22 (FR-27, C08, C10, FR-41) consent, open events, cancelled event, no student IDs in Telegram', async () => {
   // C08: without consent a student cannot register; withdrawal closes registration again
   const raw = (await call('POST', '/api/auth/login', { email: 'student10@test.local', password: 'Student123!' })).cookie;
   assert.equal((await call('GET', '/api/me', null, raw)).body.consentAt, null);
@@ -551,7 +551,7 @@ test('AT-23 (FR-28 … FR-33, BR-07 … BR-10) Campus Coins buy a 5% / 10% merch
   assert.equal(core.handle('POST', '/api/shop/redeem', { code: cv.data.code, amount: 100, confirm: true }, cs).data.error.code, 'voucher_used');
 });
 
-test('AT-24 (F3) an event can have its own picture; a wrong file is refused', async () => {
+test('AT-24 (FR-11) an event can have its own picture; a wrong file is refused', async () => {
   const org = await login('organizer2@test.local', 'Organizer123!');
   const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
   const base = { type: 'intellectual', venueId: SEED.venues[0].id, startsAt: at(16, 0, 6), durationMinutes: 60, capacity: 10, i18n: { en: { title: 'Picture Test', description: 'An event with its own picture.' } } };

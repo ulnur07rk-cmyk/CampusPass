@@ -19,60 +19,104 @@ Second scenario (Final release): a student presses **Report a problem** on an ev
 What one user does is saved in the database and is immediately visible to the others.
 
 ## Implemented requirements
-| ID | Requirement (short) | Where |
-|---|---|---|
-| FR-01 | Sign in with a test account; role-based menus | `POST /api/auth/login`, sign-in screen |
-| FR-02 | Events poster for 7 days, filters by day and type | `GET /api/events`, Events |
-| FR-03 | Free seats and waitlist size on every event | Events |
-| FR-04 | Registration with a unique ticket code and QR code | `POST /api/events/:id/register`, Tickets |
-| FR-05 | Waitlist with position when the event is full | same endpoint |
-| FR-06 | Cancellation; the first waitlisted student gets the seat | `DELETE /api/events/:id/registration` |
-| FR-07 | No duplicate registrations | same as FR-04 |
-| FR-08 | Opt-in reminders (1 day / 1 hour). **Telegram: real messages through the CampusPass bot** (connect in Profile); push is simulated in the in-app inbox | `PUT /api/registrations/:id/reminders`, `POST /api/me/telegram/link` |
-| FR-09 | Calendar export: Google, Outlook, .ics | `GET /api/events/:id/ics` |
-| FR-10 | Club catalogue, search, join requests | `GET /api/clubs`, `POST /api/clubs/:id/join` |
-| FR-11 | Organizer submits an event for moderation | `POST /api/events`, My events |
-| FR-12 | Moderator approves or rejects (with a reason) | `POST /api/admin/events/:id/decision` |
-| FR-13 | Moderator accepts or declines club requests | `POST /api/admin/club-requests/decision` |
-| FR-14 | Check-in by QR ticket code (own club only, from 1 h before start) | `POST /api/checkin` |
-| FR-15 | Manual check-in from the participant list | Check-in |
-| FR-16 | Campus Coins for each check-in; balance and history | `GET /api/me/coins`, Profile |
-| FR-17 | One rating (1–5) per attended event | `POST /api/events/:id/feedback` |
-| FR-18 | Statistics: fill rate, waitlist, check-ins, rating | `GET /api/admin/stats` |
-| FR-19 | Interface in English, Kazakh and Russian | language switch |
-| FR-20 | Administrator assigns roles | `PUT /api/admin/users/:id`, Administration → Users |
-| F21 | Free rooms (fictional lecture timetable): for the organizer in **My events** next to the form (*Use* fills the form), for the moderator in **Moderation**; booking is confirmed by the moderator; conflicts are blocked | `GET /api/rooms/availability`, `POST /api/events` |
-| F22 | Map: events on the **2GIS** city map (OpenStreetMap if no key), street route from the student's location, route inside the building on the floor plans | Map tab, `GET /api/places`, `public/maps.js` |
-| FR-21 | Notification inbox (simulated e-mail / push / Telegram) | `GET /api/me/notifications`, Profile |
 
-**Final release (after the Endterm defense).**
+The IDs are the same as in the SRS (Team06_FP_Report, Section 4 and Appendix F). All 49 functional requirements are implemented; FR-01, FR-08 and FR-21 use a simulated external service (test accounts instead of SSO; push and e-mail shown in the in-app inbox).
 
-| ID | Requirement (short) | Where |
-|---|---|---|
-| FR-28 … FR-33 | **Campus Coins → merch discount** (agreement with the university merch shop): a student exchanges 300 coins for a 5% voucher or 700 coins for 10%; the voucher is a QR code valid 7 days for one purchase; the **cashier** scans it, types the amount and confirms; BR-07 offers, BR-08 at most 2 000 ₸ off, BR-09 unused or cancelled voucher returns the coins, BR-10 coins expire on 30 June (end of the academic year) | `/api/shop`, `/api/shop/vouchers`, `/api/shop/redeem`, Profile → Merch shop, role *shop* → Check-out |
-| F3 | **Event pictures**: every event has a cover of its type (original artwork, `public/covers/`); the organizer or the administrator can upload an own photo (cut to 16:9 and compressed in the browser) | `image` in `POST /api/events`, `PUT /api/admin/events/:id` |
-| FR-34 | Telegram bot commands `/today`, `/events`, `/my`, `/help`, `/lang`, `/stop`; command menu in EN/KK/RU | `server/bot.js` |
-| FR-35 | Inline buttons: menu, event list → event card, back | `server/bot.js` |
-| FR-36 | A linked student registers for an event from the bot and gets the ticket code; same rules as the website | `botApi.register` in `server/app.js`, `netlify/core.js` |
-| FR-37 | Bot language: chosen in the bot, else the language of the Telegram app; saved per chat | table `telegram_chats` |
-| FR-38 | Reminders in Telegram in the chat language with buttons; close to the start only the 1-hour reminder; on Netlify a scheduled function sends them every 10 minutes | `sendDueReminders`, `netlify/functions/reminders.mjs` |
-| FR-39 | Organizer writes the title and description in EN, KK and/or RU (at least one complete language); users see their language, otherwise the original | `POST /api/events` (`i18n`), My events |
-| FR-40 | Separate roles: moderator (moderation, statistics, check-in, free rooms) and administrator (everything) | `ROLES` in `server/app.js` |
-| FR-41 | Administrator edits any event (texts in 3 languages, time, seats, coins, status), cancels or deletes it; registered students are told | `PUT/DELETE /api/admin/events/:id` |
-| FR-42 | Administrator adds and edits clubs and users (name, role, club); search over all users | `/api/admin/clubs`, `/api/admin/users` |
-| FR-43 | Any user (not the administrator) reports an event or a club with a reason and text; one open report per target | `POST /api/complaints` |
-| FR-44 | New report → administrator's inbox and Telegram (if linked) | `alert()` in `server/app.js` |
-| FR-45 | Report statuses new → in review → resolved / rejected; closing needs an answer; the author sees status and answer in the Profile | `PUT /api/admin/complaints/:id`, `GET /api/me/complaints` |
-| FR-46 | The bot is different for each role: own menu buttons and own command list (set for the chat when the account is linked) | `MENU`, `ROLE_CMDS` in `server/bot.js` |
-| FR-47 | Organizer in the bot: events of the club (status, seats, waitlist), participant list, **check-in by sending the ticket code** | `/club`, `/checkin` |
-| FR-48 | Moderator in the bot: new events arrive with **Approve / Reject** buttons (reject asks for a reason), `/pending`, club requests ✅/❌, `/stats`; the organizer is told the decision | `/pending`, `/requests`, `/stats` |
-| FR-49 | Administrator in the bot: new complaints arrive with buttons (in review / resolve / reject with an answer), `/complaints`; the author is told the status; student: `/my` with cancel, `/coins`, a message when a waitlist seat is free | `/complaints`, `/my`, `/coins` |
-| C08 | Consent screen at the first sign-in (what is kept, why, who sees it, how long, where); without consent a student cannot register; consent can be withdrawn in the Profile | `POST/DELETE /api/me/consent` |
-| F4 / F13 | **Open events** (concerts, fairs): no registration limit and no ticket — students press “I plan to come”, the organizer sees how many to expect | `open` in `POST /api/events`, status `planned` |
-| State diagram | When an event is cancelled, all its Confirmed / Waitlisted / Planned registrations become Cancelled | `PUT /api/admin/events/:id` |
-| C10 | Telegram messages to staff contain no student IDs; complaint alerts do not name the author | `server/bot.js` |
-| UI01 | At most six menu sections for every role (Database is a tab inside Administration) | `NAV` in `public/app.js` |
-| NFR-UI | Green–beige design, day/night theme (choice saved in the browser), text contrast WCAG AA ≥ 4.5:1 | `public/theme.js`, `npm run contrast` |
+**4.1 Access, roles and languages**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-01 | Sign in with a test account (SSO in production); only the menu of the role | `POST /api/auth/login`, W01 | AT-01 |
+| FR-19 | Interface, dates and event/club content in Kazakh, Russian or English; choice kept | language switch, `PUT /api/me/lang` | MT-02 |
+| FR-20 | Administrator assigns one of five roles and a club; new rights at next sign-in | `PUT /api/admin/users/:id`, Administration → Users | AT-17 |
+| FR-40 | Moderator and administrator are separate roles | `ROLES` in `server/app.js` | AT-17 |
+
+**4.2 Event discovery and maps**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-02 | Poster of approved events for 7 days, filters by day and type, keyword search | `GET /api/events`, Events | AT-02 |
+| FR-03 | Date, time, place, free seats with a bar, waitlist size and coins on every card | Events, event details | AT-02 |
+| FR-09 | Export to Google Calendar, Outlook or .ics; share link | `GET /api/events/:id/ics` | MT-01 |
+| FR-24 | 2GIS city map (OpenStreetMap without a key) and a walking/driving route; location stays in the browser | Map, `GET /api/places`, `public/maps.js` | MT-03 |
+| FR-25 | Route inside the building on the floor plans | “Route inside”, `public/maps.js` | MT-04 |
+
+**4.3 Registration, tickets and waitlist**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-04 | Register (with consent) before the start; Confirmed + unique ticket code as QR | `POST /api/events/:id/register`, Tickets | AT-03 |
+| FR-05 | Waitlist with position when the event is full | same endpoint | AT-04 |
+| FR-06 | Cancel after confirmation; the seat goes to the first waitlisted student | `DELETE /api/events/:id/registration` | AT-05 |
+| FR-07 | No second active registration (`already_registered`) | same as FR-04 | AT-03 |
+| FR-08 | Opt-in reminders 1 day / 1 hour before, once, through the chosen channel | `PUT /api/registrations/:id/reminders` | AT-06, AT-15 |
+| FR-27 | Open events without seats or tickets: “I plan to come” | event form, event details | AT-22 |
+
+**4.4 Event submission, moderation and free rooms**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-11 | Organizer submits an event of the own club (optional picture) as Pending | `POST /api/events`, My events | AT-09, AT-24 |
+| FR-12 | Moderator approves or rejects (reason required); organizer is told | `POST /api/admin/events/:id/decision`, Moderation | AT-09 |
+| FR-22 | Free rooms for the whole chosen time (lectures and events considered); “Use” fills the form | `GET /api/rooms/availability`, My events, Moderation | AT-25 |
+| FR-23 | A busy or too small room is refused; booking final on approval | `POST /api/events` | AT-25 |
+| FR-39 | Title and description in EN, KK and/or RU; at least one complete language | `POST /api/events` | AT-16 |
+
+**4.5 Check-in, Campus Coins and attendance**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-14 | Check-in by QR or code for the selected event in the check-in window; used/foreign ticket refused | `POST /api/checkin`, Check-in | AT-07 |
+| FR-15 | Check-in from the participant list, search by name or ID | `GET /api/events/:id/participants` | AT-08 |
+| FR-16 | Coins at check-in; balance and coin history of the academic year | `GET /api/me/coins`, Profile | AT-07 |
+| FR-17 | One 1–5 star rating per attended event | `POST /api/events/:id/feedback`, History | AT-12 |
+| FR-18 | Statistics: seats, registrations, fill rate, waitlist, check-ins, rating | `GET /api/admin/stats`, Statistics | AT-12 |
+| FR-26 | Attendance history: attended, missed, cancelled, coins, share attended | `GET /api/me/history`, History | AT-14 |
+
+**4.6 Clubs**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-10 | Catalogue of 42 clubs in five categories, search, join request | `GET /api/clubs`, `POST /api/clubs/:id/join` | AT-11 |
+| FR-13 | Moderator accepts or declines a join request; student is told | `POST /api/admin/club-requests/decision` | AT-11 |
+
+**4.7 Notifications and the Telegram bot**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-21 | In-app inbox with the channel of each message (e-mail and push simulated) | `GET /api/me/notifications`, Profile | AT-05, AT-15 |
+| FR-34 | Bot commands /today, /events, /my, /help, /lang, /stop; menu in EN/KK/RU | `server/bot.js` | AT-19 |
+| FR-35 | Event list with inline buttons → event card → back to menu | `server/bot.js` | AT-19 |
+| FR-36 | Linked student registers in the bot under the website rules | `botApi.register` | AT-19 |
+| FR-37 | Bot language: chosen in the bot, else the Telegram app language; kept per chat | table `telegram_chats` | AT-19 |
+| FR-38 | Reminders in the chat language with buttons; < 1 day before the start only the 1-hour one | `sendDueReminders` | AT-19 |
+| FR-46 | Own menu buttons and command list for each role | `MENU`, `ROLE_CMDS` in `server/bot.js` | AT-21 |
+| FR-47 | Organizer: club events, participants, check-in by sending the ticket code | `/club`, `/checkin` | AT-21 |
+| FR-48 | Moderator: new events with Approve / Reject, club requests, statistics | `/pending`, `/requests`, `/stats` | AT-21 |
+| FR-49 | Administrator: new complaints with status buttons and answer | `/complaints` | AT-21 |
+
+**4.8 Administration and complaints**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-41 | Administrator edits, cancels or deletes any event; registrations cancelled, students told | `PUT`/`DELETE /api/admin/events/:id` | AT-17, AT-22 |
+| FR-42 | Report a problem with an event or club (reason, 5–500 characters, one open report) | `POST /api/complaints` | AT-18 |
+| FR-43 | Report → administrator inbox and Telegram; New → In review → Resolved/Rejected, answer required | `PUT /api/admin/complaints/:id` | AT-18 |
+| FR-44 | Search accounts, change name, role and club; reset the fictional test data | `/api/admin/users`, `/api/admin/reset` | AT-13, AT-17 |
+| FR-45 | Add and edit clubs in three languages | `/api/admin/clubs` | AT-17 |
+
+**4.9 Campus Coins for a merch discount (Release 2.0)**
+
+| ID | Requirement (short) | Where | Test |
+|---|---|---|---|
+| FR-28 | 5% for 300 coins, 10% for 700 coins (BR-07) | `GET /api/shop`, Merch shop | AT-23 |
+| FR-29 | Voucher with QR, coins taken at once, valid 7 days, one active voucher | `POST /api/shop/vouchers` | AT-23 |
+| FR-30 | Coins returned for a cancelled or expired voucher (BR-09) | `DELETE /api/shop/vouchers/:id` | AT-23 |
+| FR-31 | Cashier scans the code, enters the amount, sees the discount (max 2 000 ₸) and the total | `POST /api/shop/redeem`, Check-out | AT-23 |
+| FR-32 | Voucher used on confirmation; used, expired or unknown code refused; student told | `POST /api/shop/redeem` | AT-23 |
+| FR-33 | Coins expire on 30 June; expiry date in the Profile (BR-10) | Profile, Merch shop | AT-23 |
+
+**Constraints and interface rules shown in the prototype:** C08 consent at the first sign-in (can be withdrawn in the Profile); C10 no student IDs in staff Telegram messages; UI01 at most six menu sections per role; UI06 confirmation before actions that cannot be undone; NFR-12 contrast ≥ 4.5:1 in the day and night themes (`npm run contrast`). The checks for NFR-01, NFR-04 and NFR-09 run with `npm run nfr`.
 
 ## Technology stack and why
 - **Node.js 22 with no external packages:** HTTP server (`node:http`), database (`node:sqlite`), password hashing and tokens (`node:crypto`), tests (`node:test`).

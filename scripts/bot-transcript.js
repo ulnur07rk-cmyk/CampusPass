@@ -1,0 +1,34 @@
+// Runs the real server/bot.js against a fresh in-memory seeded DB and saves the chats as JSON for the video.
+const path = require('path'); const R = (p) => require(path.join(__dirname, '..', 'server', p));
+const { open, seed } = R('db'); const { createApp } = R('app'); const bot = R('bot');
+(async () => {
+  const sent = [], fakeTg = { enabled: true, botName: async () => 'campuspass_demo_bot', send: async (chat, text, markup) => { sent.push({ chat: String(chat), text, markup }); return true; } };
+  const NOW = new Date(); NOW.setHours(8, 0, 0, 0);
+  const db = open(':memory:'); seed(db, NOW);
+  const app = createApp(db, { clock: () => new Date(NOW), telegram: fakeTg });
+  const api = app.botApi, opts = { now: () => new Date(NOW) };
+  let n = 0; const chats = {};
+  const log = (chat, item) => (chats[chat] = chats[chat] || []).push(item);
+  const out = (chat, calls) => calls.forEach((c) => { if (c.params && c.params.text && c.method !== 'answerCallbackQuery') log(chat, { from: 'bot', text: c.params.text, html: c.params.parse_mode === 'HTML', buttons: c.params.reply_markup && c.params.reply_markup.inline_keyboard ? c.params.reply_markup.inline_keyboard.map((row) => row.map((b) => b.text)) : null }); else if (c.method === 'answerCallbackQuery' && c.params.text) log(chat, { from: 'toast', text: c.params.text }); });
+  const msg = async (chat, text, shown) => { log(chat, { from: 'me', text: shown || text }); out(chat, await bot.handle({ update_id: ++n, message: { message_id: n, chat: { id: chat }, from: { language_code: 'en' }, text } }, api, opts)); };
+  const press = async (chat, data, label) => { log(chat, { from: 'press', text: label }); out(chat, await bot.handle({ update_id: ++n, callback_query: { id: 'q' + n, data, from: { language_code: 'en' }, message: { message_id: 1, chat: { id: chat } } } }, api, opts)); };
+  const ST = 101, ORG = 102, ADM = 104;
+  await msg(ST, '/start');
+  db.prepare("UPDATE users SET telegram_code = ?, consent_at = '2026-01-01T00:00:00Z' WHERE email = ?").run('linkst101abcdef', 'student3@test.local');
+  await msg(ST, '/start linkst101abcdef', '/start (link code from Profile)');
+  const tt = db.prepare("SELECT id FROM events WHERE title = 'Open Lab Demo Day'").get().id;
+  await press(ST, 'ev:' + tt, 'Open Lab Demo Day');
+  await press(ST, 'reg:' + tt, 'Register');
+  await msg(ST, '/coins');
+  const code = db.prepare("SELECT r.ticket_code FROM registrations r JOIN users u ON u.id=r.user_id WHERE u.email='student3@test.local' AND r.event_id=?").get(tt).ticket_code;
+  db.prepare("UPDATE users SET telegram_code = ?, consent_at = '2026-01-01T00:00:00Z' WHERE email = ?").run('linkorg102abcde', 'organizer1@test.local');
+  await msg(ORG, '/start linkorg102abcde', '/start (link code from Profile)');
+  await msg(ORG, '/club');
+  await msg(ORG, code);
+  db.prepare("UPDATE users SET telegram_code = ?, consent_at = '2026-01-01T00:00:00Z' WHERE email = ?").run('linkadm104abcde', 'admin@test.local');
+  await msg(ADM, '/start linkadm104abcde', '/start (link code from Profile)');
+  await msg(ADM, '/complaints');
+  sent.filter((s) => s.chat === String(ST)).forEach((s) => log(ST, { from: 'bot', text: s.text, html: true, push: true }));
+  require('fs').writeFileSync(path.join(__dirname, 'demo-assets', 'bot_chats.json'), JSON.stringify({ student: chats[ST], organizer: chats[ORG], admin: chats[ADM] }, null, 1));
+  console.log(JSON.stringify({ student: chats[ST], organizer: chats[ORG], admin: chats[ADM] }, null, 1).slice(0, 6000));
+})().catch((e) => { console.error(e); process.exit(1); });
