@@ -69,6 +69,7 @@
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
     const items = S.me && S.me.consentAt ? NAV[S.me.role] : []; // no menu until the consent is given (C08)
+    if (typeof Ask !== 'undefined') Ask.sync(!!(S.me && S.me.consentAt));
     const here = (v) => v === view || PARENT[view] === v; // a screen that is not in the menu lights up its parent (Shop → Profile)
     const link = (icon) => ([v, k]) => `<a href="#/${v}" class="${here(v) ? 'on' : ''}" ${v === view ? 'aria-current="page"' : ''}>${icon ? ICON[v] || '' : ''}<span>${esc(t(k))}</span></a>`;
     $('#nav').innerHTML = items.map(link(false)).join(''); $('#bottom').innerHTML = items.map(link(true)).join('');
@@ -782,6 +783,44 @@
       }));
     });
   }
+
+  // FR-50 Built-in assistant: a chat panel that asks POST /api/assistant (keywords + CampusPass data, no external AI)
+  const Ask = (() => {
+    let open = false, started = false;
+    const btn = document.createElement('button'); btn.className = 'btn askbtn'; btn.type = 'button'; btn.hidden = true;
+    const panel = document.createElement('section'); panel.className = 'card askpanel'; panel.hidden = true; panel.setAttribute('role', 'dialog');
+    document.body.append(btn, panel);
+    const draw = () => {
+      btn.textContent = '💬 ' + t('ask_btn');
+      panel.setAttribute('aria-label', t('ask_title'));
+      panel.innerHTML = `<header><b>💬 ${esc(t('ask_title'))}</b><button class="btn ghost small" type="button" data-ask-x aria-label="${esc(t('ask_close'))}">✕</button></header>
+        <div class="msgs" aria-live="polite"></div><p class="note">${esc(t('ask_note'))}</p>
+        <form><label class="sr-only" for="ask-q">${esc(t('ask_ph'))}</label><input id="ask-q" maxlength="300" autocomplete="off" placeholder="${esc(t('ask_ph'))}"><button class="btn small" type="submit">${esc(t('ask_send'))}</button></form>`;
+      $('[data-ask-x]', panel).addEventListener('click', () => toggle(false));
+      $('form', panel).addEventListener('submit', (ev) => { ev.preventDefault(); const i = $('#ask-q', panel); const q = i.value.trim(); if (!q) return; i.value = ''; ask(q); });
+      started = false;
+    };
+    const add = (html, cls) => { const box = $('.msgs', panel); const d = document.createElement('div'); d.className = 'm ' + cls; d.innerHTML = html; box.append(d); box.scrollTop = box.scrollHeight; return d; };
+    async function ask(q) {
+      if (q) add(esc(q), 'me');
+      const wait = add('…', 'bot');
+      try {
+        const a = await api('POST', '/api/assistant', { q, lang: S.lang });
+        wait.innerHTML = esc(a.text) + a.items.map((i) => `<button type="button" class="it" data-ask-${i.kind}="${i.id}">${i.kind === 'event' ? '📅' : '👥'} ${esc(i.title)}<small>${esc(i.sub)}</small></button>`).join('')
+          + (a.more ? `<small class="meta">${esc(t('ask_more', { n: a.more }))}</small>` : '')
+          + (a.chips.length ? `<div class="chips">${a.chips.map((c) => `<button type="button" class="chip" data-ask-chip>${esc(c)}</button>`).join('')}</div>` : '');
+        wait.querySelectorAll('[data-ask-chip]').forEach((b) => b.addEventListener('click', () => ask(b.textContent)));
+        wait.querySelectorAll('[data-ask-event]').forEach((b) => b.addEventListener('click', async () => { try { openEvent(await api('GET', `/api/events/${b.dataset.askEvent}`)); } catch (e) { toast(e.message); } }));
+        wait.querySelectorAll('[data-ask-club]').forEach((b) => b.addEventListener('click', () => { location.hash = '#/clubs'; }));
+      } catch (e) { wait.textContent = t('ask_err'); }
+      $('.msgs', panel).scrollTop = 1e9;
+    }
+    function toggle(v) { open = v; panel.hidden = !v; btn.hidden = v || !Ask.allowed; if (v) { if (!started) { started = true; ask(''); } setTimeout(() => $('#ask-q', panel).focus(), 30); } else btn.focus(); }
+    btn.addEventListener('click', () => toggle(true));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open && !document.querySelector('.modal')) toggle(false); });
+    let lang = null;
+    return { allowed: false, sync(ok) { this.allowed = ok; if (lang !== S.lang) { lang = S.lang; const was = open; draw(); if (was) { open = false; toggle(true); } } if (!ok && open) toggle(false); btn.hidden = !ok || open; } };
+  })();
 
   render();
 })();

@@ -20,7 +20,7 @@ What one user does is saved in the database and is immediately visible to the ot
 
 ## Implemented requirements
 
-The IDs are the same as in the SRS (Team06_FP_Report, Section 4 and Appendix F). All 49 functional requirements are implemented; FR-01, FR-08 and FR-21 use a simulated external service (test accounts instead of SSO; push and e-mail shown in the in-app inbox).
+The IDs are the same as in the SRS (Team06_FP_Report, Section 4 and Appendix F). All 49 functional requirements of the SRS are implemented, plus FR-50 (built-in assistant) added after the report; FR-01, FR-08 and FR-21 use a simulated external service (test accounts instead of SSO; push and e-mail shown in the in-app inbox).
 
 **4.1 Access, roles and languages**
 
@@ -94,6 +94,7 @@ The IDs are the same as in the SRS (Team06_FP_Report, Section 4 and Appendix F).
 | FR-47 | Organizer: club events, participants, check-in by sending the ticket code | `/club`, `/checkin` | AT-21 |
 | FR-48 | Moderator: new events with Approve / Reject, club requests, statistics | `/pending`, `/requests`, `/stats` | AT-21 |
 | FR-49 | Administrator: new complaints with status buttons and answer | `/complaints` | AT-21 |
+| FR-50 | Built-in assistant: answers questions in EN/KK/RU about events, seats, tickets, coins, the merch shop, clubs and rules, from the data the user may see; no external AI service, no key | `server/assistant.js`, `POST /api/assistant`, 💬 Assistant button, free text in the bot | AT-26 |
 
 **4.8 Administration and complaints**
 

@@ -9,6 +9,7 @@
 // All actions go through the same API rules as the website (adapter.call), so rights are checked in one place.
 // Educational project for the course Business Analysis, Astana IT University. Not a real product or service. All data are fictional.
 'use strict';
+const assistant = require('./assistant');
 
 const LANGS = ['en', 'kk', 'ru'];
 const T = {
@@ -58,7 +59,7 @@ const T = {
     promoted: '🎉 A seat became free: you are now registered for “{title}”. Ticket: {code}',
     c_status_msg: '🚩 Your complaint #{id} is now: {status}.{answer}', c_answer: '\nAnswer: {text}',
     club_ok: '✅ Your request to join {club} was accepted.', club_no: 'Your request to join {club} was declined.',
-    err: '⚠️ {msg}', unknown: 'I did not understand. Use the buttons or /help.'
+    err: '⚠️ {msg}', unknown: 'I did not understand. Use the buttons or /help.', ask_hint: '💬 You can also just write a question, for example “events tomorrow” or “how does the waitlist work?”.'
   },
   kk: {
     r_shop: 'мерч дүкенінің кассирі', help_shop: 'ℹ️ Мерч дүкені\nСтуденттердің ваучерлерін сайтта тексеріңіз: Касса.\n/today, /events — іс-шаралар\n/lang — тіл · /stop — ажырату', voucher_used: '🛍 {code} мерч ваучеріңіз қолданылды: {pct}% жеңілдік, {discount} ₸ үнемделді. Рақмет!', voucher_line: '🛍 Белсенді ваучер: {code} ({pct}%), {until} дейін жарамды', shop_hint: '🛍 Мерч дүкені: 300 монетаға 5%, 700 монетаға 10% жеңілдік (ең көбі 2 000 ₸). Ваучерді сайтта алыңыз: Профиль → Мерч дүкені. Монеталар {date} күйеді.', plan: '🙋 Барамын', planned_n: '🙋 {n} адам барады · ашық іс-шара, орын шектеусіз', st_planned: 'Барамын деп белгіледіңіз', planned_ok: '🙋 Белгіленді: барасыз.', consent: 'Алдымен сайтта деректерді өңдеу шарттарын қабылдаңыз (кіргеннен кейін ашылады).', welcome: '👋 Сәлем! Мен CampusPass ботымын.\nҚажетін таңдаңыз:', welcome_role: '👋 Сәлем, {name}! Сіздің рөліңіз: {role}.\nҚажетін таңдаңыз:',
@@ -106,7 +107,7 @@ const T = {
     promoted: '🎉 Орын босады: сіз «{title}» іс-шарасына тіркелдіңіз. Билет: {code}',
     c_status_msg: '🚩 #{id} шағымыңыздың мәртебесі: {status}.{answer}', c_answer: '\nЖауап: {text}',
     club_ok: '✅ {club} клубына өтініміңіз қабылданды.', club_no: '{club} клубына өтініміңіз қабылданбады.',
-    err: '⚠️ {msg}', unknown: 'Түсінбедім. Батырмаларды немесе /help пайдаланыңыз.'
+    err: '⚠️ {msg}', unknown: 'Түсінбедім. Батырмаларды немесе /help пайдаланыңыз.', ask_hint: '💬 Сұрағыңызды жай жаза беріңіз, мысалы «ертеңгі іс-шаралар» немесе «күту тізімі қалай жұмыс істейді?».'
   },
   ru: {
     r_shop: 'кассир магазина мерча', help_shop: 'ℹ️ Магазин мерча\nПроверяйте ваучеры студентов на сайте: Касса.\n/today, /events — мероприятия\n/lang — язык · /stop — отключить', voucher_used: '🛍 Ваш ваучер на мерч {code} использован: скидка {pct}%, {discount} ₸. Спасибо!', voucher_line: '🛍 Активный ваучер: {code} ({pct}%), действует до {until}', shop_hint: '🛍 Магазин мерча: скидка 5% за 300 монет, 10% за 700 монет (не больше 2 000 ₸). Ваучер — на сайте: Профиль → Магазин мерча. Монеты сгорают {date}.', plan: '🙋 Я планирую прийти', planned_n: '🙋 Планируют прийти: {n} · открытое мероприятие, без лимита мест', st_planned: 'Вы планируете прийти', planned_ok: '🙋 Отмечено: вы планируете прийти.', consent: 'Сначала примите условия обработки данных на сайте (экран откроется после входа).', welcome: '👋 Привет! Я бот CampusPass.\nВыберите, что нужно:', welcome_role: '👋 Привет, {name}! Ваша роль: {role}.\nВыберите, что нужно:',
@@ -154,7 +155,7 @@ const T = {
     promoted: '🎉 Освободилось место: вы записаны на «{title}». Билет: {code}',
     c_status_msg: '🚩 Ваша жалоба #{id}: {status}.{answer}', c_answer: '\nОтвет: {text}',
     club_ok: '✅ Ваша заявка в {club} принята.', club_no: 'Ваша заявка в {club} отклонена.',
-    err: '⚠️ {msg}', unknown: 'Не понял. Используйте кнопки или /help.'
+    err: '⚠️ {msg}', unknown: 'Не понял. Используйте кнопки или /help.', ask_hint: '💬 Можно просто написать вопрос, например «мероприятия завтра» или «как работает лист ожидания?».'
   }
 };
 // Short messages for the most common rule errors (the rest show the API message)
@@ -276,7 +277,7 @@ async function handle(update, api, opts = {}) {
   };
   const actions = {
     menu: () => say(welcome()),
-    help: () => say({ text: tr(lang, 'help_' + role), reply_markup: backMenu(lang) }),
+    help: () => say({ text: tr(lang, 'help_' + role) + '\n\n' + tr(lang, 'ask_hint'), reply_markup: backMenu(lang) }),
     today: () => evList(0, 'today', 'none_today'),
     week: () => evList(7, 'week', 'none_week'),
     lang: () => say({ text: tr(lang, 'choose_lang'), reply_markup: kb([[{ text: 'English', callback_data: 'setlang:en' }, { text: 'Қазақша', callback_data: 'setlang:kk' }, { text: 'Русский', callback_data: 'setlang:ru' }], [btn(lang, 'menu', 'menu')]]) }),
@@ -378,7 +379,16 @@ async function handle(update, api, opts = {}) {
         }
       } catch (err) { send({ text: errText(lang, err) }); return calls; } // the bot keeps waiting, so the person can write again
     }
-    send({ text: tr(lang, 'unknown'), reply_markup: menu(lang, role) });
+    // FR-50 Any other text → the built-in assistant, with the rights of the linked user (guests: public data only)
+    try {
+      const snap = await assistant.buildSnapshot((p) => api.call(user ? user.id : null, 'GET', p), user ? role : null);
+      const a = assistant.answer(text, lang, snap, now);
+      const lines = [a.text, ...a.items.map((i) => `• ${i.title} — ${i.sub}`)];
+      if (a.more) lines.push(`… +${a.more}`);
+      if (a.chips.length) lines.push('', ...a.chips.map((c) => '› ' + c));
+      const rows = a.items.filter((i) => i.kind === 'event').map((i) => [{ text: ('📅 ' + i.title).slice(0, 60), callback_data: 'ev:' + i.id }]);
+      send({ text: lines.join('\n').slice(0, 3900), reply_markup: rows.length ? kb([...rows, [btn(lang, 'menu', 'menu')]]) : menu(lang, role) });
+    } catch (err) { send({ text: tr(lang, 'unknown'), reply_markup: menu(lang, role) }); }
     return calls;
   }
 

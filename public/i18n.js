@@ -210,3 +210,7 @@ Object.assign(window.I18N.ru, {
   err_invalid_coins: 'Монеты: от 0 до 100.', err_invalid_role: 'Выберите роль.', err_invalid_name: 'Имя: 2–80 символов.', err_invalid_room: 'Аудитория: 2–120 символов.', err_user_not_found: 'Пользователь не найден.',
   err_title_lang: 'Название ({lang}): 3–120 символов.', err_desc_lang: 'Описание ({lang}): 10–1000 символов.', err_no_language: 'Напишите название и описание хотя бы на одном языке.'
 });
+// FR-50 Built-in assistant
+Object.assign(I18N.en, { ask_btn: 'Assistant', ask_title: 'CampusPass assistant', ask_ph: 'Ask about events, tickets, coins…', ask_send: 'Send', ask_close: 'Close the assistant', ask_note: 'Built-in assistant: it answers from CampusPass data only, no external AI.', ask_more: 'and {n} more', ask_err: 'The assistant could not answer. Try again.' });
+Object.assign(I18N.kk, { ask_btn: 'Көмекші', ask_title: 'CampusPass көмекшісі', ask_ph: 'Іс-шара, билет, тиын туралы сұраңыз…', ask_send: 'Жіберу', ask_close: 'Көмекшіні жабу', ask_note: 'Кіріктірілген көмекші: тек CampusPass деректерімен жауап береді, сыртқы ЖИ жоқ.', ask_more: 'тағы {n}', ask_err: 'Көмекші жауап бере алмады. Қайталап көріңіз.' });
+Object.assign(I18N.ru, { ask_btn: 'Помощник', ask_title: 'Помощник CampusPass', ask_ph: 'Спросите про мероприятия, билеты, коины…', ask_send: 'Отправить', ask_close: 'Закрыть помощника', ask_note: 'Встроенный помощник: отвечает только по данным CampusPass, без внешнего ИИ.', ask_more: 'и ещё {n}', ask_err: 'Помощник не смог ответить. Попробуйте ещё раз.' });

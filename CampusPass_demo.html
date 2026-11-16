@@ -102,6 +102,16 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 
 /* Back link on screens that are not in the menu */
 .backlink{display:inline-flex;align-items:center;gap:4px;margin:18px 0 -10px;font-weight:600;text-decoration:none;color:var(--accent);padding:6px 10px 6px 0}.backlink:hover{text-decoration:underline}
+/* FR-50 Built-in assistant */
+.askbtn{position:fixed;right:18px;bottom:18px;z-index:40;border-radius:99px;padding:12px 18px;box-shadow:0 6px 20px var(--shadow)}
+.askpanel{position:fixed;right:18px;bottom:18px;z-index:45;width:min(380px,calc(100vw - 24px));height:min(540px,calc(100vh - 90px));display:flex;flex-direction:column;padding:0;overflow:hidden;box-shadow:0 10px 32px var(--shadow)}
+.askpanel header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--soft)}.askpanel header b{flex:1}
+.askpanel .msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.askpanel .m{max-width:88%;padding:8px 11px;border-radius:12px;font-size:14px;white-space:pre-line}.askpanel .m.me{align-self:flex-end;background:var(--accent);color:var(--onaccent)}.askpanel .m.bot{align-self:flex-start;background:var(--soft);color:var(--ink)}
+.askpanel .it{display:block;width:100%;text-align:left;margin-top:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:6px 9px;font:inherit;font-size:13px;cursor:pointer}.askpanel .it small{display:block;color:var(--ink2)}
+.askpanel .chips{margin:6px 0 0}.askpanel form{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line)}.askpanel .note{font-size:11px;color:var(--ink2);padding:0 12px 8px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.askpanel[hidden],.askbtn[hidden]{display:none}
 </style>
 <script>// CampusPass — day/night theme. Loaded in <head> so the page never flashes in the wrong colours.
 // The choice is saved in the browser (localStorage 'cp.theme'); without a choice the device setting is used.
@@ -1182,6 +1192,234 @@ module.exports = { lectures, availability };
 })();
 (function () {
   var module = { exports: {} };
+  // CampusPass — built-in assistant (FR-50). Answers questions in English, Kazakh or Russian about
+// events, seats, tickets, coins, the merch shop, clubs and the rules of the system.
+// It uses no external AI service: no API key, no payment card, no data leaves the server (C07, C10).
+// It understands keywords and reads the same data the user can see on the website, so it never shows
+// anything the user's role is not allowed to see. One module for both versions (localhost and Netlify)
+// and for the Telegram bot.
+// Educational project for the course Business Analysis, Astana IT University. Not a real product or service. All data are fictional.
+'use strict';
+
+const LANGS = ['en', 'kk', 'ru'];
+const TZ = 5 * 3600000; // Astana, UTC+5
+const DAYS = { en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], kk: ['Жс', 'Дс', 'Сс', 'Ср', 'Бс', 'Жм', 'Сб'], ru: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'] };
+const MONTHS = { en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], kk: ['қаң', 'ақп', 'нау', 'сәу', 'мам', 'мау', 'шіл', 'там', 'қыр', 'қаз', 'қар', 'жел'], ru: ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'] };
+
+const T = {
+  en: {
+    hello: 'Hi! I am the CampusPass assistant. Ask me about events, seats, your tickets, coins, the merch shop or clubs.',
+    examples: ['Events today', 'Tech events this week', 'Free seats tomorrow', 'My tickets', 'How many coins do I have?', 'How does the waitlist work?'],
+    today: 'Events today', tomorrow: 'Events tomorrow', week: 'Events in the next 7 days', weekend: 'Events this weekend', free: 'Events with free seats',
+    found: 'This is what I found', none: 'I found no events for this. Try another day or type, or open Events.',
+    none_search: 'I did not find an event or a club with these words.', fallback: 'I am not sure what you mean. Try one of these questions:',
+    my: 'Your registrations', my_none: 'You have no active registrations. Ask “events this week” and register with one tap.',
+    need_login: 'Sign in as a student to see this.', not_student: 'Tickets, coins and vouchers are only for students.',
+    coins: 'You have {n} Campus Coins. 300 coins = 5% merch voucher, 700 coins = 10% (at most 2 000 ₸ off). Coins expire on 30 June.',
+    coins_more: 'You need {n} more coins for a 5% voucher.', coins_ok: 'You can get a voucher in Profile → Merch shop.',
+    shop: 'Merch shop: 300 coins → 5% off, 700 coins → 10% off, at most 2 000 ₸ per purchase. A voucher is valid 7 days and works once; unused coins come back. Coins expire on 30 June.',
+    waitlist: 'When an event is full you join the waitlist and see your place. If someone cancels, the first student on the waitlist gets the seat at once and a message. Waitlisted places end when the event starts.',
+    register: 'Open the event and press “Register”. You get a confirmed seat and a QR ticket, or a place on the waitlist if it is full. On the first sign-in you agree to the data terms.',
+    cancel: 'Open Tickets and press “I can’t come” before the event starts. Your seat goes to the next student on the waitlist.',
+    checkin: 'Show the QR ticket at the door. The organizer scans it from 1 hour before the start until the end; each ticket works once and gives you the event’s coins.',
+    complaint: 'Open the event or club and press “Report a problem” (5–500 characters). The administrator answers you, and you see the status in Profile.',
+    rooms: 'Organizers see free rooms of block C1 when they create an event in “My events”. A room is free only if it is free for the whole time and big enough.',
+    map: 'Open Map: campus events have “Route inside” with floor plans, city events have a route on the 2GIS map. Your location stays in your browser.',
+    clubs: 'Clubs', clubs_all: 'There are {n} clubs. Ask for a type, for example “sports clubs”, or open Clubs.',
+    privacy: 'CampusPass keeps only what is needed: name, ID, registrations and coins. The QR code holds only a random code. You can withdraw consent in Profile.',
+    seats: '{f} free of {c}', full: 'full · waitlist {w}', open: 'open event, no seats limit', coinsN: '{n} coins',
+    st_confirmed: 'confirmed', st_waitlisted: 'waitlist, place {p}', st_planned: 'I plan to come', st_checked_in: 'checked in',
+  },
+  kk: {
+    hello: 'Сәлем! Мен CampusPass көмекшісімін. Іс-шаралар, бос орындар, билеттер, тиындар, мерч дүкені немесе клубтар туралы сұраңыз.',
+    examples: ['Бүгінгі іс-шаралар', 'Осы аптадағы IT іс-шаралар', 'Ертең бос орындар', 'Менің билеттерім', 'Менде қанша тиын бар?', 'Күту тізімі қалай жұмыс істейді?'],
+    today: 'Бүгінгі іс-шаралар', tomorrow: 'Ертеңгі іс-шаралар', week: 'Алдағы 7 күндегі іс-шаралар', weekend: 'Демалыс күндердегі іс-шаралар', free: 'Бос орны бар іс-шаралар',
+    found: 'Міне, табылғаны', none: 'Бұған сай іс-шара табылмады. Басқа күнді не түрді көріңіз немесе «Іс-шаралар» бетін ашыңыз.',
+    none_search: 'Бұл сөздермен іс-шара да, клуб та табылмады.', fallback: 'Сұрағыңызды түсінбедім. Мына сұрақтарды көріңіз:',
+    my: 'Сіздің тіркелулеріңіз', my_none: 'Белсенді тіркелуіңіз жоқ. «Осы аптадағы іс-шаралар» деп сұрап, бір басумен тіркеліңіз.',
+    need_login: 'Мұны көру үшін студент ретінде кіріңіз.', not_student: 'Билеттер, тиындар мен ваучерлер тек студенттерге арналған.',
+    coins: 'Сізде {n} Campus Coin бар. 300 тиын = 5% мерч ваучері, 700 тиын = 10% (ең көбі 2 000 ₸). Тиындар 30 маусымда күйеді.',
+    coins_more: '5% ваучерге тағы {n} тиын керек.', coins_ok: 'Ваучерді Профиль → Мерч дүкені бөлімінен алуға болады.',
+    shop: 'Мерч дүкені: 300 тиын → 5%, 700 тиын → 10%, бір сатып алуға ең көбі 2 000 ₸. Ваучер 7 күн жарамды, бір рет қолданылады; пайдаланылмаған тиындар қайтарылады. Тиындар 30 маусымда күйеді.',
+    waitlist: 'Іс-шара толы болса, күту тізіміне түсесіз және өз орныңызды көресіз. Біреу бас тартса, тізімдегі бірінші студент бірден орын алады және хабар алады. Іс-шара басталғанда күту тізімі жабылады.',
+    register: 'Іс-шараны ашып, «Тіркелу» батырмасын басыңыз. Расталған орын мен QR-билет аласыз, ал орын болмаса — күту тізімі. Алғаш кіргенде деректер шартына келісесіз.',
+    cancel: '«Билеттер» бөлімін ашып, іс-шара басталғанға дейін «Келе алмаймын» батырмасын басыңыз. Орныңыз күту тізіміндегі келесі студентке өтеді.',
+    checkin: 'Есік алдында QR-билетті көрсетіңіз. Ұйымдастырушы оны басталуға 1 сағат қалғаннан аяқталғанға дейін сканерлейді; әр билет бір рет жұмыс істейді және тиын береді.',
+    complaint: 'Іс-шараны не клубты ашып, «Мәселе туралы хабарлау» батырмасын басыңыз (5–500 таңба). Әкімші жауап береді, мәртебесін Профильден көресіз.',
+    rooms: 'Ұйымдастырушылар «Менің іс-шараларым» бөлімінде C1 блогының бос аудиторияларын көреді. Аудитория бүкіл уақытқа бос әрі жеткілікті үлкен болса ғана таңдалады.',
+    map: '«Карта» бөлімін ашыңыз: кампустағы іс-шараларда қабат жоспары бойынша «Ішкі маршрут», қаладағыларда 2GIS картасындағы маршрут бар. Орналасқан жеріңіз браузерде қалады.',
+    clubs: 'Клубтар', clubs_all: 'Барлығы {n} клуб бар. Түрін сұраңыз, мысалы «спорт клубтары», немесе «Клубтар» бетін ашыңыз.',
+    privacy: 'CampusPass тек қажетті деректерді сақтайды: аты-жөні, ID, тіркелулер мен тиындар. QR-кодта тек кездейсоқ код бар. Келісімді Профильде қайтарып алуға болады.',
+    seats: '{c} орынның {f} бос', full: 'толы · күту тізімі {w}', open: 'ашық іс-шара, орын шектеусіз', coinsN: '{n} тиын',
+    st_confirmed: 'расталған', st_waitlisted: 'күту тізімі, {p}-орын', st_planned: 'келемін', st_checked_in: 'тіркелген',
+  },
+  ru: {
+    hello: 'Привет! Я помощник CampusPass. Спросите про мероприятия, свободные места, ваши билеты, коины, мерч-шоп или клубы.',
+    examples: ['Мероприятия сегодня', 'IT-мероприятия на этой неделе', 'Свободные места завтра', 'Мои билеты', 'Сколько у меня коинов?', 'Как работает лист ожидания?'],
+    today: 'Мероприятия сегодня', tomorrow: 'Мероприятия завтра', week: 'Мероприятия на 7 дней', weekend: 'Мероприятия на выходных', free: 'Мероприятия со свободными местами',
+    found: 'Вот что я нашёл', none: 'Подходящих мероприятий нет. Попробуйте другой день или тип, или откройте «Мероприятия».',
+    none_search: 'Не нашёл мероприятие или клуб с такими словами.', fallback: 'Не совсем понял вопрос. Попробуйте так:',
+    my: 'Ваши записи', my_none: 'Активных записей нет. Спросите «мероприятия на неделе» и запишитесь в одно касание.',
+    need_login: 'Чтобы это увидеть, войдите как студент.', not_student: 'Билеты, коины и ваучеры есть только у студентов.',
+    coins: 'У вас {n} Campus Coins. 300 коинов = ваучер 5% в мерч-шоп, 700 коинов = 10% (максимум 2 000 ₸). Коины сгорают 30 июня.',
+    coins_more: 'До ваучера 5% не хватает {n} коинов.', coins_ok: 'Ваучер можно получить в Профиль → Мерч-шоп.',
+    shop: 'Мерч-шоп: 300 коинов → скидка 5%, 700 коинов → 10%, максимум 2 000 ₸ за покупку. Ваучер действует 7 дней и один раз; если не использовать, коины вернутся. Коины сгорают 30 июня.',
+    waitlist: 'Если мест нет, вы попадаете в лист ожидания и видите своё место. Когда кто-то отменяет запись, первый в листе сразу получает место и сообщение. Лист ожидания закрывается, когда мероприятие начинается.',
+    register: 'Откройте мероприятие и нажмите «Записаться». Вы получите подтверждённое место и QR-билет, а если мест нет — место в листе ожидания. При первом входе нужно согласиться с условиями обработки данных.',
+    cancel: 'Откройте «Билеты» и нажмите «Не смогу прийти» до начала. Ваше место перейдёт следующему студенту из листа ожидания.',
+    checkin: 'Покажите QR-билет на входе. Организатор сканирует его с часа до начала и до конца мероприятия; каждый билет работает один раз и даёт коины.',
+    complaint: 'Откройте мероприятие или клуб и нажмите «Сообщить о проблеме» (5–500 символов). Администратор ответит, статус видно в Профиле.',
+    rooms: 'Организатор видит свободные аудитории блока C1 при создании мероприятия в «Мои мероприятия». Аудитория подходит, только если она свободна всё время и вмещает всех.',
+    map: 'Откройте «Карту»: у мероприятий в кампусе есть «Маршрут внутри» по планам этажей, у городских — маршрут на карте 2GIS. Ваше местоположение остаётся в браузере.',
+    clubs: 'Клубы', clubs_all: 'Всего {n} клубов. Спросите про тип, например «спортивные клубы», или откройте «Клубы».',
+    privacy: 'CampusPass хранит только нужное: имя, ID, записи и коины. В QR-коде только случайный код. Согласие можно отозвать в Профиле.',
+    seats: 'свободно {f} из {c}', full: 'мест нет · в очереди {w}', open: 'открытое мероприятие, без лимита мест', coinsN: '{n} коинов',
+    st_confirmed: 'подтверждено', st_waitlisted: 'лист ожидания, место {p}', st_planned: 'планирую прийти', st_checked_in: 'отмечен',
+  },
+};
+const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v && v[k] !== undefined ? v[k] : ''));
+
+// Keywords in the three languages (lower case, word starts)
+const K = {
+  hello: /^(hi|hello|hey|help|start|привет|здравств|помощ|помоги|что ты умеешь|сәлем|салем|көмек|не істей)/,
+  my: /(my ticket|my registr|my event|мои билет|мой билет|мои запис|мои меропр|куда я запис|билеттерім|тіркелуім|менің іс)/,
+  coins: /(coin|balance|коин|монет|баланс|тиын)/,
+  shop: /(shop|merch|discount|voucher|скидк|мерч|ваучер|магазин|жеңілдік|дүкен)/,
+  waitlist: /(waitlist|waiting list|лист ожидан|очеред|күту)/,
+  cancel: /(cancel|can.?t come|отмен|не смогу|бас тарт|келе алмай)/,
+  checkin: /(check.?in|qr|отмет|чекин|сканир|кіру)/,
+  register: /(how.*(register|sign up|book)|как .*запис|как .*зарегистр|қалай .*тіркел)/,
+  complaint: /(complain|report|problem|жалоб|пожалов|проблем|шағым|мәселе)/,
+  rooms: /(free room|room|аудитор|кабинет|бос аудитор)/,
+  map: /(map|route|where|карт|маршрут|где |как дойти|қайда|жол)/,
+  clubs: /(club|клуб|үйірме)/,
+  privacy: /(privacy|personal data|my data|данн|приватн|дерек)/,
+  today: /(today|tonight|сегодня|бүгін)/, tomorrow: /(tomorrow|завтра|ертең)/, weekend: /(weekend|выходн|демалыс)/, week: /(week|недел|апта)/,
+  free: /(free seat|free place|seats left|свободн.*мест|есть мест|бос орын)/,
+};
+const TYPE = { tech: /(tech|\bit\b|айти|програм|техн)/, sports: /(sport|спорт|football|футбол|tennis|теннис|run|бег|жүгір)/, creative: /(creative|music|concert|творч|музык|концерт|шығармаш|ән)/, intellectual: /(quiz|intellect|debate|интеллект|викторин|дебат|зияткер)/, social: /(social|volunteer|социал|волонт|әлеумет|ерікті)/ };
+const STOP = new Set('the a an and or of for in on at to is are what which when where how who do does i me my you your there any some this that with about events event clubs club please show find tell мне на в во и или что как где когда какие какой есть ли мои мой я про покажи найди мероприятия мероприятие клубы клуб пожалуйста маған бар ма қандай қай қашан қайда және не менің көрсет іс шара шаралар клубтар'.split(' '));
+
+function detectLang(text, fallback) {
+  if (/[әғқңөұүһі]/i.test(text)) return 'kk';
+  if (/[а-яё]/i.test(text)) return 'ru';
+  if (/[a-z]/i.test(text)) return 'en';
+  return LANGS.includes(fallback) ? fallback : 'en';
+}
+const loc = (d) => new Date(new Date(d).getTime() + TZ);
+const dayKey = (d) => loc(d).toISOString().slice(0, 10);
+function when(iso, lang) { const d = loc(iso); return `${DAYS[lang][d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[lang][d.getUTCMonth()]}, ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`; }
+const title = (e, lang) => (e.i18n && e.i18n[lang] && e.i18n[lang].title) || e.title;
+function where(e, lang) {
+  const p = e.place;
+  if (p && p.kind === 'room') return `${lang === 'ru' ? 'Ауд.' : lang === 'kk' ? 'Ауд.' : 'Room'} ${p.code}`;
+  if (p && p.kind === 'venue') return (p.i18n && p.i18n[lang] && p.i18n[lang].name) || p.name;
+  return e.location || '';
+}
+function seatsText(e, t) { if (e.open) return t.open; return e.free > 0 ? fill(t.seats, { f: e.free, c: e.capacity }) : fill(t.full, { w: e.waitlist }); }
+function evItem(e, lang, t) {
+  const bits = [when(e.startsAt, lang), where(e, lang), seatsText(e, t)];
+  if (e.coins) bits.push(fill(t.coinsN, { n: e.coins }));
+  if (e.my) bits.push('✓ ' + (e.my.status === 'waitlisted' ? fill(t.st_waitlisted, { p: e.my.position || '' }) : t['st_' + e.my.status] || e.my.status));
+  return { kind: 'event', id: e.id, title: title(e, lang), sub: bits.filter(Boolean).join(' · ') };
+}
+function words(text) { return text.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, ' ').split(/\s+/).filter((w) => w.length >= 3 && !STOP.has(w)); }
+const hit = (hay, w) => new RegExp('(^|[^\\p{L}\\p{N}])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'u').test(hay);
+function best(list, ws, hayOf) { const sc = list.map((x) => [x, ws.filter((w) => hit(hayOf(x), w)).length]); const top = Math.max(0, ...sc.map((p) => p[1])); return top ? sc.filter((p) => p[1] === top).map((p) => p[0]) : []; }
+function haystack(e) { const parts = [e.title, e.description, e.club, e.location]; for (const l of LANGS) if (e.i18n && e.i18n[l]) parts.push(e.i18n[l].title, e.i18n[l].description); return parts.filter(Boolean).join(' ').toLowerCase(); }
+
+// snapshot: { role, events, my, coins, clubs } — read with the user's own rights (see buildSnapshot)
+function answer(question, uiLang, snap, now = new Date()) {
+  const text = String(question || '').trim().slice(0, 300);
+  const lang = detectLang(text, uiLang);
+  const t = T[lang], s = text.toLowerCase();
+  const out = (reply, items = [], chips = []) => ({ lang, text: reply, items: items.slice(0, 6), more: Math.max(0, items.length - 6), chips });
+  const student = snap.role === 'student';
+  if (!text || K.hello.test(s)) return out(t.hello, [], t.examples.slice(0, 4));
+
+  // Personal questions
+  if (K.my.test(s)) {
+    if (!snap.role) return out(t.need_login); if (!student) return out(t.not_student);
+    const mine = (snap.my || []).filter((e) => e.endsAt > now.toISOString());
+    return mine.length ? out(t.my, mine.map((e) => evItem(e, lang, t))) : out(t.my_none, [], [t.examples[1]]);
+  }
+  if (K.coins.test(s) && !K.shop.test(s) && !/(how|как|қалай)/.test(s)) {
+    if (!snap.role) return out(t.need_login); if (!student || !snap.coins) return out(t.not_student);
+    const n = snap.coins.balance;
+    return out(fill(t.coins, { n }) + ' ' + (n >= 300 ? t.coins_ok : fill(t.coins_more, { n: 300 - n })));
+  }
+  // Rules and how-to (BR1–BR6, BR-07–BR-10)
+  if (K.shop.test(s) || K.coins.test(s)) { let r = t.shop; if (student && snap.coins) r += ' ' + fill(t.coins, { n: snap.coins.balance }).split('.')[0] + '.'; return out(r); }
+  if (K.waitlist.test(s)) return out(t.waitlist);
+  if (K.cancel.test(s)) return out(t.cancel);
+  if (K.register.test(s)) return out(t.register);
+  if (K.checkin.test(s)) return out(t.checkin);
+  if (K.complaint.test(s)) return out(t.complaint);
+  if (K.privacy.test(s)) return out(t.privacy);
+
+  // Clubs
+  if (K.clubs.test(s)) {
+    const type = Object.keys(TYPE).find((k) => TYPE[k].test(s));
+    const ws = words(s);
+    let list = snap.clubs || [];
+    if (type) list = list.filter((c) => c.category === type);
+    else if (ws.length) list = best(list, ws, (c) => [c.name, c.description, ...LANGS.map((l) => c.i18n && c.i18n[l] && (c.i18n[l].name + ' ' + (c.i18n[l].description || '')))].join(' ').toLowerCase());
+    if (!type && !ws.length) return out(fill(t.clubs_all, { n: (snap.clubs || []).length }));
+    if (!list.length) return out(t.none_search);
+    return out(t.clubs, list.map((c) => ({ kind: 'club', id: c.id, title: (c.i18n && c.i18n[lang] && c.i18n[lang].name) || c.name, sub: `${c.members || 0} · ${c.category}` })));
+  }
+
+  // Events: by day, type, free seats or words
+  const nowKey = dayKey(now), tomKey = dayKey(new Date(now.getTime() + 86400000));
+  let evs = (snap.events || []).filter((e) => e.endsAt > now.toISOString());
+  let head = null;
+  if (K.today.test(s)) { evs = evs.filter((e) => dayKey(e.startsAt) === nowKey); head = t.today; }
+  else if (K.tomorrow.test(s)) { evs = evs.filter((e) => dayKey(e.startsAt) === tomKey); head = t.tomorrow; }
+  else if (K.weekend.test(s)) { evs = evs.filter((e) => [0, 6].includes(loc(e.startsAt).getUTCDay())); head = t.weekend; }
+  else if (K.week.test(s)) { evs = evs.filter((e) => new Date(e.startsAt) < new Date(now.getTime() + 7 * 86400000)); head = t.week; }
+  const type = Object.keys(TYPE).find((k) => TYPE[k].test(s));
+  if (type) { evs = evs.filter((e) => e.type === type); head = head || t.found; }
+  if (K.free.test(s)) { evs = evs.filter((e) => e.open || e.free > 0); head = head ? head + ' · ' + t.free.toLowerCase() : t.free; }
+  if (K.map.test(s) || K.rooms.test(s)) {
+    const ws = words(s).filter((w) => !K.map.test(w) && !K.rooms.test(w));
+    const found = ws.length ? best(evs, ws, haystack) : [];
+    if (found.length) return out(t.map, found.map((e) => evItem(e, lang, t)));
+    if (K.rooms.test(s) && !K.map.test(s)) return out(t.rooms);
+    if (!head) return out(t.map);
+  }
+  if (head) return evs.length ? out(head, evs.map((e) => evItem(e, lang, t))) : out(t.none, [], t.examples.slice(0, 2));
+
+  // Free words: search events and clubs
+  const ws = words(s);
+  if (ws.length) {
+    const ev = best(evs, ws, haystack).map((e) => evItem(e, lang, t));
+    const cl = best(snap.clubs || [], ws, (c) => [c.name, ...LANGS.map((l) => c.i18n && c.i18n[l] && c.i18n[l].name)].join(' ').toLowerCase())
+      .map((c) => ({ kind: 'club', id: c.id, title: (c.i18n && c.i18n[lang] && c.i18n[lang].name) || c.name, sub: `${c.members || 0} · ${c.category}` }));
+    if (ev.length || cl.length) return out(t.found, [...ev, ...cl]);
+  }
+  return out(t.fallback, [], t.examples);
+}
+
+// Reads the data with the asking user's own rights (guests: only public events and clubs)
+async function buildSnapshot(get, role) {
+  const safe = async (p) => { try { return await get(p); } catch { return null; } };
+  const snap = { role: role || null, events: (await safe('/api/events?days=14')) || [], clubs: (await safe('/api/clubs')) || [] };
+  if (role === 'student') { snap.my = await safe('/api/me/registrations'); snap.coins = await safe('/api/me/coins'); }
+  return snap;
+}
+function buildSnapshotSync(get, role) {
+  const safe = (p) => { try { return get(p); } catch { return null; } };
+  const snap = { role: role || null, events: safe('/api/events?days=14') || [], clubs: safe('/api/clubs') || [] };
+  if (role === 'student') { snap.my = safe('/api/me/registrations'); snap.coins = safe('/api/me/coins'); }
+  return snap;
+}
+
+module.exports = { answer, buildSnapshot, buildSnapshotSync, detectLang, T };
+
+  window.__assistant = module.exports;
+})();
+(function () {
+  var module = { exports: {} }; var require = function () { return window.__assistant; };
   // CampusPass — Telegram bot logic (FR-34 … FR-38, FR-46 … FR-49). One module for both versions:
 // localhost (long polling, server/telegram.js) and Netlify (webhook, netlify/functions/telegram.mjs).
 // handle() reads one Telegram update and returns the Bot API calls to make; it never calls the network itself.
@@ -1193,6 +1431,7 @@ module.exports = { lectures, availability };
 // All actions go through the same API rules as the website (adapter.call), so rights are checked in one place.
 // Educational project for the course Business Analysis, Astana IT University. Not a real product or service. All data are fictional.
 'use strict';
+const assistant = require('./assistant');
 
 const LANGS = ['en', 'kk', 'ru'];
 const T = {
@@ -1242,7 +1481,7 @@ const T = {
     promoted: '🎉 A seat became free: you are now registered for “{title}”. Ticket: {code}',
     c_status_msg: '🚩 Your complaint #{id} is now: {status}.{answer}', c_answer: '\nAnswer: {text}',
     club_ok: '✅ Your request to join {club} was accepted.', club_no: 'Your request to join {club} was declined.',
-    err: '⚠️ {msg}', unknown: 'I did not understand. Use the buttons or /help.'
+    err: '⚠️ {msg}', unknown: 'I did not understand. Use the buttons or /help.', ask_hint: '💬 You can also just write a question, for example “events tomorrow” or “how does the waitlist work?”.'
   },
   kk: {
     r_shop: 'мерч дүкенінің кассирі', help_shop: 'ℹ️ Мерч дүкені\nСтуденттердің ваучерлерін сайтта тексеріңіз: Касса.\n/today, /events — іс-шаралар\n/lang — тіл · /stop — ажырату', voucher_used: '🛍 {code} мерч ваучеріңіз қолданылды: {pct}% жеңілдік, {discount} ₸ үнемделді. Рақмет!', voucher_line: '🛍 Белсенді ваучер: {code} ({pct}%), {until} дейін жарамды', shop_hint: '🛍 Мерч дүкені: 300 монетаға 5%, 700 монетаға 10% жеңілдік (ең көбі 2 000 ₸). Ваучерді сайтта алыңыз: Профиль → Мерч дүкені. Монеталар {date} күйеді.', plan: '🙋 Барамын', planned_n: '🙋 {n} адам барады · ашық іс-шара, орын шектеусіз', st_planned: 'Барамын деп белгіледіңіз', planned_ok: '🙋 Белгіленді: барасыз.', consent: 'Алдымен сайтта деректерді өңдеу шарттарын қабылдаңыз (кіргеннен кейін ашылады).', welcome: '👋 Сәлем! Мен CampusPass ботымын.\nҚажетін таңдаңыз:', welcome_role: '👋 Сәлем, {name}! Сіздің рөліңіз: {role}.\nҚажетін таңдаңыз:',
@@ -1290,7 +1529,7 @@ const T = {
     promoted: '🎉 Орын босады: сіз «{title}» іс-шарасына тіркелдіңіз. Билет: {code}',
     c_status_msg: '🚩 #{id} шағымыңыздың мәртебесі: {status}.{answer}', c_answer: '\nЖауап: {text}',
     club_ok: '✅ {club} клубына өтініміңіз қабылданды.', club_no: '{club} клубына өтініміңіз қабылданбады.',
-    err: '⚠️ {msg}', unknown: 'Түсінбедім. Батырмаларды немесе /help пайдаланыңыз.'
+    err: '⚠️ {msg}', unknown: 'Түсінбедім. Батырмаларды немесе /help пайдаланыңыз.', ask_hint: '💬 Сұрағыңызды жай жаза беріңіз, мысалы «ертеңгі іс-шаралар» немесе «күту тізімі қалай жұмыс істейді?».'
   },
   ru: {
     r_shop: 'кассир магазина мерча', help_shop: 'ℹ️ Магазин мерча\nПроверяйте ваучеры студентов на сайте: Касса.\n/today, /events — мероприятия\n/lang — язык · /stop — отключить', voucher_used: '🛍 Ваш ваучер на мерч {code} использован: скидка {pct}%, {discount} ₸. Спасибо!', voucher_line: '🛍 Активный ваучер: {code} ({pct}%), действует до {until}', shop_hint: '🛍 Магазин мерча: скидка 5% за 300 монет, 10% за 700 монет (не больше 2 000 ₸). Ваучер — на сайте: Профиль → Магазин мерча. Монеты сгорают {date}.', plan: '🙋 Я планирую прийти', planned_n: '🙋 Планируют прийти: {n} · открытое мероприятие, без лимита мест', st_planned: 'Вы планируете прийти', planned_ok: '🙋 Отмечено: вы планируете прийти.', consent: 'Сначала примите условия обработки данных на сайте (экран откроется после входа).', welcome: '👋 Привет! Я бот CampusPass.\nВыберите, что нужно:', welcome_role: '👋 Привет, {name}! Ваша роль: {role}.\nВыберите, что нужно:',
@@ -1338,7 +1577,7 @@ const T = {
     promoted: '🎉 Освободилось место: вы записаны на «{title}». Билет: {code}',
     c_status_msg: '🚩 Ваша жалоба #{id}: {status}.{answer}', c_answer: '\nОтвет: {text}',
     club_ok: '✅ Ваша заявка в {club} принята.', club_no: 'Ваша заявка в {club} отклонена.',
-    err: '⚠️ {msg}', unknown: 'Не понял. Используйте кнопки или /help.'
+    err: '⚠️ {msg}', unknown: 'Не понял. Используйте кнопки или /help.', ask_hint: '💬 Можно просто написать вопрос, например «мероприятия завтра» или «как работает лист ожидания?».'
   }
 };
 // Short messages for the most common rule errors (the rest show the API message)
@@ -1460,7 +1699,7 @@ async function handle(update, api, opts = {}) {
   };
   const actions = {
     menu: () => say(welcome()),
-    help: () => say({ text: tr(lang, 'help_' + role), reply_markup: backMenu(lang) }),
+    help: () => say({ text: tr(lang, 'help_' + role) + '\n\n' + tr(lang, 'ask_hint'), reply_markup: backMenu(lang) }),
     today: () => evList(0, 'today', 'none_today'),
     week: () => evList(7, 'week', 'none_week'),
     lang: () => say({ text: tr(lang, 'choose_lang'), reply_markup: kb([[{ text: 'English', callback_data: 'setlang:en' }, { text: 'Қазақша', callback_data: 'setlang:kk' }, { text: 'Русский', callback_data: 'setlang:ru' }], [btn(lang, 'menu', 'menu')]]) }),
@@ -1562,7 +1801,16 @@ async function handle(update, api, opts = {}) {
         }
       } catch (err) { send({ text: errText(lang, err) }); return calls; } // the bot keeps waiting, so the person can write again
     }
-    send({ text: tr(lang, 'unknown'), reply_markup: menu(lang, role) });
+    // FR-50 Any other text → the built-in assistant, with the rights of the linked user (guests: public data only)
+    try {
+      const snap = await assistant.buildSnapshot((p) => api.call(user ? user.id : null, 'GET', p), user ? role : null);
+      const a = assistant.answer(text, lang, snap, now);
+      const lines = [a.text, ...a.items.map((i) => `• ${i.title} — ${i.sub}`)];
+      if (a.more) lines.push(`… +${a.more}`);
+      if (a.chips.length) lines.push('', ...a.chips.map((c) => '› ' + c));
+      const rows = a.items.filter((i) => i.kind === 'event').map((i) => [{ text: ('📅 ' + i.title).slice(0, 60), callback_data: 'ev:' + i.id }]);
+      send({ text: lines.join('\n').slice(0, 3900), reply_markup: rows.length ? kb([...rows, [btn(lang, 'menu', 'menu')]]) : menu(lang, role) });
+    } catch (err) { send({ text: tr(lang, 'unknown'), reply_markup: menu(lang, role) }); }
     return calls;
   }
 
@@ -1673,12 +1921,13 @@ module.exports = { handle, reminder, complaintAlert, newEventAlert, decisionMsg,
   window.__bot = module.exports;
 })();
 (function () {
-  var module = { exports: {} }; var require = function (p) { return /bot/.test(p) ? window.__bot : window.__rooms; };
+  var module = { exports: {} }; var require = function (p) { return /assistant/.test(p) ? window.__assistant : /bot/.test(p) ? window.__bot : window.__rooms; };
   // CampusPass — shared API core for the Netlify version (Netlify Functions + Netlify Blobs).
 // Same business rules as server/app.js. Educational project. Not a real product or service. All data are fictional.
 'use strict';
 const { availability } = require('../server/rooms.js');
 const bot = require('../server/bot.js');
+const assistant = require('../server/assistant.js');
 function createCore(SEED, state) {
   const ROOMS = SEED.rooms || [], VENUES = SEED.venues || [], CAMPUS = SEED.campus;
   const placeOf = (e) => { const r = e.room_code && ROOMS.find((x) => x.code === e.room_code); if (r) return { kind: 'room', code: r.code, name: r.name, floor: r.floor, x: r.x, y: r.y, capacity: r.capacity, i18n: r.i18n, lat: CAMPUS.lat, lng: CAMPUS.lng };
@@ -2048,6 +2297,13 @@ function createCore(SEED, state) {
       return { status: 200, data, token: NEW_TOKEN };
     } catch (e) { return e instanceof E ? { status: e.s, data: { error: { code: e.c, message: e.message } } } : { status: 500, data: { error: { code: 'server_error', message: 'Something went wrong.' } } }; }
   }
+  // FR-50 Built-in assistant (same module as localhost)
+  on('POST', '/api/assistant', (b, u) => {
+    const text = String((b && b.q) || '').trim();
+    if (text.length > 300) fail(400, 'too_long', 'Please ask in at most 300 characters.');
+    const get = (p) => { const x = new URL(p, 'http://assistant'), r = R.find((y) => y.m === 'GET' && y.re.test(x.pathname)); return r.h({}, u, r.re.exec(x.pathname).groups || {}, x.searchParams); };
+    return assistant.answer(text, (b && b.lang) || (u && u.lang) || 'en', assistant.buildSnapshotSync(get, u && u.role), now());
+  });
   const linkTelegram = (code, chatId) => { const u = D.users.find((x) => x.telegram_code && x.telegram_code === code); if (!u) return null; D.users.forEach((x) => { if (x.telegram_chat_id === chatId) x.telegram_chat_id = null; }); u.telegram_chat_id = chatId; u.telegram_code = null; return u.name; };
   // Data adapter for the Telegram bot (server/bot.js)
   const botApi = {
@@ -3178,7 +3434,7 @@ module.exports = { createCore };
    "club": "JCA (Japan Culture Association)",
    "location": "Room 2.305",
    "dayOffset": 3,
-   "hour": 16,
+   "hour": 18,
    "minute": 0,
    "type": "creative",
    "capacity": 20,
@@ -3236,7 +3492,7 @@ module.exports = { createCore };
    "club": "HUSTLE LAB",
    "location": "Business Incubator / Room 3.305",
    "dayOffset": 5,
-   "hour": 12,
+   "hour": 18,
    "minute": 0,
    "type": "social",
    "capacity": 30,
@@ -4124,6 +4380,10 @@ Object.assign(window.I18N.ru, {
   err_invalid_coins: 'Монеты: от 0 до 100.', err_invalid_role: 'Выберите роль.', err_invalid_name: 'Имя: 2–80 символов.', err_invalid_room: 'Аудитория: 2–120 символов.', err_user_not_found: 'Пользователь не найден.',
   err_title_lang: 'Название ({lang}): 3–120 символов.', err_desc_lang: 'Описание ({lang}): 10–1000 символов.', err_no_language: 'Напишите название и описание хотя бы на одном языке.'
 });
+// FR-50 Built-in assistant
+Object.assign(I18N.en, { ask_btn: 'Assistant', ask_title: 'CampusPass assistant', ask_ph: 'Ask about events, tickets, coins…', ask_send: 'Send', ask_close: 'Close the assistant', ask_note: 'Built-in assistant: it answers from CampusPass data only, no external AI.', ask_more: 'and {n} more', ask_err: 'The assistant could not answer. Try again.' });
+Object.assign(I18N.kk, { ask_btn: 'Көмекші', ask_title: 'CampusPass көмекшісі', ask_ph: 'Іс-шара, билет, тиын туралы сұраңыз…', ask_send: 'Жіберу', ask_close: 'Көмекшіні жабу', ask_note: 'Кіріктірілген көмекші: тек CampusPass деректерімен жауап береді, сыртқы ЖИ жоқ.', ask_more: 'тағы {n}', ask_err: 'Көмекші жауап бере алмады. Қайталап көріңіз.' });
+Object.assign(I18N.ru, { ask_btn: 'Помощник', ask_title: 'Помощник CampusPass', ask_ph: 'Спросите про мероприятия, билеты, коины…', ask_send: 'Отправить', ask_close: 'Закрыть помощника', ask_note: 'Встроенный помощник: отвечает только по данным CampusPass, без внешнего ИИ.', ask_more: 'и ещё {n}', ask_err: 'Помощник не смог ответить. Попробуйте ещё раз.' });
 </script>
 <script>// CampusPass — city map (OpenStreetMap + Leaflet) and indoor routes on the campus floor plans (F22),
 // free rooms for organizers and the moderator (F21). Educational project; all data are fictional.
@@ -4321,7 +4581,7 @@ window.CPMaps = (function () {
   const NAV = {
     student: [['events', 'nav_events'], ['map', 'nav_map'], ['clubs', 'nav_clubs'], ['tickets', 'nav_tickets'], ['history', 'nav_history'], ['profile', 'nav_profile']],
     organizer: [['events', 'nav_events'], ['map', 'nav_map'], ['myevents', 'nav_myevents'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
-    moderator: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['clubs', 'nav_clubs'], ['profile', 'nav_profile']],
+    moderator: [['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['checkin', 'nav_checkin'], ['profile', 'nav_profile']], // UI01: six sections; club requests are in Moderation
     admin: [['admin', 'nav_admin'], ['moderation', 'nav_moderation'], ['stats', 'nav_stats'], ['events', 'nav_events'], ['map', 'nav_map'], ['profile', 'nav_profile']], // UI01: at most six sections
     shop: [['checkout', 'nav_checkout'], ['events', 'nav_events'], ['profile', 'nav_profile']]
   };
@@ -4335,6 +4595,7 @@ window.CPMaps = (function () {
     document.documentElement.lang = S.lang;
     $('#tagline').textContent = t('tagline'); $('#foot').textContent = t('footer'); $('#lang').value = S.lang;
     const items = S.me && S.me.consentAt ? NAV[S.me.role] : []; // no menu until the consent is given (C08)
+    if (typeof Ask !== 'undefined') Ask.sync(!!(S.me && S.me.consentAt));
     const here = (v) => v === view || PARENT[view] === v; // a screen that is not in the menu lights up its parent (Shop → Profile)
     const link = (icon) => ([v, k]) => `<a href="#/${v}" class="${here(v) ? 'on' : ''}" ${v === view ? 'aria-current="page"' : ''}>${icon ? ICON[v] || '' : ''}<span>${esc(t(k))}</span></a>`;
     $('#nav').innerHTML = items.map(link(false)).join(''); $('#bottom').innerHTML = items.map(link(true)).join('');
@@ -5048,6 +5309,44 @@ window.CPMaps = (function () {
       }));
     });
   }
+
+  // FR-50 Built-in assistant: a chat panel that asks POST /api/assistant (keywords + CampusPass data, no external AI)
+  const Ask = (() => {
+    let open = false, started = false;
+    const btn = document.createElement('button'); btn.className = 'btn askbtn'; btn.type = 'button'; btn.hidden = true;
+    const panel = document.createElement('section'); panel.className = 'card askpanel'; panel.hidden = true; panel.setAttribute('role', 'dialog');
+    document.body.append(btn, panel);
+    const draw = () => {
+      btn.textContent = '💬 ' + t('ask_btn');
+      panel.setAttribute('aria-label', t('ask_title'));
+      panel.innerHTML = `<header><b>💬 ${esc(t('ask_title'))}</b><button class="btn ghost small" type="button" data-ask-x aria-label="${esc(t('ask_close'))}">✕</button></header>
+        <div class="msgs" aria-live="polite"></div><p class="note">${esc(t('ask_note'))}</p>
+        <form><label class="sr-only" for="ask-q">${esc(t('ask_ph'))}</label><input id="ask-q" maxlength="300" autocomplete="off" placeholder="${esc(t('ask_ph'))}"><button class="btn small" type="submit">${esc(t('ask_send'))}</button></form>`;
+      $('[data-ask-x]', panel).addEventListener('click', () => toggle(false));
+      $('form', panel).addEventListener('submit', (ev) => { ev.preventDefault(); const i = $('#ask-q', panel); const q = i.value.trim(); if (!q) return; i.value = ''; ask(q); });
+      started = false;
+    };
+    const add = (html, cls) => { const box = $('.msgs', panel); const d = document.createElement('div'); d.className = 'm ' + cls; d.innerHTML = html; box.append(d); box.scrollTop = box.scrollHeight; return d; };
+    async function ask(q) {
+      if (q) add(esc(q), 'me');
+      const wait = add('…', 'bot');
+      try {
+        const a = await api('POST', '/api/assistant', { q, lang: S.lang });
+        wait.innerHTML = esc(a.text) + a.items.map((i) => `<button type="button" class="it" data-ask-${i.kind}="${i.id}">${i.kind === 'event' ? '📅' : '👥'} ${esc(i.title)}<small>${esc(i.sub)}</small></button>`).join('')
+          + (a.more ? `<small class="meta">${esc(t('ask_more', { n: a.more }))}</small>` : '')
+          + (a.chips.length ? `<div class="chips">${a.chips.map((c) => `<button type="button" class="chip" data-ask-chip>${esc(c)}</button>`).join('')}</div>` : '');
+        wait.querySelectorAll('[data-ask-chip]').forEach((b) => b.addEventListener('click', () => ask(b.textContent)));
+        wait.querySelectorAll('[data-ask-event]').forEach((b) => b.addEventListener('click', async () => { try { openEvent(await api('GET', `/api/events/${b.dataset.askEvent}`)); } catch (e) { toast(e.message); } }));
+        wait.querySelectorAll('[data-ask-club]').forEach((b) => b.addEventListener('click', () => { location.hash = '#/clubs'; }));
+      } catch (e) { wait.textContent = t('ask_err'); }
+      $('.msgs', panel).scrollTop = 1e9;
+    }
+    function toggle(v) { open = v; panel.hidden = !v; btn.hidden = v || !Ask.allowed; if (v) { if (!started) { started = true; ask(''); } setTimeout(() => $('#ask-q', panel).focus(), 30); } else btn.focus(); }
+    btn.addEventListener('click', () => toggle(true));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open && !document.querySelector('.modal')) toggle(false); });
+    let lang = null;
+    return { allowed: false, sync(ok) { this.allowed = ok; if (lang !== S.lang) { lang = S.lang; const was = open; draw(); if (was) { open = false; toggle(true); } } if (!ok && open) toggle(false); btn.hidden = !ok || open; } };
+  })();
 
   render();
 })();

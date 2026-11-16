@@ -23,11 +23,16 @@ const backend = `
 })();
 (function () {
   var module = { exports: {} };
+  ${R('server/assistant.js')}
+  window.__assistant = module.exports;
+})();
+(function () {
+  var module = { exports: {} }; var require = function () { return window.__assistant; };
   ${R('server/bot.js')}
   window.__bot = module.exports;
 })();
 (function () {
-  var module = { exports: {} }; var require = function (p) { return /bot/.test(p) ? window.__bot : window.__rooms; };
+  var module = { exports: {} }; var require = function (p) { return /assistant/.test(p) ? window.__assistant : /bot/.test(p) ? window.__bot : window.__rooms; };
   ${R('netlify/core.js')}
   window.__core = module.exports;
 })();

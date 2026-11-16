@@ -562,3 +562,44 @@ test('AT-24 (FR-11) an event can have its own picture; a wrong file is refused',
   const adm = await login('admin@test.local', 'Admin123!');
   assert.equal((await call('PUT', `/api/admin/events/${ok.body.id}`, { image: null }, adm)).body.image, null);   // back to the cover by type
 });
+
+test('AT-26 (FR-50) the built-in assistant answers in EN/KK/RU from data the user may see; same answers on Netlify and in the bot', async () => {
+  const ask = async (q, ck, lang = 'en') => (await call('POST', '/api/assistant', { q, lang }, ck)).body;
+  const s = await login('student2@test.local', 'Student123!');
+  // Events by day and type, in the language of the question
+  const today = await ask('events today', s);
+  assert.equal(today.lang, 'en'); assert.ok(today.items.length > 0 && today.items.every((i) => i.kind === 'event'));
+  const ru = await ask('IT-мероприятия на этой неделе', s);
+  assert.equal(ru.lang, 'ru'); assert.match(ru.text, /Мероприятия/);
+  const tech = db.prepare("SELECT id FROM events WHERE type = 'tech' AND status = 'approved'").all().map((r) => r.id);
+  assert.ok(ru.items.length > 0 && ru.items.every((i) => tech.includes(i.id)));
+  assert.equal((await ask('бүгінгі іс-шаралар', s)).lang, 'kk');
+  // Personal data: only the asking student's own registrations and coins
+  const mine = await ask('my tickets', s);
+  const own = db.prepare("SELECT r.event_id AS id FROM registrations r JOIN users u ON u.id = r.user_id WHERE u.email = 'student2@test.local' AND r.status <> 'cancelled'").all().map((r) => r.id);
+  assert.ok(mine.items.length > 0 && mine.items.every((i) => own.includes(i.id)));
+  const coins = await ask('сколько у меня коинов', s);
+  assert.match(coins.text, /Campus Coins/);
+  // Guests and staff do not see personal answers; rules are answered for everyone
+  assert.match((await ask('my tickets', null)).text, /Sign in/);
+  const org = await login('organizer1@test.local', 'Organizer123!');
+  assert.match((await ask('my coins', org)).text, /only for students/);
+  assert.match((await ask('how does the waitlist work?', null)).text, /waitlist/);
+  // Unknown text → examples, never an error; a too long question is refused
+  const unk = await ask('qwerty zzz', s);
+  assert.ok(unk.chips.length > 0);
+  assert.equal((await call('POST', '/api/assistant', { q: 'x'.repeat(301) }, s)).status, 400);
+  // No student IDs or other users' e-mails in any answer (C10)
+  const all = JSON.stringify([today, ru, mine, coins, unk]);
+  assert.doesNotMatch(all, /@test\.local|\b2[0-9]{5}\b/);
+  // Netlify mirror gives the same kind of answer
+  const { createCore } = require('../netlify/core');
+  const core = createCore(require('../server/seed-data.json'), null);
+  const lg = core.handle('POST', '/api/auth/login', { email: 'student1@test.local', password: 'Student123!' });
+  const c = core.handle('POST', '/api/assistant', { q: 'сколько у меня коинов', lang: 'en' }, lg.token);
+  assert.equal(c.status, 200); assert.equal(c.data.lang, 'ru'); assert.match(c.data.text, /Campus Coins/);
+  // Telegram bot: free text goes to the same assistant
+  const bot = require('../server/bot');
+  const calls = await bot.handle({ update_id: 1, message: { message_id: 1, chat: { id: 9901 }, from: { language_code: 'en' }, text: 'how does the waitlist work?' } }, app.botApi, { now: () => new Date() });
+  assert.ok(calls.some((x) => x.params && /waitlist/i.test(x.params.text || '')));
+});

@@ -10,6 +10,7 @@ const PUBLIC = path.join(__dirname, '..', 'public');
 const SEED = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf8'));
 const ACCOUNTS = SEED.accounts, ROOMS = SEED.rooms, VENUES = SEED.venues, CAMPUS = SEED.campus;
 const { availability } = require('./rooms');
+const assistant = require('./assistant');
 const bot = require('./bot');
 // Place of an event: a room on the campus floor plans or a venue in the city (F3, F22)
 function placeOf(e) {
@@ -668,6 +669,15 @@ function createApp(db, opts = {}) {
   // Data adapter for the Telegram bot (server/bot.js): the same rules as the website
   const regUser = (id) => q('SELECT id, name, role, lang, club_id FROM users WHERE id = ?').get(id);
   // The bot acts as the linked user through the same routes as the website, so every right is checked by the same code
+  // FR-50 Built-in assistant: answers questions in EN / KK / RU from the data this user may see (no external AI service)
+  route('POST', '/api/assistant', ({ user, body }) => {
+    const text = String((body && body.q) || '').trim();
+    if (text.length > 300) fail(400, 'too_long', 'Please ask in at most 300 characters.');
+    const get = (p) => { const url = new URL(p, 'http://assistant'), r = routes.find((x) => x.method === 'GET' && x.re.test(url.pathname));
+      return r.handler({ req: { headers: {}, socket: {} }, res: { setHeader() {}, writeHead() {}, end() {} }, body: {}, user, params: r.re.exec(url.pathname).groups || {}, query: Object.fromEntries(url.searchParams) }); };
+    return assistant.answer(text, (body && body.lang) || (user && user.lang) || 'en', assistant.buildSnapshotSync(get, user && user.role), now());
+  });
+
   async function callAs(userId, method, path, body) {
     const user = q('SELECT id, email, name, student_id, group_name, role, club_id, lang FROM users WHERE id = ?').get(userId);
     const url = new URL(path, 'http://bot'), r = routes.find((x) => x.method === method && x.re.test(url.pathname));

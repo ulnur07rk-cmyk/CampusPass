@@ -3,6 +3,7 @@
 'use strict';
 const { availability } = require('../server/rooms.js');
 const bot = require('../server/bot.js');
+const assistant = require('../server/assistant.js');
 function createCore(SEED, state) {
   const ROOMS = SEED.rooms || [], VENUES = SEED.venues || [], CAMPUS = SEED.campus;
   const placeOf = (e) => { const r = e.room_code && ROOMS.find((x) => x.code === e.room_code); if (r) return { kind: 'room', code: r.code, name: r.name, floor: r.floor, x: r.x, y: r.y, capacity: r.capacity, i18n: r.i18n, lat: CAMPUS.lat, lng: CAMPUS.lng };
@@ -372,6 +373,13 @@ function createCore(SEED, state) {
       return { status: 200, data, token: NEW_TOKEN };
     } catch (e) { return e instanceof E ? { status: e.s, data: { error: { code: e.c, message: e.message } } } : { status: 500, data: { error: { code: 'server_error', message: 'Something went wrong.' } } }; }
   }
+  // FR-50 Built-in assistant (same module as localhost)
+  on('POST', '/api/assistant', (b, u) => {
+    const text = String((b && b.q) || '').trim();
+    if (text.length > 300) fail(400, 'too_long', 'Please ask in at most 300 characters.');
+    const get = (p) => { const x = new URL(p, 'http://assistant'), r = R.find((y) => y.m === 'GET' && y.re.test(x.pathname)); return r.h({}, u, r.re.exec(x.pathname).groups || {}, x.searchParams); };
+    return assistant.answer(text, (b && b.lang) || (u && u.lang) || 'en', assistant.buildSnapshotSync(get, u && u.role), now());
+  });
   const linkTelegram = (code, chatId) => { const u = D.users.find((x) => x.telegram_code && x.telegram_code === code); if (!u) return null; D.users.forEach((x) => { if (x.telegram_chat_id === chatId) x.telegram_chat_id = null; }); u.telegram_chat_id = chatId; u.telegram_code = null; return u.name; };
   // Data adapter for the Telegram bot (server/bot.js)
   const botApi = {
