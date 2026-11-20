@@ -568,7 +568,7 @@ function createApp(db, opts = {}) {
 
   // Reset all data to the fictional test data (moderator only; used between usability-test sessions)
   // Public settings for the frontend: the 2GIS map key (a browser key restricted to our domains) and whether the bot works
-  route('GET', '/api/config', () => ({ mapKey: process.env.MAPGL_KEY || '', telegram: tg.enabled }));
+  route('GET', '/api/config', () => ({ mapKey: process.env.MAPGL_KEY || '', telegram: tg.enabled, ai: assistant.aiEnabled(opts.aiKey) }));
   // FR-08 / SW02 Telegram: link the account with a one-time code, send a test message, disconnect
   route('GET', '/api/me/telegram', async ({ user }) => {
     need(user); const u = q('SELECT telegram_chat_id FROM users WHERE id = ?').get(user.id);
@@ -669,13 +669,17 @@ function createApp(db, opts = {}) {
   // Data adapter for the Telegram bot (server/bot.js): the same rules as the website
   const regUser = (id) => q('SELECT id, name, role, lang, club_id FROM users WHERE id = ?').get(id);
   // The bot acts as the linked user through the same routes as the website, so every right is checked by the same code
-  // FR-50 Built-in assistant: answers questions in EN / KK / RU from the data this user may see (no external AI service)
-  route('POST', '/api/assistant', ({ user, body }) => {
+  // FR-50 Assistant: AI chat (Gemini, when GEMINI_API_KEY is set) grounded in the data this user may see; built-in answers otherwise
+  const aiLimited = assistant.limiter(Number(process.env.AI_MAX_PER_HOUR) || 30);
+  route('POST', '/api/assistant', async ({ user, body, req }) => {
     const text = String((body && body.q) || '').trim();
-    if (text.length > 300) fail(400, 'too_long', 'Please ask in at most 300 characters.');
+    if (text.length > 500) fail(400, 'too_long', 'Please ask in at most 500 characters.');
     const get = (p) => { const url = new URL(p, 'http://assistant'), r = routes.find((x) => x.method === 'GET' && x.re.test(url.pathname));
       return r.handler({ req: { headers: {}, socket: {} }, res: { setHeader() {}, writeHead() {}, end() {} }, body: {}, user, params: r.re.exec(url.pathname).groups || {}, query: Object.fromEntries(url.searchParams) }); };
-    return assistant.answer(text, (body && body.lang) || (user && user.lang) || 'en', assistant.buildSnapshotSync(get, user && user.role), now());
+    const snap = assistant.buildSnapshotSync(get, user && user.role);
+    const who = user ? 'u' + user.id : 'ip' + ((req && req.socket && req.socket.remoteAddress) || '');
+    return assistant.smartAnswer(text, body && body.history, (body && body.lang) || (user && user.lang) || 'en', snap, now(),
+      { key: opts.aiKey, fetch: opts.aiFetch, limited: text ? aiLimited(who) : false });
   });
 
   async function callAs(userId, method, path, body) {

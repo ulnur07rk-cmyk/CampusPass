@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="social event cover">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6b7a2e"/><stop offset="1" stop-color="#3f4a1c"/></linearGradient></defs>
-<rect width="1200" height="675" fill="url(#g)"/>
-<circle cx="1050" cy="90" r="220" fill="#ecebc8" opacity=".16"/><circle cx="120" cy="620" r="260" fill="#ecebc8" opacity=".12"/>
-<circle cx="980" cy="560" r="90" fill="none" stroke="#ecebc8" stroke-width="10" opacity=".35"/><circle cx="210" cy="140" r="60" fill="none" stroke="#ecebc8" stroke-width="8" opacity=".3"/>
-<g opacity=".9"><circle cx="540" cy="250" r="45" fill="#fffcf5"/><circle cx="660" cy="250" r="45" fill="#e9dcc0"/><path d="M460 400c0-60 40-95 80-95s80 35 80 95M580 400c0-60 40-95 80-95s80 35 80 95" fill="none" stroke="#fffcf5" stroke-width="14" stroke-linecap="round"/></g>
-</svg>

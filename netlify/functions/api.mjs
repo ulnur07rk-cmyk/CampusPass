@@ -5,17 +5,19 @@ import { getStore } from '@netlify/blobs';
 import core from '../core.js';
 import bot from '../../server/bot.js';
 import seedData from '../../server/seed-data.json' with { type: 'json' };
+import assistant from '../../server/assistant.js';
 
 const KEY = 'state-v10'; // bump when the data structure changes, so Netlify starts with fresh test data
 const TG = process.env.TELEGRAM_BOT_TOKEN || '';
 const tg = async (method, params) => { const r = await fetch(`https://api.telegram.org/bot${TG}/${method}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params || {}) }); const d = await r.json(); if (!d.ok) throw new Error(d.description); return d.result; };
 let BOT = null; const botName = async () => { if (!TG) return null; if (!BOT) BOT = (await tg('getMe')).username; return BOT; };
+const aiLimited = assistant.limiter(Number(process.env.AI_MAX_PER_HOUR) || 30);
 const json = (status, data, headers = {}) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers } });
 
 export default async (req) => {
   const url = new URL(req.url);
   // Public settings for the frontend (the 2GIS key is a browser key restricted to our domains)
-  if (url.pathname === '/api/config') return json(200, { mapKey: process.env.MAPGL_KEY || '', telegram: !!TG });
+  if (url.pathname === '/api/config') return json(200, { mapKey: process.env.MAPGL_KEY || '', telegram: !!TG, ai: assistant.aiEnabled() });
   const store = getStore({ name: 'campuspass', consistency: 'strong' });
   let body = {};
   if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
@@ -48,6 +50,11 @@ export default async (req) => {
       if (!TG) return json(503, { error: { code: 'telegram_off', message: 'The Telegram bot is not configured.' } });
       try { await tg('setWebhook', { url: `${url.origin}/tg-hook`, secret_token: (process.env.TELEGRAM_WEBHOOK_SECRET || TG.split(':')[1].slice(0, 32)).replace(/[^A-Za-z0-9_-]/g, ''), allowed_updates: ['message', 'callback_query'] }); for (const set of bot.commandSets()) await tg('setMyCommands', set); } catch { /* the link still works once the webhook is set */ }
       out.data = { url: `https://t.me/${await botName()}?start=${out.data.code}` };
+    }
+    // FR-50 AI chat: the core gave the built-in answer and the data it may use; with GEMINI_API_KEY ask Gemini on that data
+    if (url.pathname === '/api/assistant' && out.status === 200 && assistant.aiEnabled() && String(body.q || '').trim()) {
+      const who = token || req.headers.get('x-nf-client-connection-ip') || 'guest';
+      out.data = await assistant.smartAnswer(String(body.q).trim(), body.history, body.lang || out.data.lang, api.assistantSnap, new Date(), { limited: aiLimited(who) });
     }
     const headers = {};
     if (out.token !== undefined) headers['Set-Cookie'] = out.token ? `cp_session=${out.token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=43200` : 'cp_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0';

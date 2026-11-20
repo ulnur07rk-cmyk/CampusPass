@@ -23,13 +23,15 @@ OVERLAY = """
 
 def run():
     with sync_playwright() as p:
-        b = p.chromium.launch(channel='chrome')
+        b = p.chromium.launch(executable_path='/usr/bin/google-chrome')
         # Consent for the staff accounts that are not shown signing in for the first time (the organizer shows the consent screen)
         api = p.request.new_context(base_url=B)
         for e, pw in [('admin@test.local', 'Admin123!'), ('moderator@test.local', 'Moderator123!'), ('shop@test.local', 'Shop123!')]:
             api.post('/api/auth/login', data={'email': e, 'password': pw}); api.post('/api/me/consent', data={}); api.post('/api/auth/logout', data={})
         ctx = b.new_context(viewport={'width': W, 'height': H}, record_video_dir='/tmp/vid', record_video_size={'width': W, 'height': H})
         pg = ctx.new_page()
+        pg.route('**/leaflet.min.js', lambda r: r.fulfill(path='/tmp/lf/package/dist/leaflet.js', content_type='application/javascript'))
+        pg.route('**/leaflet.min.css', lambda r: r.fulfill(path='/tmp/lf/package/dist/leaflet.css', content_type='text/css'))
         T0 = time.time(); MARKS = []
         pg.add_init_script("try{localStorage.setItem('cp.theme','light');localStorage.setItem('cp.lang','en')}catch(e){}")
 
@@ -62,8 +64,8 @@ def run():
             click('#signout', 1200)
 
         import base64, json, html as HT
-        MAPIMG = base64.b64encode(open('scripts/demo-assets/map2gis.png','rb').read()).decode()
-        BOT = json.load(open('scripts/demo-assets/bot_chats.json'))
+        MAPIMG = base64.b64encode(open('out/stills/map2gis.png','rb').read()).decode()
+        BOT = json.load(open('out/bot_chats.json'))
         def still(img64, text, sub, secs):
             pg.set_content(f"""<html><body style="margin:0;background:#1f2a22;height:100vh;display:flex;align-items:center;justify-content:center">
               <img src="data:image/png;base64,{img64}" style="width:1280px;height:720px;object-fit:cover"></body></html>"""); cap(text, sub); pg.wait_for_timeout(secs * 1000)
@@ -98,7 +100,7 @@ def run():
         # 0. Title
         card('CampusPass — Team 06', ['Demo of the working prototype (localhost, SQLite, REST API, Telegram bot)',
              'Educational project for the course Business Analysis. Not a real product or service. All data are fictional.',
-             'Roles: student · organizer · moderator · administrator · merch-shop cashier'], 4)
+             'Roles: student · organizer · moderator · administrator · merch-shop cashier', 'New: assistant chat · map only for your registered events'], 3.5)
 
         # 1. Student: sign in, poster, filters
         sign_in('student1@test.local', 'Student signs in with a fictional test account and sees only the student menu', 'F1, FR-01 · UI01')
@@ -106,33 +108,40 @@ def run():
         click('[data-type="tech"]', 900); cap('Filter by type and day; keyword search', 'F2 · FR-02')
         click('[data-type="all"]', 500)
 
-        # 2. Register, indoor route, QR ticket
-        art = 'article:has-text("Open Lab Demo Day")'
-        click(f'{art} [data-open]', 1300)
+        # 2. NEW: assistant chat → event → register
+        cap('NEW · Assistant: ask in your own words — English, Kazakh or Russian', 'FR-50 · built-in mode now; with a free Gemini key the same window is an AI chat')
+        click('.askbtn', 1100)
+        for q in ['Any tech events today?', 'сколько у меня коинов?', 'күту тізімі қалай жұмыс істейді?']:
+            point('#ask-q'); pg.locator('#ask-q').type(q, delay=32); pg.keyboard.press('Enter'); pg.wait_for_timeout(1500)
+        cap('Answers use only data this student may see — no names, e-mails or IDs are sent', 'FR-50 · C10')
+        pg.locator('.askpanel .msgs').evaluate('e => e.scrollTop = 0'); pg.wait_for_timeout(400)
+        click('.askpanel [data-ask-event]:has-text("Open Lab Demo Day")', 1300)
+        cap('Not registered yet: no “On the map” button — the map shows only your own events', 'NEW · FR-24')
         cap('One tap: “Register” — a confirmed seat and a unique QR ticket', 'F4, F5 · FR-04, FR-07')
         click('.modal [data-reg]', 1500)
-        cap('“Route inside”: floor plan with the way from the entrance to the room', 'F22 · FR-25')
-        click(f'{art} [data-open]', 1200)
-        click('.modal [data-indoor]', 1800); pg.wait_for_timeout(2200)
         for _ in range(3):
-            if pg.locator('.modal').count(): pg.keyboard.press('Escape'); pg.wait_for_timeout(400)
-        print('modals left', pg.locator('.modal').count())
+            if pg.locator('.modal').count(): pg.keyboard.press('Escape'); pg.wait_for_timeout(300)
+        if pg.locator('.askpanel:not([hidden])').count(): click('[data-ask-x]', 500)
+
+        # 3. NEW: the map shows only registered events; route inside; ticket; history
+        click('a[href="#/map"]', 2600)
+        cap('NEW · Your map shows only the events you registered for', 'FR-24 · organizer: own club · moderator and admin: all events')
+        pg.wait_for_timeout(400)
+        click('.mapside [data-in]', 1600)
+        cap('“Route inside”: floor plan from the entrance to the room', 'F22 · FR-25'); pg.wait_for_timeout(1500)
+        for _ in range(3):
+            if pg.locator('.modal').count(): pg.keyboard.press('Escape'); pg.wait_for_timeout(300)
         click('a[href="#/tickets"]', 1200)
         cap('Tickets: the QR code holds only a random ticket code, never personal data', 'F5 · COM06, HW01')
-        code = pg.inner_text('.ticket .code').strip(); pg.wait_for_timeout(1200)
-
-        # 3. City map (live site screenshot) and history
-        url = pg.url
-        still(MAPIMG, 'City map (2GIS) on the live site: campus and city events, routes on foot or by car', 'F22 · FR-24 · online copy: campuspass-team06.netlify.app', 4)
-        pg.goto('about:blank'); pg.goto(B + '/#/tickets'); pg.wait_for_timeout(900); click('a[href="#/history"]', 1300)
+        code = pg.inner_text('.ticket .code').strip(); pg.wait_for_timeout(700)
+        click('a[href="#/history"]', 1200)
         cap('Attendance history: attended, missed, cancelled — with coins and a 1–5 star rating', 'FR-26, FR-16, FR-17')
-        pg.wait_for_timeout(1800)
+        pg.wait_for_timeout(500)
 
         # 4. Language and theme
         cap('Kazakh, Russian and English; day and night theme', 'FR-19 · C03 · NFR-12 (WCAG AA contrast)')
         point('#lang'); pg.select_option('#lang', 'kk'); pg.wait_for_timeout(1100); ov()
-        pg.select_option('#lang', 'ru'); pg.wait_for_timeout(1000); ov()
-        click('#theme', 1100); click('#theme', 400); pg.select_option('#lang', 'en'); pg.wait_for_timeout(800); ov()
+        click('#theme', 1000); click('#theme', 300); pg.select_option('#lang', 'en'); pg.wait_for_timeout(600); ov()
         sign_out()
 
         # 5. Organizer: consent, free rooms, check-in
@@ -168,8 +177,8 @@ def run():
         sign_out()
 
         # 6. Telegram bot
-        card('Telegram bot', ['One bot, a different menu for each role (FR-34 – FR-38, FR-46 – FR-49)', 'Replies below are produced by our server/bot.js on fictional test data; the live bot is shown at the defense'], 2.5)
-        bot_scene([('student', BOT['student'][-9:]), ('organizer', BOT['organizer'][-5:]), ('administrator', BOT['admin'][-4:])], 12)
+        card('Telegram bot', ['One bot, a different menu for each role (FR-34 – FR-38, FR-46 – FR-49) · free questions go to the assistant (FR-50)', 'Replies below are produced by our server/bot.js on fictional test data; the live bot is shown at the defense'], 2.5)
+        bot_scene([('student', BOT['student'][-8:]), ('organizer', BOT['organizer'][-5:]), ('administrator', BOT['admin'][-4:])], 11)
 
         # 7. Administrator
         sign_in('admin@test.local', 'Administrator: complaints, events, clubs, users and the database', 'FR-40 … FR-45 · role “admin”')
@@ -205,11 +214,11 @@ def run():
         sign_out()
 
         # 10. End card
-        card('Tested and traceable', ['25 automated acceptance tests (npm test) · all pass',
+        card('Tested and traceable', ['27 automated acceptance tests (npm test) · all pass',
              'Every step above is in the traceability matrix (Appendix F) and the test cases (Appendix G)',
              'Code: github.com/ulnur07rk-cmyk/CampusPass'], 4.5)
         MARKS.append([round(time.time() - T0, 2), 'END'])
-        json.dump(MARKS, open('scripts/demo-assets/marks.json', 'w'), indent=0)
+        json.dump(MARKS, open('out/marks.json', 'w'), indent=0)
         path = pg.video.path(); ctx.close(); b.close()
         print('VIDEO', path)
 

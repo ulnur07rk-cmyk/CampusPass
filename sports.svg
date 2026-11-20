@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="sports event cover">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8582c"/><stop offset="1" stop-color="#7a3b1d"/></linearGradient></defs>
-<rect width="1200" height="675" fill="url(#g)"/>
-<circle cx="1050" cy="90" r="220" fill="#f3d9b5" opacity=".16"/><circle cx="120" cy="620" r="260" fill="#f3d9b5" opacity=".12"/>
-<circle cx="980" cy="560" r="90" fill="none" stroke="#f3d9b5" stroke-width="10" opacity=".35"/><circle cx="210" cy="140" r="60" fill="none" stroke="#f3d9b5" stroke-width="8" opacity=".3"/>
-<g opacity=".9"><circle cx="600" cy="300" r="120" fill="none" stroke="#fffcf5" stroke-width="16"/><path d="M480 300h240M600 180c-60 50-60 190 0 240M600 180c60 50 60 190 0 240" fill="none" stroke="#fffcf5" stroke-width="12"/></g>
-</svg>

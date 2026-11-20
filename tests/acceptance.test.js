@@ -588,7 +588,7 @@ test('AT-26 (FR-50) the built-in assistant answers in EN/KK/RU from data the use
   // Unknown text → examples, never an error; a too long question is refused
   const unk = await ask('qwerty zzz', s);
   assert.ok(unk.chips.length > 0);
-  assert.equal((await call('POST', '/api/assistant', { q: 'x'.repeat(301) }, s)).status, 400);
+  assert.equal((await call('POST', '/api/assistant', { q: 'x'.repeat(501) }, s)).status, 400);
   // No student IDs or other users' e-mails in any answer (C10)
   const all = JSON.stringify([today, ru, mine, coins, unk]);
   assert.doesNotMatch(all, /@test\.local|\b2[0-9]{5}\b/);
@@ -602,4 +602,33 @@ test('AT-26 (FR-50) the built-in assistant answers in EN/KK/RU from data the use
   const bot = require('../server/bot');
   const calls = await bot.handle({ update_id: 1, message: { message_id: 1, chat: { id: 9901 }, from: { language_code: 'en' }, text: 'how does the waitlist work?' } }, app.botApi, { now: () => new Date() });
   assert.ok(calls.some((x) => x.params && /waitlist/i.test(x.params.text || '')));
+});
+
+test('AT-27 (FR-50, C10) AI chat: Gemini gets only allowed data, event tags become buttons, failures fall back to the built-in assistant', async () => {
+  const assistant = require('../server/assistant');
+  const sent = [];
+  const fakeFetch = async (url, init) => { sent.push({ url, init }); const body = JSON.parse(init.body);
+    const ev = /"id":(\d+)/.exec(body.system_instruction.parts[0].text)[1];
+    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: `**Сегодня** есть хорошее мероприятие [[event:${ev}]] и тег чужого id [[event:999999]].` }] } }] }) }; };
+  const NOW = new Date(); NOW.setHours(8, 0, 0, 0);
+  const db7 = open(':memory:'); seed(db7, NOW);
+  const app7 = createApp(db7, { clock: () => new Date(NOW), aiKey: 'test-key', aiFetch: fakeFetch });
+  const srv = http.createServer(app7); await new Promise((r) => srv.listen(0, r));
+  const b7 = `http://localhost:${srv.address().port}`;
+  const post = async (path, body, ck) => { const r = await fetch(b7 + path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}) }, body: JSON.stringify(body) }); return { status: r.status, body: await r.json(), cookie: (r.headers.get('set-cookie') || '').split(';')[0] }; };
+  const ck = (await post('/api/auth/login', { email: 'student1@test.local', password: 'Student123!' })).cookie;
+  await post('/api/me/consent', {}, ck);
+  const a = await post('/api/assistant', { q: 'Что сегодня интересного?', lang: 'en', history: [{ role: 'user', text: 'привет' }, { role: 'assistant', text: 'Привет!' }] }, ck);
+  assert.equal(a.status, 200); assert.equal(a.body.mode, 'ai'); assert.equal(a.body.lang, 'ru');
+  assert.equal(a.body.items.length, 1); assert.doesNotMatch(a.body.text, /\[\[|\*\*/); // tags → buttons, unknown ids dropped, no markdown
+  const req = JSON.parse(sent[0].init.body), prompt = req.system_instruction.parts[0].text;
+  assert.equal(sent[0].init.headers['x-goog-api-key'], 'test-key'); assert.equal(req.contents.length, 3);
+  assert.doesNotMatch(prompt, /@test\.local|Aliya|student_id|\b2[0-9]{5}\b/); // no names, e-mails or student IDs (C10)
+  assert.match(prompt, /"coins":\d+/);
+  // Service down → built-in answer, never an error
+  const app8 = createApp(db7, { clock: () => new Date(NOW), aiKey: 'test-key', aiFetch: async () => ({ ok: false, status: 503 }) });
+  const srv8 = http.createServer(app8); await new Promise((r) => srv8.listen(0, r));
+  const r8 = await fetch(`http://localhost:${srv8.address().port}/api/assistant`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'events today' }) });
+  const j8 = await r8.json(); assert.equal(r8.status, 200); assert.equal(j8.mode, 'builtin');
+  srv.close(); srv8.close();
 });

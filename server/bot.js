@@ -382,7 +382,7 @@ async function handle(update, api, opts = {}) {
     // FR-50 Any other text → the built-in assistant, with the rights of the linked user (guests: public data only)
     try {
       const snap = await assistant.buildSnapshot((p) => api.call(user ? user.id : null, 'GET', p), user ? role : null);
-      const a = assistant.answer(text, lang, snap, now);
+      const a = await assistant.smartAnswer(text, [], lang, snap, now);
       const lines = [a.text, ...a.items.map((i) => `• ${i.title} — ${i.sub}`)];
       if (a.more) lines.push(`… +${a.more}`);
       if (a.chips.length) lines.push('', ...a.chips.map((c) => '› ' + c));

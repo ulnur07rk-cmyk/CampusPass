@@ -222,10 +222,13 @@
   const roomName = (r) => (r.i18n && r.i18n[S.lang] && r.i18n[S.lang].name) || r.name;
   const placeName = (pl) => (pl ? (pl.i18n && pl.i18n[S.lang] && pl.i18n[S.lang].name) || pl.name : '');
   const indoor = (room, route) => CPMaps.openIndoor(room, { t, esc, modal, roomName, route });
+  // Who sees an event on the map: a student only after registering (confirmed, waitlist or "I plan to come"),
+  // an organizer only the events of the own club, the moderator and the administrator all events
+  const onMap = (e) => { const r = S.me && S.me.role; if (r === 'student') return !!e.my; if (r === 'organizer') return !!(S.me.club && e.clubId === S.me.club.id); return true; };
   function placeLine(e) {
     const pl = e.place; if (!pl) return `<p class="note info" style="margin:6px 0">📍 ${esc(L(e, 'location'))}</p>`;
-    if (pl.kind === 'room') return `<p class="note info" style="margin:6px 0">📍 ${esc(roomName(pl))} · ${esc(t('floor_n', { n: pl.floor }))} · ${esc(t('campus_c1'))}<br><button class="btn ghost small" type="button" data-indoor style="margin-top:6px">🧭 ${esc(t('route_inside'))}</button> <a class="btn ghost small" href="#/map?e=${e.id}" style="margin-top:6px">🗺 ${esc(t('on_map'))}</a></p>`;
-    return `<p class="note info" style="margin:6px 0">📍 ${esc(placeName(pl))}<br><a class="btn ghost small" href="#/map?e=${e.id}" style="margin-top:6px">🗺 ${esc(t('on_map'))}</a></p>`;
+    if (pl.kind === 'room') return `<p class="note info" style="margin:6px 0">📍 ${esc(roomName(pl))} · ${esc(t('floor_n', { n: pl.floor }))} · ${esc(t('campus_c1'))}<br><button class="btn ghost small" type="button" data-indoor style="margin-top:6px">🧭 ${esc(t('route_inside'))}</button> ${onMap(e) ? `<a class="btn ghost small" href="#/map?e=${e.id}" style="margin-top:6px">🗺 ${esc(t('on_map'))}</a>` : ''}</p>`;
+    return `<p class="note info" style="margin:6px 0">📍 ${esc(placeName(pl))}${onMap(e) ? `<br><a class="btn ghost small" href="#/map?e=${e.id}" style="margin-top:6px">🗺 ${esc(t('on_map'))}</a>` : `<br><span class="meta">${esc(t('map_after_reg'))}</span>`}</p>`;
   }
   async function shareEvent(e) {
     const url = location.origin + '/#/events?e=' + e.id, text = `${L(e, 'title')} — ${dateLong(e.startsAt)}, ${time(e.startsAt)} · ${L(e, 'location')}`;
@@ -390,12 +393,17 @@
 
   // ---------- Map: city map with routes (all roles) — F22 ----------
   VIEWS.map = async () => {
-    const [list, places] = await Promise.all([api('GET', '/api/events?days=7'), api('GET', '/api/places')]);
+    // The map shows only the events the user is registered for (students) or responsible for (organizer: own club);
+    // the moderator and the administrator see all events. The poster still lists every approved event.
+    const role = S.me.role, mine = role === 'student';
+    const [all, places] = await Promise.all([api('GET', mine ? '/api/me/registrations' : '/api/events?days=7'), api('GET', '/api/places')]);
+    const list = all.filter((e) => new Date(e.endsAt) > new Date() && onMap(e));
     const C = places.campus, campusLL = [C.lat, C.lng], onCampus = list.filter((e) => e.place && e.place.kind === 'room'), inCity = list.filter((e) => e.place && e.place.kind === 'venue');
     if (!S.mapMode) S.mapMode = 'foot';
     const item = (e) => `<li class="mapitem" data-ev="${e.id}"><b>${esc(L(e, 'title'))}</b><br><span class="meta">${esc(dateLong(e.startsAt))}, ${esc(time(e.startsAt))} · ${esc(e.place.kind === 'room' ? roomName(e.place) + ' · ' + t('floor_n', { n: e.place.floor }) : placeName(e.place))}</span>
       <div class="row" style="margin-top:6px"><button class="btn small" data-route="${e.id}">${esc(t('route_here'))}</button>${e.place.kind === 'room' ? `<button class="btn ghost small" data-in="${e.id}">🧭 ${esc(t('route_inside'))}</button>` : ''}<button class="btn ghost small" data-det="${e.id}">${esc(t('details'))}</button></div></li>`;
-    app.innerHTML = `<h1>${esc(t('map_title'))}</h1><p class="sub">${esc(t('map_sub'))}</p>
+    const scope = mine ? t('map_only_mine') : role === 'organizer' ? t('map_only_club') : '';
+    app.innerHTML = `<h1>${esc(t('map_title'))}</h1><p class="sub">${esc(t('map_sub'))}</p>${scope ? `<p class="note info">${esc(scope)}${mine && !list.length ? ` <a href="#/events">${esc(t('map_go_events'))}</a>` : ''}</p>` : ''}
       <div class="maplayout"><aside class="card mapside">
         <div id="tab-events">
           <div class="row" style="margin-top:0"><button class="btn ghost small" id="me">📍 ${esc(t('my_location'))}</button><div class="seg"><button data-mode="foot" aria-pressed="${S.mapMode === 'foot'}">🚶 ${esc(t('walk'))}</button><button data-mode="car" aria-pressed="${S.mapMode === 'car'}">🚗 ${esc(t('car'))}</button></div></div>
@@ -786,7 +794,7 @@
 
   // FR-50 Built-in assistant: a chat panel that asks POST /api/assistant (keywords + CampusPass data, no external AI)
   const Ask = (() => {
-    let open = false, started = false;
+    let open = false, started = false, history = [];
     const btn = document.createElement('button'); btn.className = 'btn askbtn'; btn.type = 'button'; btn.hidden = true;
     const panel = document.createElement('section'); panel.className = 'card askpanel'; panel.hidden = true; panel.setAttribute('role', 'dialog');
     document.body.append(btn, panel);
@@ -794,19 +802,21 @@
       btn.textContent = '💬 ' + t('ask_btn');
       panel.setAttribute('aria-label', t('ask_title'));
       panel.innerHTML = `<header><b>💬 ${esc(t('ask_title'))}</b><button class="btn ghost small" type="button" data-ask-x aria-label="${esc(t('ask_close'))}">✕</button></header>
-        <div class="msgs" aria-live="polite"></div><p class="note">${esc(t('ask_note'))}</p>
+        <div class="msgs" aria-live="polite"></div><p class="note" id="ask-note">${esc(t(S.cfg && S.cfg.ai ? 'ask_note_ai' : 'ask_note'))}</p>
         <form><label class="sr-only" for="ask-q">${esc(t('ask_ph'))}</label><input id="ask-q" maxlength="300" autocomplete="off" placeholder="${esc(t('ask_ph'))}"><button class="btn small" type="submit">${esc(t('ask_send'))}</button></form>`;
       $('[data-ask-x]', panel).addEventListener('click', () => toggle(false));
       $('form', panel).addEventListener('submit', (ev) => { ev.preventDefault(); const i = $('#ask-q', panel); const q = i.value.trim(); if (!q) return; i.value = ''; ask(q); });
-      started = false;
+      started = false; history = [];
+      if (!S.cfg) api('GET', '/api/config').then((c) => { S.cfg = c; const n = $('#ask-note', panel); if (n) n.textContent = t(c.ai ? 'ask_note_ai' : 'ask_note'); }).catch(() => {});
     };
     const add = (html, cls) => { const box = $('.msgs', panel); const d = document.createElement('div'); d.className = 'm ' + cls; d.innerHTML = html; box.append(d); box.scrollTop = box.scrollHeight; return d; };
     async function ask(q) {
       if (q) add(esc(q), 'me');
       const wait = add('…', 'bot');
       try {
-        const a = await api('POST', '/api/assistant', { q, lang: S.lang });
-        wait.innerHTML = esc(a.text) + a.items.map((i) => `<button type="button" class="it" data-ask-${i.kind}="${i.id}">${i.kind === 'event' ? '📅' : '👥'} ${esc(i.title)}<small>${esc(i.sub)}</small></button>`).join('')
+        const a = await api('POST', '/api/assistant', { q, lang: S.lang, history: history.slice(-6) });
+        if (q) history.push({ role: 'user', text: q }, { role: 'assistant', text: a.text });
+        wait.innerHTML = esc(a.text) + (a.mode === 'ai' ? '' : '') + a.items.map((i) => `<button type="button" class="it" data-ask-${i.kind}="${i.id}">${i.kind === 'event' ? '📅' : '👥'} ${esc(i.title)}<small>${esc(i.sub)}</small></button>`).join('')
           + (a.more ? `<small class="meta">${esc(t('ask_more', { n: a.more }))}</small>` : '')
           + (a.chips.length ? `<div class="chips">${a.chips.map((c) => `<button type="button" class="chip" data-ask-chip>${esc(c)}</button>`).join('')}</div>` : '');
         wait.querySelectorAll('[data-ask-chip]').forEach((b) => b.addEventListener('click', () => ask(b.textContent)));

@@ -373,12 +373,15 @@ function createCore(SEED, state) {
       return { status: 200, data, token: NEW_TOKEN };
     } catch (e) { return e instanceof E ? { status: e.s, data: { error: { code: e.c, message: e.message } } } : { status: 500, data: { error: { code: 'server_error', message: 'Something went wrong.' } } }; }
   }
+  let LAST_SNAP = null; // the data the last assistant answer was built from (api.mjs reuses it for the AI answer)
   // FR-50 Built-in assistant (same module as localhost)
   on('POST', '/api/assistant', (b, u) => {
     const text = String((b && b.q) || '').trim();
-    if (text.length > 300) fail(400, 'too_long', 'Please ask in at most 300 characters.');
+    if (text.length > 500) fail(400, 'too_long', 'Please ask in at most 500 characters.');
     const get = (p) => { const x = new URL(p, 'http://assistant'), r = R.find((y) => y.m === 'GET' && y.re.test(x.pathname)); return r.h({}, u, r.re.exec(x.pathname).groups || {}, x.searchParams); };
-    return assistant.answer(text, (b && b.lang) || (u && u.lang) || 'en', assistant.buildSnapshotSync(get, u && u.role), now());
+    const snap = assistant.buildSnapshotSync(get, u && u.role); LAST_SNAP = snap;
+    // api.mjs replaces this with an AI answer when GEMINI_API_KEY is set (the core itself stays synchronous)
+    return { mode: 'builtin', ...assistant.answer(text, (b && b.lang) || (u && u.lang) || 'en', snap, now()) };
   });
   const linkTelegram = (code, chatId) => { const u = D.users.find((x) => x.telegram_code && x.telegram_code === code); if (!u) return null; D.users.forEach((x) => { if (x.telegram_chat_id === chatId) x.telegram_chat_id = null; }); u.telegram_chat_id = chatId; u.telegram_code = null; return u.name; };
   // Data adapter for the Telegram bot (server/bot.js)
@@ -404,6 +407,6 @@ function createCore(SEED, state) {
   }
   // Scheduled run (netlify/functions/reminders.mjs): only the reminders, no request
   const tick = () => { reminders(); };
-  return { handle, linkTelegram, botApi, tick, get state() { return D; } };
+  return { handle, linkTelegram, botApi, tick, get state() { return D; }, get assistantSnap() { return LAST_SNAP; } };
 }
 module.exports = { createCore };
