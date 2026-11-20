@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="intellectual event cover">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b6c73"/><stop offset="1" stop-color="#163f45"/></linearGradient></defs>
+<rect width="1200" height="675" fill="url(#g)"/>
+<circle cx="1050" cy="90" r="220" fill="#d8e8df" opacity=".16"/><circle cx="120" cy="620" r="260" fill="#d8e8df" opacity=".12"/>
+<circle cx="980" cy="560" r="90" fill="none" stroke="#d8e8df" stroke-width="10" opacity=".35"/><circle cx="210" cy="140" r="60" fill="none" stroke="#d8e8df" stroke-width="8" opacity=".3"/>
+<g opacity=".9"><path d="M600 210c-60-40-140-40-180-10v200c40-30 120-30 180 10 60-40 140-40 180-10V200c-40-30-120-30-180 10z" fill="none" stroke="#fffcf5" stroke-width="14" stroke-linejoin="round"/><path d="M600 210v200" stroke="#fffcf5" stroke-width="12"/></g>
+</svg>

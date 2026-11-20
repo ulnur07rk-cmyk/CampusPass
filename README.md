@@ -38,7 +38,7 @@ The IDs are the same as in the SRS (Team06_FP_Report, Section 4 and Appendix F).
 | FR-02 | Poster of approved events for 7 days, filters by day and type, keyword search | `GET /api/events`, Events | AT-02 |
 | FR-03 | Date, time, place, free seats with a bar, waitlist size and coins on every card | Events, event details | AT-02 |
 | FR-09 | Export to Google Calendar, Outlook or .ics; share link | `GET /api/events/:id/ics` | MT-01 |
-| FR-24 | 2GIS city map (OpenStreetMap without a key) and a walking/driving route; location stays in the browser | Map, `GET /api/places`, `public/maps.js` | MT-03 |
+| FR-24 | 2GIS city map (OpenStreetMap without a key) and a walking/driving route; location stays in the browser; a student sees only the events they registered for, an organizer only the own club's events | Map, `GET /api/places`, `public/maps.js` | MT-03 |
 | FR-25 | Route inside the building on the floor plans | “Route inside”, `public/maps.js` | MT-04 |
 
 **4.3 Registration, tickets and waitlist**
@@ -94,7 +94,7 @@ The IDs are the same as in the SRS (Team06_FP_Report, Section 4 and Appendix F).
 | FR-47 | Organizer: club events, participants, check-in by sending the ticket code | `/club`, `/checkin` | AT-21 |
 | FR-48 | Moderator: new events with Approve / Reject, club requests, statistics | `/pending`, `/requests`, `/stats` | AT-21 |
 | FR-49 | Administrator: new complaints with status buttons and answer | `/complaints` | AT-21 |
-| FR-50 | Built-in assistant: answers questions in EN/KK/RU about events, seats, tickets, coins, the merch shop, clubs and rules, from the data the user may see; no external AI service, no key | `server/assistant.js`, `POST /api/assistant`, 💬 Assistant button, free text in the bot | AT-26 |
+| FR-50 | Assistant chat: AI answers (Google Gemini, when `GEMINI_API_KEY` is set) grounded in the data the user may see; without a key, or if the service fails, the built-in assistant answers (EN/KK/RU, keywords + CampusPass data). Name, e-mail and student ID are never sent | `server/assistant.js`, `POST /api/assistant`, 💬 Assistant button, free text in the bot | AT-26, AT-27 |
 
 **4.8 Administration and complaints**
 
@@ -118,6 +118,14 @@ The IDs are the same as in the SRS (Team06_FP_Report, Section 4 and Appendix F).
 | FR-33 | Coins expire on 30 June; expiry date in the Profile (BR-10) | Profile, Merch shop | AT-23 |
 
 **Constraints and interface rules shown in the prototype:** C08 consent at the first sign-in (can be withdrawn in the Profile); C10 no student IDs in staff Telegram messages; UI01 at most six menu sections per role; UI06 confirmation before actions that cannot be undone; NFR-12 contrast ≥ 4.5:1 in the day and night themes (`npm run contrast`). The checks for NFR-01, NFR-04 and NFR-09 run with `npm run nfr`.
+
+## AI chat (optional, free)
+
+1. Open https://aistudio.google.com → **Get API key** (a free key, no payment card).
+2. Put it in `.env` (never commit it): `GEMINI_API_KEY=...` (optional: `GEMINI_MODEL=gemini-2.5-flash`, `AI_MAX_PER_HOUR=30`).
+3. Restart `npm start`. On Netlify add the same variable in *Site configuration → Environment variables* and redeploy.
+
+The assistant then answers free questions with Gemini, using only public event and club data plus the student's own coins and registrations. Name, e-mail and student ID are never sent (C10). Without a key, over the hourly limit, or when the service fails, the built-in assistant answers.
 
 ## Technology stack and why
 - **Node.js 22 with no external packages:** HTTP server (`node:http`), database (`node:sqlite`), password hashing and tokens (`node:crypto`), tests (`node:test`).

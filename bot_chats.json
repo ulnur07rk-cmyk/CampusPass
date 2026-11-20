@@ -1,0 +1,222 @@
+{
+ "student": [
+  {
+   "from": "me",
+   "text": "/start"
+  },
+  {
+   "from": "bot",
+   "text": "👋 Hi! I am the CampusPass bot.\nChoose what you need:",
+   "html": false,
+   "buttons": [
+    [
+     "📅 Today",
+     "🗓 This week"
+    ],
+    [
+     "🌐 Language",
+     "ℹ️ Help"
+    ]
+   ]
+  },
+  {
+   "from": "me",
+   "text": "/start (link code from Profile)"
+  },
+  {
+   "from": "bot",
+   "text": "✅ CampusPass is connected for Kamila Abenova (student). Your menu and commands are ready.",
+   "html": false,
+   "buttons": null
+  },
+  {
+   "from": "bot",
+   "text": "👋 Hi, Kamila Abenova! You are signed in as: student.\nChoose what you need:",
+   "html": false,
+   "buttons": [
+    [
+     "📅 Today",
+     "🗓 This week"
+    ],
+    [
+     "🎟 My tickets",
+     "🪙 Coins"
+    ],
+    [
+     "🌐 Language",
+     "ℹ️ Help"
+    ]
+   ]
+  },
+  {
+   "from": "press",
+   "text": "Open Lab Demo Day"
+  },
+  {
+   "from": "bot",
+   "text": "Open Lab Demo Day\n🕒 Sat, 14 Nov, 08:30–10:30\n📍 Room C1.3.370L (lecture hall)\n👥 GDSC (Google Developer Student Club) · 22 of 30 seats free · +25 coins\n\nShort demos of student projects. Check-in opens one hour before the start.",
+   "html": false,
+   "buttons": [
+    [
+     "✅ Register"
+    ],
+    [
+     "⬅️ Back",
+     "🏠 Menu"
+    ]
+   ]
+  },
+  {
+   "from": "press",
+   "text": "Register"
+  },
+  {
+   "from": "toast",
+   "text": "✅ You are registered. Ticket: CP-838872A208"
+  },
+  {
+   "from": "bot",
+   "text": "Open Lab Demo Day\n🕒 Sat, 14 Nov, 08:30–10:30\n📍 Room C1.3.370L (lecture hall)\n👥 GDSC (Google Developer Student Club) · 21 of 30 seats free · +25 coins\n🎟 Confirmed · ticket CP-838872A208\n\nShort demos of student projects. Check-in opens one hour before the start.",
+   "html": false,
+   "buttons": [
+    [
+     "✖️ Cancel registration"
+    ],
+    [
+     "⬅️ Back",
+     "🏠 Menu"
+    ]
+   ]
+  },
+  {
+   "from": "me",
+   "text": "/coins"
+  },
+  {
+   "from": "bot",
+   "text": "🪙 Campus Coins: 0\n\n🛍 Merch shop: 5% off for 300 coins, 10% off for 700 coins (at most 2 000 ₸). Get a voucher on the website: Profile → Merch shop. Coins expire on 30 Jun 2027.\n\nLast changes:\n",
+   "html": false,
+   "buttons": [
+    [
+     "🏠 Menu"
+    ]
+   ]
+  }
+ ],
+ "organizer": [
+  {
+   "from": "me",
+   "text": "/start (link code from Profile)"
+  },
+  {
+   "from": "bot",
+   "text": "✅ CampusPass is connected for Madina Omarova (organizer). Your menu and commands are ready.",
+   "html": false,
+   "buttons": null
+  },
+  {
+   "from": "bot",
+   "text": "👋 Hi, Madina Omarova! You are signed in as: organizer.\nChoose what you need:",
+   "html": false,
+   "buttons": [
+    [
+     "📋 My club",
+     "✅ Check-in"
+    ],
+    [
+     "📅 Today",
+     "🗓 This week"
+    ],
+    [
+     "🌐 Language",
+     "ℹ️ Help"
+    ]
+   ]
+  },
+  {
+   "from": "me",
+   "text": "/club"
+  },
+  {
+   "from": "bot",
+   "text": "📋 Events of GDSC (Google Developer Student Club)\n\n1. Open Lab Demo Day — ✅ approved\n   🕒 Sat, 14 Nov, 08:30\n   👥 9/30 registered · waitlist 0\n\n2. Campus Hackathon 2026 — ✅ approved\n   🕒 Mon, 16 Nov, 10:00\n   👥 96/120 registered · waitlist 0",
+   "html": false,
+   "buttons": [
+    [
+     "1. Open Lab Demo Day"
+    ],
+    [
+     "2. Campus Hackathon 2026"
+    ],
+    [
+     "🏠 Menu"
+    ]
+   ]
+  },
+  {
+   "from": "me",
+   "text": "CP-838872A208"
+  },
+  {
+   "from": "bot",
+   "text": "✅ Kamila Abenova checked in at “Open Lab Demo Day”. +25 coins.",
+   "html": false,
+   "buttons": null
+  }
+ ],
+ "admin": [
+  {
+   "from": "me",
+   "text": "/start (link code from Profile)"
+  },
+  {
+   "from": "bot",
+   "text": "✅ CampusPass is connected for Daniyar Seitov (IT Administrator) (administrator). Your menu and commands are ready.",
+   "html": false,
+   "buttons": null
+  },
+  {
+   "from": "bot",
+   "text": "👋 Hi, Daniyar Seitov (IT Administrator)! You are signed in as: administrator.\nChoose what you need:",
+   "html": false,
+   "buttons": [
+    [
+     "🚩 Complaints",
+     "🕒 For review"
+    ],
+    [
+     "🙋 Club requests",
+     "📊 Statistics"
+    ],
+    [
+     "📅 Today",
+     "🗓 This week"
+    ],
+    [
+     "🌐 Language",
+     "ℹ️ Help"
+    ]
+   ]
+  },
+  {
+   "from": "me",
+   "text": "/complaints"
+  },
+  {
+   "from": "bot",
+   "text": "🚩 Open complaints (2)\n\n1. #1 · Event: Mafia Night\n   wrong information · new\n   “The poster says 3rd floor, but last week it was on the 2nd floor. Please check the room.”\n\n2. #2 · Club: Board Games\n   other · in review\n   “The club description is very short. It is not clear when the meetings are.”",
+   "html": false,
+   "buttons": [
+    [
+     "1. #1 Mafia Night"
+    ],
+    [
+     "2. #2 Board Games"
+    ],
+    [
+     "🏠 Menu"
+    ]
+   ]
+  }
+ ]
+}
