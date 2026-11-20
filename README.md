@@ -5,7 +5,7 @@ Educational project for the course Business Analysis, Astana IT University. Not 
 CampusPass is the working prototype for the Software Requirements Specification of Team 06 (Business Analysis, 2026–2027).
 Students find events and clubs, register in one tap, get a QR ticket and earn Campus Coins; organizers submit events (in English, Kazakh and Russian) and check participants in; the moderator (Student Affairs) approves events and club requests and sees statistics; the administrator (IT office) edits everything and handles complaints. A Telegram bot shows events, registers students and sends reminders.
 
-- **Demo video:** _add the OneDrive link here_
+- **Demo video:** [Team06_FP_Demo.mp4 on the university OneDrive](https://astanait-my.sharepoint.com/:v:/r/personal/241143_astanait_edu_kz/_layouts/15/stream.aspx?id=%2Fpersonal%2F241143_astanait_edu_kz%2FDocuments%2FTeam06_FP_Demo.mp4&share=cQp4uy0-1iNcS738gBpna1P_EgUCVqnCpAcyC9okBFyDLQk7VQ)
 - **SRS:** Team06_FP_Report.pdf (Moodle)
 - **Product backlog:** https://docs.google.com/spreadsheets/d/1Le3d2LIvsIF1ub6BgNCJ2U6lOVJ0m71tfM_AGOumkUU/edit?usp=sharing (48 user stories, MoSCoW, story points, release, status, links to FR and tests)
 
@@ -144,7 +144,7 @@ cp .env.example .env        # Windows: copy .env.example .env
 npm start                   # opens http://localhost:3000
 ```
 - `npm run reset` — delete the database and create fresh test data (do this before a demo: the demo event starts 30 minutes after the reset).
-- `npm test` — run the 25 automated acceptance tests (AT-01 … AT-24; AT-20 checks that the Netlify version has the same rules, AT-21 the bot for every role).
+- `npm test` — run the 27 automated acceptance tests (AT-01 … AT-27; AT-20 checks that the Netlify version has the same rules, AT-21 the bot for every role).
 - `npm run demo` — build `CampusPass_demo.html`, one file that works without a server (data in the browser).
 - `npm run contrast` — check the colour contrast of both themes (WCAG AA).
 - Administrator → **Administration → Database**: all tables, columns, keys and row counts of the live database (passwords and Telegram data are hidden). ER diagram: `public/diagrams/fig_er_diagram.png`.
@@ -196,7 +196,7 @@ Before each round of usability testing, the administrator can press **Administra
 
 ## Project structure
 ```
-server/   index.js (start), app.js (API and rules), db.js (11 tables, seed), auth.js, rooms.js,
+server/   index.js (start), app.js (API and rules), db.js (12 tables, seed), auth.js, rooms.js,
           bot.js (Telegram bot logic, shared), telegram.js (long polling), seed-data.json
 netlify/  core.js (API rules for Netlify), functions/api.mjs, telegram.mjs (webhook), reminders.mjs (schedule)
 public/   index.html, app.js (screens), i18n.js (EN/KZ/RU), theme.js (day/night), styles.css, maps.js, vendor/qrcode.js
